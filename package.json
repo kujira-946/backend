@@ -4,8 +4,10 @@
   "description": "User microservice for Kujira.",
   "main": "index.ts",
   "scripts": {
-    "test": "test"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
+  "keywords": [],
   "author": "sekkacchi",
   "license": "ISC"
 }
