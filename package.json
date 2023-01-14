@@ -1,0 +1,11 @@
+{
+  "name": "kujira-user-microservice",
+  "version": "0.0.1",
+  "description": "User microservice for Kujira.",
+  "main": "index.ts",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "sekkacchi",
+  "license": "ISC"
+}
