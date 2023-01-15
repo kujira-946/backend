@@ -2,11 +2,11 @@
   "name": "kujira-user-microservice",
   "version": "0.0.1",
   "description": "User microservice for Kujira.",
-  "main": "index.ts",
+  "main": "src/server.ts",
   "scripts": {
     "build": "npx tsc",
-    "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
+    "start": "node dist/server.js",
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/server.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
