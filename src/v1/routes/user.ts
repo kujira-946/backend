@@ -1,15 +1,25 @@
 import express, { Request, Response } from "express";
 
-const app = express();
+export const userRouter_v1 = express.Router();
 
-enum User {
-  FetchAll = "/api/v1/users",
-  FetchOne = "/api/v1/user",
-  Create = "/api/v1/user",
-  Update = "/api/v1/user",
-  Delete = "/api/v1//user",
-}
+userRouter_v1.get("/", (request: Request, response: Response) => {
+  // throw new Error("This is a test error");
+  response.send("Fetch all users");
+});
 
-app.get(User.FetchAll, (request: Request, response: Response) => {
-  response.send("GET all users");
+userRouter_v1.get("/:id", (request: Request, response: Response) => {
+  console.log("Request Params:", request.params);
+  response.send(`Fetch one user with id: ${request.params.id}`);
+});
+
+userRouter_v1.post("/", (request: Request, response: Response) => {
+  response.send("Create new user");
+});
+
+userRouter_v1.patch("/:id", (request: Request, response: Response) => {
+  response.send(`Update user based with id: ${request.params.id}`);
+});
+
+userRouter_v1.delete("/:id", (request: Request, response: Response) => {
+  response.send(`Delete user with id: ${request.params.id}`);
 });
