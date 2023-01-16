@@ -13,14 +13,14 @@ app.get("/", (request: Request, response: Response) => {
   response.send("Express TypeScript Server");
 });
 
-// Middleware for catching errors & sending them as JSON to client.
+// Middleware for globally catching errors & sending them as JSON to client.
 function errorHandler<Error>(
   error: Error,
   request: Request,
   response: Response,
   next: NextFunction
-): ErrorRequestHandler {
-  response.json({ error });
+): ErrorRequestHandler | void {
+  if (error) response.json({ error });
 }
 app.use(errorHandler);
 
