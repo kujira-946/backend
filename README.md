@@ -1,1 +1,1 @@
-User microservice.
+Monolithic backend for Kujira.

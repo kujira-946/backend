@@ -1,7 +1,7 @@
 {
-  "name": "kujira-user-microservice",
+  "name": "kujira-backend",
   "version": "0.0.1",
-  "description": "User microservice for Kujira.",
+  "description": "Monolithic backend for Kujira.",
   "main": "src/server.ts",
   "scripts": {
     "build": "npx tsc",

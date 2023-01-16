@@ -6,7 +6,7 @@ import express, {
 } from "express";
 import dotenv from "dotenv";
 
-import { userRouter_v1 } from "./v1/routes/user";
+import { userRouter_v1 } from "./v1/routes/users";
 
 dotenv.config();
 const app = express();
