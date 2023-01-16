@@ -14,14 +14,14 @@ app.get("/", (request: Request, response: Response) => {
 });
 
 // Middleware for globally catching errors & sending them as JSON to client.
-function errorHandler<Error>(
+const errorHandler: ErrorRequestHandler = <Error>(
   error: Error,
   request: Request,
   response: Response,
   next: NextFunction
-): ErrorRequestHandler | void {
+) => {
   if (error) response.json({ error });
-}
+};
 app.use(errorHandler);
 
 const port = process.env.PORT;
