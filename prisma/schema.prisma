@@ -6,3 +6,142 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id               Int             @id @default(autoincrement())
+  email            String          @unique
+  username         String          @unique
+  password         String
+  firstName        String
+  lastName         String
+  birthday         DateTime
+  currency         String          @default("USD")
+  theme            String          @default("light")
+  mobileNumber     String?
+  totalSavedToDate Float           @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  lastLoggedIn     DateTime
+  // One To One
+  overview         Overview?
+  // Has Many
+  logbooks         Logbook[]
+  logbookReviews   LogbookReview[]
+}
+
+model Overview {
+  id             Int                     @id @default(autoincrement())
+  income         Float?
+  savings        Float?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  // One To One
+  owner          User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        Int                     @unique
+  // Has Many
+  recurringCosts OverviewRecurringCost[]
+  incomingCosts  OverviewIncomingCost[]
+}
+
+model OverviewRecurringCost {
+  id          Int      @id @default(autoincrement())
+  description String
+  cost        Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Belongs To
+  overview    Overview @relation(fields: [overviewId], references: [id], onDelete: Cascade)
+  overviewId  Int
+}
+
+// Prisma currently does not support polymorphic models, so I'm going to have to copy/paste OverviewRecurringCost for now.
+model OverviewIncomingCost {
+  id          Int      @id @default(autoincrement())
+  description String
+  cost        Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Belongs To
+  overview    Overview @relation(fields: [overviewId], references: [id], onDelete: Cascade)
+  overviewId  Int
+}
+
+model Logbook {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  // Has Many
+  logGroups LogGroup[]
+  // Belongs to
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
+}
+
+model LogGroup {
+  id        Int            @id @default(autoincrement())
+  date      DateTime
+  day       String
+  totalCost Float
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  // Has Many
+  items     LogGroupItem[]
+  // Belongs To
+  logbook   Logbook        @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+  logbookId Int
+}
+
+model LogGroupItem {
+  id                          Int            @id @default(autoincrement())
+  placement                   Int
+  cost                        Float
+  category                    String
+  description                 String
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime       @updatedAt
+  // Belongs To
+  logGroup                    LogGroup       @relation(fields: [logGroupId], references: [id], onDelete: Cascade)
+  logGroupId                  Int
+  logbookReviewNeeds          LogbookReview? @relation(fields: [logbookReviewId], references: [id])
+  logbookReviewId             Int?
+  logbookReviewPlannedWants   LogbookReview? @relation(fields: [logbookReviewId], references: [id])
+  logbookReviewId             Int?
+  logbookReviewImpulsiveWants LogbookReview? @relation(fields: [logbookReviewId], references: [id])
+  logbookReviewId             Int?
+  logbookReviewRegrets        LogbookReview? @relation(fields: [logbookReviewId], references: [id])
+  logbookReviewId             Int?
+}
+
+model LogbookReview {
+  id             Int            @id @default(autoincrement())
+  reflection     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  // Has Many
+  needs          LogGroupItem[]
+  plannedWants   LogGroupItem[]
+  impulsiveWants LogGroupItem[]
+  regrets        LogGroupItem[]
+  // Belongs to
+  owner          User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        Int
+}
+
+// ========================================================================================================================
+// ========================================================================================================================
+// ========================================================================================================================
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  title     String   @db.VarChar(255)
+  content   String?
+  published Boolean  @default(false)
+}
+
+model Profile {
+  id  Int     @id @default(autoincrement())
+  bio String?
+}
