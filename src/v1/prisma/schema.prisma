@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Theme {
+  light
+  dark
+}
+
+model User {
+  id                    Int             @id @default(autoincrement())
+  email                 String          @unique
+  username              String          @unique @db.VarChar(16)
+  // password              String
+  firstName             String
+  lastName              String
+  birthday              DateTime
+  currency              String
+  theme                 Theme           @default(light)
+  mobileNumber          String?
+  totalMoneySavedToDate Float           @default(0)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  // One To One
+  overview              Overview?
+  // Has Many
+  logbooks              Logbook[]
+  logbookReviews        LogbookReview[]
+}
+
+model Overview {
+  id             Int                @id @default(autoincrement())
+  income         Float?
+  savings        Float              @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  // One To One
+  owner          User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        Int                @unique
+  // Has Many
+  recurringCosts OverviewCostItem[] @relation(name: "RecurringCosts")
+  incomingCosts  OverviewCostItem[] @relation(name: "IncomingCosts")
+}
+
+model OverviewCostItem {
+  id                      Int       @id @default(autoincrement())
+  description             String
+  cost                    Float
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  // Belongs To
+  overviewRecurringCost   Overview? @relation(name: "RecurringCosts", fields: [overviewRecurringCostId], references: [id], onDelete: Cascade)
+  overviewRecurringCostId Int?
+  overviewIncomingCost    Overview? @relation(name: "IncomingCosts", fields: [overviewIncomingCostId], references: [id], onDelete: Cascade)
+  overviewIncomingCostId  Int?
+}
+
+// A new Logbook is created on the first day of a new month by the client, formatting the `new Date()` value to 
+//   something like "Jan. 2023" and setting that as the value for the `name` field on instantiation.
+// The intent to include the `name` field here is so that users can update it in a future UI redesign that makes
+//   the app more customizable beyond the MVP designs.
+model Logbook {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  // Has Many
+  logGroups LogGroup[]
+  // Belongs to
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
+}
+
+model LogGroup {
+  id        Int                    @id @default(autoincrement())
+  date      DateTime
+  totalCost Float                  @default(0)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  // Has Many
+  items     LogGroupPurchaseItem[]
+  // Belongs To
+  logbook   Logbook                @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+  logbookId Int
+}
+
+enum Category {
+  need
+  want
+}
+
+model LogGroupPurchaseItem {
+  id                            Int            @id @default(autoincrement())
+  placement                     Int
+  cost                          Float
+  category                      Category
+  description                   String
+  createdAt                     DateTime       @default(now())
+  updatedAt                     DateTime       @updatedAt
+  // Belongs To
+  logGroup                      LogGroup       @relation(fields: [logGroupId], references: [id], onDelete: Cascade)
+  logGroupId                    Int
+  LogbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id], onDelete: Cascade)
+  logbookReviewNeedsId          Int?
+  logbookReviewPlannedWants     LogbookReview? @relation(name: "ReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id], onDelete: Cascade)
+  logbookReviewPlannedWantsId   Int?
+  logbookReviewImpulsiveWants   LogbookReview? @relation(name: "ReviewImpulsiveWants", fields: [logbookReviewImpulsiveWantsId], references: [id], onDelete: Cascade)
+  logbookReviewImpulsiveWantsId Int?
+  logbookReviewRegrets          LogbookReview? @relation(name: "ReviewRegrets", fields: [logbookReviewRegretsId], references: [id], onDelete: Cascade)
+  logbookReviewRegretsId        Int?
+}
+
+model LogbookReview {
+  id             Int                    @id @default(autoincrement())
+  reflection     String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  // Has Many
+  needs          LogGroupPurchaseItem[] @relation(name: "ReviewNeeds")
+  plannedWants   LogGroupPurchaseItem[] @relation(name: "ReviewPlannedWants")
+  impulsiveWants LogGroupPurchaseItem[] @relation(name: "ReviewImpulsiveWants")
+  regrets        LogGroupPurchaseItem[] @relation(name: "ReviewRegrets")
+  // Belongs to
+  owner          User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        Int
+}
