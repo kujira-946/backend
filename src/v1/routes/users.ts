@@ -11,7 +11,7 @@ userRouter_v1.get(
   async (request: Request, response: Response, next: NextFunction) => {
     // throw new Error("This is a test error");
     try {
-      const users = await prisma.user.findMany({
+      const users: Types.UserWithRelations[] = await prisma.user.findMany({
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
       response.json(users);
@@ -25,7 +25,7 @@ userRouter_v1.get(
   "/:userId",
   async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const user = await prisma.user.findFirstOrThrow({
+      const user: Types.UserWithRelations = await prisma.user.findFirstOrThrow({
         where: { id: Number(request.params.userId) },
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
@@ -48,7 +48,10 @@ userRouter_v1.post(
         birthday: request.body.birthday,
         currency: request.body.currency,
       };
-      const user = await prisma.user.create({ data: userCreateData });
+      const user: Types.UserWithRelations = await prisma.user.create({
+        data: userCreateData,
+        include: { overview: true, logbooks: true, logbookReviews: true },
+      });
       response.json(user);
     } catch (error) {
       next(error);
@@ -70,9 +73,10 @@ userRouter_v1.patch(
         theme: request.body.theme,
         mobileNumber: request.body.mobileNumber,
       };
-      const user = await prisma.user.update({
+      const user: Types.UserWithRelations = await prisma.user.update({
         where: { id: Number(request.params.userId) },
         data: userPatchData,
+        include: { overview: true, logbooks: true, logbookReviews: true },
       });
       response.json(user);
     } catch (error) {
@@ -88,9 +92,10 @@ userRouter_v1.patch(
       const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
         totalMoneySavedToDate: request.body.totalMoneySavedToDate,
       };
-      const user = await prisma.user.update({
+      const user: Types.UserWithRelations = await prisma.user.update({
         where: { id: Number(request.params.userId) },
         data: totalMoneySavedToDateData,
+        include: { overview: true, logbooks: true, logbookReviews: true },
       });
       response.json(user);
     } catch (error) {
@@ -103,8 +108,9 @@ userRouter_v1.delete(
   "/:userId",
   async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const user = await prisma.user.delete({
+      const user: Types.UserWithRelations = await prisma.user.delete({
         where: { id: Number(request.params.userId) },
+        include: { overview: true, logbooks: true, logbookReviews: true },
       });
       response.json(user);
     } catch (error) {
