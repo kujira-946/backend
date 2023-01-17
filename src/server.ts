@@ -11,6 +11,9 @@ import { userRouter_v1 } from "./v1/routes/users.routes";
 dotenv.config();
 const app = express();
 
+// Allows API to parse incoming JSON payload from the client.
+app.use(express.json());
+
 // Routes
 app.use("/api/v1/users", userRouter_v1);
 

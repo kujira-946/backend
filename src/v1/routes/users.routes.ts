@@ -17,7 +17,7 @@ userRouter_v1.get(
       });
       response.json(users);
     } catch (error) {
-      next(new Error("Error fetching users. Please try again."));
+      next(new Error("Failed to retrieve users. Please refresh the page."));
     }
   }
 );
@@ -33,7 +33,11 @@ userRouter_v1.get(
       });
       response.json(user);
     } catch (error) {
-      next(new Error("Cannot find user. Please try again."));
+      next(
+        new Error(
+          "There was an error in finding the account. Please make sure you've entered the correct information and try again."
+        )
+      );
     }
   }
 );
@@ -59,7 +63,7 @@ userRouter_v1.post(
     } catch (error) {
       next(
         new Error(
-          "There was an error when trying to create your account. Please try again."
+          "There was an error in creating your account. Please make sure all required fields are correctly filled in and try again."
         )
       );
     }
@@ -90,7 +94,7 @@ userRouter_v1.patch(
     } catch (error) {
       next(
         new Error(
-          "There was an error in updating your account. Please try again."
+          "There was an error in updating your account. Please try again. If the problem persists, please reach out to an admin immediately."
         )
       );
     }
@@ -101,6 +105,8 @@ userRouter_v1.patch(
 userRouter_v1.patch(
   "/:userId/totalMoneySavedToDate",
   async (request: Request, response: Response, next: NextFunction) => {
+    // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
+    // TODO : SET UP A CRON JOB TO HANDLE THIS LOGIC.
     try {
       const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
         totalMoneySavedToDate: request.body.totalMoneySavedToDate,
@@ -114,7 +120,7 @@ userRouter_v1.patch(
     } catch (error) {
       next(
         new Error(
-          "There was an error in updating your Total Money Saved To Date. Please refresh the page. If the problem persists, please contact an admin for help."
+          "There was an error in updating your total money saved to date. Please refresh the page. If the problem persists, please reach out to an admin immediately."
         )
       );
     }
@@ -134,7 +140,7 @@ userRouter_v1.delete(
     } catch (error) {
       next(
         new Error(
-          "There was an error in deleting your account. Please refresh the page and try again. If the problem persists, please contact an admin."
+          "There was an error in deleting your account. Please refresh the page and try again."
         )
       );
     }
