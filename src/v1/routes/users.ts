@@ -1,25 +1,81 @@
+import { PrismaClient } from "@prisma/client";
 import express, { Request, Response } from "express";
 
+import * as Types from "../types/users";
+
 export const userRouter_v1 = express.Router();
+const prisma = new PrismaClient();
 
-userRouter_v1.get("/", (request: Request, response: Response) => {
+userRouter_v1.get("/", async (request: Request, response: Response) => {
   // throw new Error("This is a test error");
-  response.send("Fetch all users");
+  const users = await prisma.user.findMany({
+    include: { overview: true, logbooks: true, logbookReviews: true },
+  });
+  response.json(users);
 });
 
-userRouter_v1.get("/:id", (request: Request, response: Response) => {
-  console.log("Request Params:", request.params);
-  response.send(`Fetch one user with id: ${request.params.id}`);
+userRouter_v1.get("/:userId", async (request: Request, response: Response) => {
+  const user = await prisma.user.findFirstOrThrow({
+    where: { id: Number(request.params.userId) },
+    include: { overview: true, logbooks: true, logbookReviews: true },
+  });
+  response.json(user);
 });
 
-userRouter_v1.post("/", (request: Request, response: Response) => {
-  response.send("Create new user");
+userRouter_v1.post("/", async (request: Request, response: Response) => {
+  const userCreateData: Types.UserCreateData = {
+    email: request.body.email,
+    username: request.body.username,
+    firstName: request.body.firstName,
+    lastName: request.body.lastName,
+    birthday: request.body.birthday,
+    currency: request.body.currency,
+  };
+  const user = await prisma.user.create({ data: userCreateData });
+  response.json(user);
 });
 
-userRouter_v1.patch("/:id", (request: Request, response: Response) => {
-  response.send(`Update user based with id: ${request.params.id}`);
-});
+userRouter_v1.patch(
+  "/:userId",
+  async (request: Request, response: Response) => {
+    const userPatchData: Types.UserUpdateData = {
+      email: request.body.email,
+      username: request.body.username,
+      firstName: request.body.firstName,
+      lastName: request.body.lastName,
+      birthday: request.body.birthday,
+      currency: request.body.currency,
+      theme: request.body.theme,
+      mobileNumber: request.body.mobileNumber,
+    };
+    const user = await prisma.user.update({
+      where: { id: Number(request.params.userId) },
+      data: userPatchData,
+    });
+    response.json(user);
+  }
+);
 
-userRouter_v1.delete("/:id", (request: Request, response: Response) => {
-  response.send(`Delete user with id: ${request.params.id}`);
-});
+userRouter_v1.patch(
+  "/:userId/totalMoneySavedToDate",
+  async (request: Request, response: Response) => {
+    const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
+      totalMoneySavedToDate: request.body.totalMoneySavedToDate,
+    };
+    const user = await prisma.user.update({
+      where: { id: Number(request.params.userId) },
+      data: totalMoneySavedToDateData,
+    });
+    response.json(user);
+  }
+);
+
+userRouter_v1.delete(
+  "/:userId",
+  async (request: Request, response: Response) => {
+    const user = await prisma.user.delete({
+      where: { id: Number(request.params.userId) },
+    });
+    response.json(user);
+  }
+);
