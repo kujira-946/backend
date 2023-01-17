@@ -7,21 +7,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Theme {
+  LIGHT
+  DARK
+}
+
 model User {
   id                    Int             @id @default(autoincrement())
   email                 String          @unique
   username              String          @unique @db.VarChar(16)
-  password              String
+  // password              String
   firstName             String
   lastName              String
   birthday              DateTime
   currency              String
-  theme                 String          @default("light")
+  theme                 Theme          @default(LIGHT)
   mobileNumber          String?
   totalMoneySavedToDate Float           @default(0)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
-  lastLoggedIn          DateTime
   // One To One
   overview              Overview?
   // Has Many
