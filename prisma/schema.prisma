@@ -8,8 +8,8 @@ datasource db {
 }
 
 enum Theme {
-  LIGHT
-  DARK
+  light
+  dark
 }
 
 model User {
@@ -21,7 +21,7 @@ model User {
   lastName              String
   birthday              DateTime
   currency              String
-  theme                 Theme          @default(LIGHT)
+  theme                 Theme           @default(light)
   mobileNumber          String?
   totalMoneySavedToDate Float           @default(0)
   createdAt             DateTime        @default(now())
@@ -90,8 +90,8 @@ model LogGroup {
 }
 
 enum Category {
-  NEED
-  WANT
+  need
+  want
 }
 
 model LogGroupPurchaseItem {
