@@ -6,6 +6,7 @@ import * as Types from "../types/users";
 export const userRouter_v1 = express.Router();
 const prisma = new PrismaClient();
 
+// Fetch all users
 userRouter_v1.get(
   "/",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -16,11 +17,12 @@ userRouter_v1.get(
       });
       response.json(users);
     } catch (error) {
-      next(error);
+      next(new Error("Error fetching users. Please try again."));
     }
   }
 );
 
+// Fetch one user
 userRouter_v1.get(
   "/:userId",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -31,11 +33,12 @@ userRouter_v1.get(
       });
       response.json(user);
     } catch (error) {
-      next(error);
+      next(new Error("Cannot find user. Please try again."));
     }
   }
 );
 
+// Create a  user
 userRouter_v1.post(
   "/",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -54,11 +57,16 @@ userRouter_v1.post(
       });
       response.json(user);
     } catch (error) {
-      next(error);
+      next(
+        new Error(
+          "There was an error when trying to create your account. Please try again."
+        )
+      );
     }
   }
 );
 
+// Update a user
 userRouter_v1.patch(
   "/:userId",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -80,11 +88,16 @@ userRouter_v1.patch(
       });
       response.json(user);
     } catch (error) {
-      next(error);
+      next(
+        new Error(
+          "There was an error in updating your account. Please try again."
+        )
+      );
     }
   }
 );
 
+// Update only an existing user's `totalMoneySavedToDate` field
 userRouter_v1.patch(
   "/:userId/totalMoneySavedToDate",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -99,11 +112,16 @@ userRouter_v1.patch(
       });
       response.json(user);
     } catch (error) {
-      next(error);
+      next(
+        new Error(
+          "There was an error in updating your Total Money Saved To Date. Please refresh the page. If the problem persists, please contact an admin for help."
+        )
+      );
     }
   }
 );
 
+// Delete a user
 userRouter_v1.delete(
   "/:userId",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -114,7 +132,11 @@ userRouter_v1.delete(
       });
       response.json(user);
     } catch (error) {
-      next(error);
+      next(
+        new Error(
+          "There was an error in deleting your account. Please refresh the page and try again. If the problem persists, please contact an admin."
+        )
+      );
     }
   }
 );
