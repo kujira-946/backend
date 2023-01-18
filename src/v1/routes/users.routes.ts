@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import express, { NextFunction, Request, Response } from "express";
 
 import * as Types from "../types/users.types";
+import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const userRouter_v1 = express.Router();
 const prisma = new PrismaClient();
@@ -15,9 +16,13 @@ userRouter_v1.get(
       const users: Types.UserWithRelations[] = await prisma.user.findMany({
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.json(users);
+      response.status(HttpStatusCodes.OK).json(users);
     } catch (error) {
-      next(new Error("Failed to retrieve users. Please refresh the page."));
+      response
+        .status(HttpStatusCodes.NOT_FOUND)
+        .json({
+          error: "Failed to retrieve accounts. Please refresh the page.",
+        });
     }
   }
 );
@@ -31,13 +36,12 @@ userRouter_v1.get(
         where: { id: Number(request.params.userId) },
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.json(user);
+      response.status(HttpStatusCodes.OK).json(user);
     } catch (error) {
-      next(
-        new Error(
-          "There was an error in finding the account. Please make sure you've entered the correct information and try again."
-        )
-      );
+      response.status(HttpStatusCodes.NOT_FOUND).json({
+        error:
+          "Failed to find account. Please make sure you've entered the correct information and try again.",
+      });
     }
   }
 );
@@ -60,13 +64,12 @@ userRouter_v1.post(
         data: userCreateData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.json(user);
+      response.status(HttpStatusCodes.CREATED).json(user);
     } catch (error) {
-      next(
-        new Error(
-          "There was an error in creating your account. Please make sure all required fields are correctly filled in and try again."
-        )
-      );
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to create account. Please make sure all required fields are correctly filled in and try again.",
+      });
     }
   }
 );
@@ -92,13 +95,12 @@ userRouter_v1.patch(
         data: userPatchData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.json(user);
+      response.status(HttpStatusCodes.OK).json(user);
     } catch (error) {
-      next(
-        new Error(
-          "There was an error in updating your account. Please try again. If the problem persists, please reach out to an admin immediately."
-        )
-      );
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
+      });
     }
   }
 );
@@ -118,13 +120,12 @@ userRouter_v1.patch(
         data: totalMoneySavedToDateData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.json(user);
+      response.status(HttpStatusCodes.OK).json(user);
     } catch (error) {
-      next(
-        new Error(
-          "There was an error in updating your total money saved to date. Please refresh the page. If the problem persists, please reach out to an admin immediately."
-        )
-      );
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to update your total money saved to date. Please refresh the page.",
+      });
     }
   }
 );
@@ -138,13 +139,12 @@ userRouter_v1.delete(
         where: { id: Number(request.params.userId) },
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.json(user);
+      response.status(HttpStatusCodes.NO_CONTENT).json(user);
     } catch (error) {
-      next(
-        new Error(
-          "There was an error in deleting your account. Please refresh the page and try again."
-        )
-      );
+      response.status(HttpStatusCodes.NOT_FOUND).json({
+        error:
+          "Failed to delete account. Please refresh the page and try again.",
+      });
     }
   }
 );
