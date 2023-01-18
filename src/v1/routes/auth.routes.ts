@@ -64,10 +64,10 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
 
     if (passwordsMatch) {
       const token = jwt.sign(
-        { _id: user.id.toString(), name: user.username },
+        { _id: user.id.toString(), username: user.username },
         "supersecretkey",
         {
-          expiresIn: "2 days",
+          expiresIn: "7 days",
         }
       );
       const userWithoutPassword = excludeFieldFromUserObject(user, [
