@@ -1,5 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 
+import { HttpStatusCodes } from "../../utils/http-status-codes";
+
 export const authRouter_v1 = express.Router();
 
 authRouter_v1.post(
@@ -7,11 +9,10 @@ authRouter_v1.post(
   async (request: Request, response: Response, next: NextFunction) => {
     try {
     } catch (error) {
-      next(
-        new Error(
-          "There was an error in registering your account. Please make sure all fields are properly filled in and try again."
-        )
-      );
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to register. Please make sure all fields are properly filled in and try again.",
+      });
     }
   }
 );
@@ -21,11 +22,10 @@ authRouter_v1.post(
   async (request: Request, response: Response, next: NextFunction) => {
     try {
     } catch (error) {
-      next(
-        new Error(
-          "Login attempt failed. Please make sure all fields are properly filled in and try again."
-        )
-      );
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to log in. Please make sure all fields are properly filled in and try again.",
+      });
     }
   }
 );
@@ -35,9 +35,9 @@ authRouter_v1.post(
   async (request: Request, response: Response, next: NextFunction) => {
     try {
     } catch (error) {
-      next(
-        new Error("Failed to log out. Please refresh the page and try again.")
-      );
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "Failed to log out. Please refresh the page and try again.",
+      });
     }
   }
 );
