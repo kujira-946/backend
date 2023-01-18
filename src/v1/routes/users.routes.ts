@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Request, Response } from "express";
+import bcrypt from "bcrypt";
 
 import * as Types from "../types/users.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
@@ -43,10 +44,9 @@ userRouter_v1.patch(
   "/:userId",
   async (request: Request, response: Response) => {
     try {
-      const userPatchData: Types.UserUpdateData = {
+      const userUpdate: Types.UserUpdateData = {
         email: request.body.email,
         username: request.body.username,
-        password: request.body.password,
         firstName: request.body.firstName,
         lastName: request.body.lastName,
         birthday: request.body.birthday,
@@ -57,7 +57,7 @@ userRouter_v1.patch(
 
       const user: Types.UserWithRelations = await prisma.user.update({
         where: { id: Number(request.params.userId) },
-        data: userPatchData,
+        data: userUpdate,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
       response.status(HttpStatusCodes.OK).json(user);
@@ -65,6 +65,48 @@ userRouter_v1.patch(
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
           "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
+      });
+    }
+  }
+);
+
+//; Update user password
+userRouter_v1.patch(
+  "/:userId/updatePassword",
+  async (request: Request, response: Response) => {
+    try {
+      const userWithOldPassword = await prisma.user.findFirstOrThrow({
+        where: { id: Number(request.params.userId) },
+      });
+      const oldPasswordsMatch = bcrypt.compareSync(
+        request.body.oldPassword,
+        userWithOldPassword.password
+      );
+      if (oldPasswordsMatch) {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(
+          request.body.newPassword,
+          saltRounds
+        );
+        const userUpdatePasswordData: Types.UserUpdatePasswordData = {
+          password: hashedPassword,
+        };
+        const user: Types.UserWithRelations = await prisma.user.update({
+          where: { id: Number(request.params.userId) },
+          data: userUpdatePasswordData,
+          include: { overview: true, logbooks: true, logbookReviews: true },
+        });
+        response.status(HttpStatusCodes.OK).json(user);
+      } else {
+        response.status(HttpStatusCodes.BAD_REQUEST).json({
+          error:
+            "Incorrect old password. Please enter the correct password and try again.",
+        });
+      }
+    } catch (error) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
       });
     }
   }
@@ -80,7 +122,7 @@ userRouter_v1.patch(
       const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
         totalMoneySavedToDate: request.body.totalMoneySavedToDate,
       };
-      
+
       const user: Types.UserWithRelations = await prisma.user.update({
         where: { id: Number(request.params.userId) },
         data: totalMoneySavedToDateData,

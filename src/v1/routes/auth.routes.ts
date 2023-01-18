@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 import * as UserTypes from "../types/users.types";
 import { UserRegistrationData } from "../types/auth.types";
@@ -52,14 +53,20 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
         username: request.body.username,
       },
     });
-
-    const passwordsMatch = await bcrypt.compareSync(
+    const passwordsMatch = bcrypt.compareSync(
       request.body.password,
       user.password
     );
 
     if (passwordsMatch) {
-      response.status(HttpStatusCodes.OK).json(user);
+      const token = jwt.sign(
+        { _id: user.id.toString(), name: user.username },
+        "supersecretkey",
+        {
+          expiresIn: "2 days",
+        }
+      );
+      response.status(HttpStatusCodes.OK).json({ user, token });
     } else {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
