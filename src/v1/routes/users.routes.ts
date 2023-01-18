@@ -38,32 +38,6 @@ userRouter_v1.get("/:userId", async (request: Request, response: Response) => {
   }
 });
 
-// Create a user
-userRouter_v1.post("/", async (request: Request, response: Response) => {
-  try {
-    const userCreateData: Types.UserCreateData = {
-      email: request.body.email,
-      username: request.body.username,
-      password: request.body.password,
-      firstName: request.body.firstName,
-      lastName: request.body.lastName,
-      birthday: request.body.birthday,
-      currency: request.body.currency,
-    };
-
-    const user: Types.UserWithRelations = await prisma.user.create({
-      data: userCreateData,
-      include: { overview: true, logbooks: true, logbookReviews: true },
-    });
-    response.status(HttpStatusCodes.CREATED).json(user);
-  } catch (error) {
-    response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "Failed to create account. Please make sure all required fields are correctly filled in and try again.",
-    });
-  }
-});
-
 // Update a user
 userRouter_v1.patch(
   "/:userId",
