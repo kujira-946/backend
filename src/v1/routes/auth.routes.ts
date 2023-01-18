@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
 import * as UserTypes from "../types/users.types";
+import { UserRegistrationData } from "../types/auth.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const authRouter_v1 = express.Router();
@@ -19,7 +20,7 @@ authRouter_v1.post(
         saltRounds
       );
 
-      const userCreateData: UserTypes.UserCreateData = {
+      const userRegistrationData: UserRegistrationData = {
         email: request.body.email,
         username: request.body.username,
         password: hashedPassword,
@@ -30,7 +31,7 @@ authRouter_v1.post(
       };
 
       const user: UserTypes.UserWithRelations = await prisma.user.create({
-        data: userCreateData,
+        data: userRegistrationData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
       response.status(HttpStatusCodes.CREATED).json(user);
