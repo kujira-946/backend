@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+import * as Middlewares from "../middlewares/auth.middlewares";
 import * as UserTypes from "../types/users.types";
 import { UserRegistrationData } from "../types/auth.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
@@ -65,7 +66,7 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
     if (passwordsMatch) {
       const token = jwt.sign(
         { _id: user.id.toString(), username: user.username },
-        "supersecretkey",
+        Middlewares.SECRET_KEY,
         {
           expiresIn: "7 days",
         }
@@ -73,28 +74,18 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
       const userWithoutPassword = excludeFieldFromUserObject(user, [
         "password",
       ]);
-      response.status(HttpStatusCodes.OK).json({ userWithoutPassword, token });
+      response
+        .status(HttpStatusCodes.OK)
+        .json({ user: userWithoutPassword, token });
     } else {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Incorrect password. Please try again.",
+        error: "Incorrect password. Please try again.",
       });
     }
   } catch (error) {
     response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
         "Failed to log in. Please make sure all required fields are correctly filled in and try again.",
-    });
-  }
-});
-
-// Log out a user
-authRouter_v1.post("/logout", async (request: Request, response: Response) => {
-  try {
-    response.status(HttpStatusCodes.OK).json("foo");
-  } catch (error) {
-    response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error: "Failed to log out. Please refresh the page and try again.",
     });
   }
 });
