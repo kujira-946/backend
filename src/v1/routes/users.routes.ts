@@ -46,7 +46,7 @@ userRouter_v1.get(
   }
 );
 
-// Create a  user
+// Create a user
 userRouter_v1.post(
   "/",
   async (request: Request, response: Response, next: NextFunction) => {
