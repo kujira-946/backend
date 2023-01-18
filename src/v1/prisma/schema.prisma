@@ -16,7 +16,7 @@ model User {
   id                    Int             @id @default(autoincrement())
   email                 String          @unique
   username              String          @unique @db.VarChar(16)
-  // password              String
+  password              String
   firstName             String
   lastName              String
   birthday              DateTime

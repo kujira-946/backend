@@ -50,6 +50,7 @@ userRouter_v1.post(
       const userCreateData: Types.UserCreateData = {
         email: request.body.email,
         username: request.body.username,
+        password: request.body.password,
         firstName: request.body.firstName,
         lastName: request.body.lastName,
         birthday: request.body.birthday,
@@ -78,6 +79,7 @@ userRouter_v1.patch(
       const userPatchData: Types.UserUpdateData = {
         email: request.body.email,
         username: request.body.username,
+        password: request.body.password,
         firstName: request.body.firstName,
         lastName: request.body.lastName,
         birthday: request.body.birthday,

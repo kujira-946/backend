@@ -31,5 +31,7 @@ app.use(globalErrorHandlerMiddleware);
 // Listening
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
-  console.log(`Success! Server is running at https://localhost:${serverPort}`);
+  console.log(
+    `🚀 Success! Server is running at https://localhost:${serverPort}`
+  );
 });

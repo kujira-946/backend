@@ -6,6 +6,7 @@ const userCreateData = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
     username: true,
+    password: true,
     firstName: true,
     lastName: true,
     birthday: true,
@@ -18,6 +19,7 @@ const userUpdateData = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
     username: true,
+    password: true,
     firstName: true,
     lastName: true,
     birthday: true,
