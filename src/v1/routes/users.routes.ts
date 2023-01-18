@@ -3,7 +3,7 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
 import * as Types from "../types/users.types";
-import { excludeFieldFromUserObject } from "../helpers/users.helpers";
+import * as Helpers from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const userRouter_v1 = express.Router();
@@ -11,12 +11,14 @@ const prisma = new PrismaClient();
 
 // Fetch all users
 userRouter_v1.get("/", async (request: Request, response: Response) => {
-  // throw new Error("This is a test error");
   try {
     const users: Types.UserWithRelations[] = await prisma.user.findMany({
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    response.status(HttpStatusCodes.OK).json(users);
+    const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
+      "password",
+    ]);
+    response.status(HttpStatusCodes.OK).json(usersWithoutPassword);
   } catch (error) {
     response.status(HttpStatusCodes.NOT_FOUND).json({
       error: "Failed to retrieve accounts. Please refresh the page.",
@@ -31,7 +33,9 @@ userRouter_v1.get("/:userId", async (request: Request, response: Response) => {
       where: { id: Number(request.params.userId) },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
+    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
+      "password",
+    ]);
     response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
     response.status(HttpStatusCodes.NOT_FOUND).json({
@@ -62,7 +66,7 @@ userRouter_v1.patch(
         data: userUpdate,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      const userWithoutPassword = excludeFieldFromUserObject(user, [
+      const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
         "password",
       ]);
       response.status(HttpStatusCodes.OK).json(userWithoutPassword);
@@ -101,14 +105,13 @@ userRouter_v1.patch(
           data: userUpdatePasswordData,
           include: { overview: true, logbooks: true, logbookReviews: true },
         });
-        const userWithoutPassword = excludeFieldFromUserObject(user, [
+        const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
           "password",
         ]);
         response.status(HttpStatusCodes.OK).json(userWithoutPassword);
       } else {
         response.status(HttpStatusCodes.BAD_REQUEST).json({
-          error:
-            "Incorrect old password. Please enter the correct password and try again.",
+          error: "Incorrect old password. Please try again.",
         });
       }
     } catch (error) {
@@ -136,7 +139,7 @@ userRouter_v1.patch(
         data: totalMoneySavedToDateData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      const userWithoutPassword = excludeFieldFromUserObject(user, [
+      const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
         "password",
       ]);
       response.status(HttpStatusCodes.OK).json(userWithoutPassword);

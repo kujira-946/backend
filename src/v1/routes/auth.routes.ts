@@ -77,7 +77,7 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
     } else {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
-          "Incorrect password. Please enter the correct password and try again.",
+          "Incorrect password. Please try again.",
       });
     }
   } catch (error) {
