@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
 import * as Types from "../types/users.types";
+import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const userRouter_v1 = express.Router();
@@ -30,7 +31,8 @@ userRouter_v1.get("/:userId", async (request: Request, response: Response) => {
       where: { id: Number(request.params.userId) },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    response.status(HttpStatusCodes.OK).json(user);
+    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
+    response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
     response.status(HttpStatusCodes.NOT_FOUND).json({
       error:
@@ -60,7 +62,10 @@ userRouter_v1.patch(
         data: userUpdate,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.status(HttpStatusCodes.OK).json(user);
+      const userWithoutPassword = excludeFieldFromUserObject(user, [
+        "password",
+      ]);
+      response.status(HttpStatusCodes.OK).json(userWithoutPassword);
     } catch (error) {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
@@ -96,7 +101,10 @@ userRouter_v1.patch(
           data: userUpdatePasswordData,
           include: { overview: true, logbooks: true, logbookReviews: true },
         });
-        response.status(HttpStatusCodes.OK).json(user);
+        const userWithoutPassword = excludeFieldFromUserObject(user, [
+          "password",
+        ]);
+        response.status(HttpStatusCodes.OK).json(userWithoutPassword);
       } else {
         response.status(HttpStatusCodes.BAD_REQUEST).json({
           error:
@@ -128,7 +136,10 @@ userRouter_v1.patch(
         data: totalMoneySavedToDateData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.status(HttpStatusCodes.OK).json(user);
+      const userWithoutPassword = excludeFieldFromUserObject(user, [
+        "password",
+      ]);
+      response.status(HttpStatusCodes.OK).json(userWithoutPassword);
     } catch (error) {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
@@ -143,11 +154,12 @@ userRouter_v1.delete(
   "/:userId",
   async (request: Request, response: Response) => {
     try {
-      const user: Types.UserWithRelations = await prisma.user.delete({
+      await prisma.user.delete({
         where: { id: Number(request.params.userId) },
-        include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.status(HttpStatusCodes.NO_CONTENT).json(user);
+      response
+        .status(HttpStatusCodes.OK)
+        .json({ message: "Account successfully deleted." });
     } catch (error) {
       response.status(HttpStatusCodes.NOT_FOUND).json({
         error:

@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 
 import * as UserTypes from "../types/users.types";
 import { UserRegistrationData } from "../types/auth.types";
+import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const authRouter_v1 = express.Router();
@@ -35,7 +36,10 @@ authRouter_v1.post(
         data: userRegistrationData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
-      response.status(HttpStatusCodes.CREATED).json(user);
+      const userWithoutPassword = excludeFieldFromUserObject(user, [
+        "password",
+      ]);
+      response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
     } catch (error) {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
@@ -66,7 +70,10 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
           expiresIn: "2 days",
         }
       );
-      response.status(HttpStatusCodes.OK).json({ user, token });
+      const userWithoutPassword = excludeFieldFromUserObject(user, [
+        "password",
+      ]);
+      response.status(HttpStatusCodes.OK).json({ userWithoutPassword, token });
     } else {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error:
