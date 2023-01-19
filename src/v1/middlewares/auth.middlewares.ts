@@ -1,12 +1,10 @@
-import jwt, { JwtPayload, Secret } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
-export const SECRET_KEY: Secret = "supersecretkey";
-
-type RequestWithToken = {
-  token: string | JwtPayload;
+type RequestWithAccessToken = {
+  accessToken: string | JwtPayload;
 } & Request;
 
 export async function authenticateAccessWithJWT(
@@ -15,12 +13,15 @@ export async function authenticateAccessWithJWT(
   next: NextFunction
 ) {
   try {
-    const token = request.header("Authorization")?.replace("Bearer ", "");
-    if (!token) {
-      next(new Error("No token."));
+    const accessToken = request.header("Authorization")?.replace("Bearer ", "");
+    const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
+    if (!accessToken) {
+      next(new Error("No access token."));
+    } else if (!accessTokenSecretKey) {
+      next(new Error("No key."));
     } else {
-      const decodedToken = jwt.verify(token, SECRET_KEY);
-      (request as RequestWithToken).token = decodedToken;
+      const decodedToken = jwt.verify(accessToken, accessTokenSecretKey);
+      (request as RequestWithAccessToken).accessToken = decodedToken;
       next();
     }
   } catch (error) {

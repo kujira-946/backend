@@ -62,11 +62,15 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
       request.body.password,
       user.password
     );
-
-    if (passwordsMatch) {
-      const token = jwt.sign(
+    const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
+    if (!accessTokenSecretKey) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "No key.",
+      });
+    } else if (passwordsMatch) {
+      const accessToken = jwt.sign(
         { _id: user.id.toString(), username: user.username },
-        Middlewares.SECRET_KEY,
+        accessTokenSecretKey,
         {
           expiresIn: "7 days",
         }
@@ -76,7 +80,7 @@ authRouter_v1.post("/login", async (request: Request, response: Response) => {
       ]);
       response
         .status(HttpStatusCodes.OK)
-        .json({ user: userWithoutPassword, token });
+        .json({ user: userWithoutPassword, accessToken });
     } else {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
         error: "Incorrect password. Please try again.",
