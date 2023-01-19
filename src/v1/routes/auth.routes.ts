@@ -4,9 +4,15 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import * as UserTypes from "../types/users.types";
-import { UserRegistrationData } from "../types/auth.types";
-import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
+import { UserRegistrationData } from "../types/auth.types";
+import {
+  RequestWithUser,
+  checkEmailDuringRegistration,
+  checkUsernameDuringLogin,
+  checkUsernameDuringRegistration,
+} from "../middlewares/auth.middlewares";
+import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 
 export const authRouter_v1 = express.Router();
 const prisma = new PrismaClient();
@@ -14,6 +20,8 @@ const prisma = new PrismaClient();
 // Register (create) a user
 authRouter_v1.post(
   "/register",
+  checkEmailDuringRegistration,
+  checkUsernameDuringRegistration,
   async (request: Request, response: Response) => {
     try {
       const saltRounds = 10;
@@ -50,59 +58,47 @@ authRouter_v1.post(
 );
 
 // Log in a user
-authRouter_v1.post("/login", async (request: Request, response: Response) => {
-  try {
-    await prisma.user
-      .findFirstOrThrow({
-        where: {
-          username: request.body.username,
-        },
-      })
-      .then((user: UserTypes.User) => {
-        // If user is found, do the following:
-        //    1. If there is no secret key, give a vague reason as to why login didn't work.
-        //    2. If the user inputted the correct password, log them in with a new JWT access token.
-        //    3. If the user inputted the incorrect password, send them a 400 error.
-        const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
-        const passwordsMatch = bcrypt.compareSync(
-          request.body.password,
-          user.password
-        );
+authRouter_v1.post(
+  "/login",
+  checkUsernameDuringLogin,
+  async (request: Request, response: Response) => {
+    try {
+      const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
+      const passwordsMatch = bcrypt.compareSync(
+        request.body.password,
+        (request as RequestWithUser).existingUser.password
+      );
 
-        if (!accessTokenSecretKey) {
-          response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error: "Something went wrong.",
-          });
-        } else if (passwordsMatch) {
-          const accessToken = jwt.sign(
-            { _id: user.id.toString(), username: user.username },
-            accessTokenSecretKey,
-            {
-              expiresIn: request.body.thirtyDays ? "30 days" : "7 days",
-            }
-          );
-          const userWithoutPassword = excludeFieldFromUserObject(user, [
-            "password",
-          ]);
-          response
-            .status(HttpStatusCodes.OK)
-            .json({ user: userWithoutPassword, accessToken });
-        } else {
-          response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error: "Incorrect password. Please try again.",
-          });
-        }
-      })
-      .catch((error: Error) => {
-        response.status(HttpStatusCodes.NOT_FOUND).json({
-          error:
-            "An account with that username does not exist. Please try again.",
+      if (!accessTokenSecretKey) {
+        response.status(HttpStatusCodes.BAD_REQUEST).json({
+          error: "Something went wrong.",
         });
+      } else if (passwordsMatch) {
+        const accessToken = jwt.sign(
+          {
+            _id: (request as RequestWithUser).existingUser.id.toString(),
+            username: (request as RequestWithUser).existingUser.username,
+          },
+          accessTokenSecretKey,
+          { expiresIn: request.body.thirtyDays ? "30 days" : "7 days" }
+        );
+        const userWithoutPassword = excludeFieldFromUserObject(
+          (request as RequestWithUser).existingUser,
+          ["password"]
+        );
+        response
+          .status(HttpStatusCodes.OK)
+          .json({ user: userWithoutPassword, accessToken });
+      } else {
+        response.status(HttpStatusCodes.BAD_REQUEST).json({
+          error: "Incorrect password. Please try again.",
+        });
+      }
+    } catch (error) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "Failed to log in. Please make sure all required fields are correctly filled in and try again.",
       });
-  } catch (error) {
-    response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "Failed to log in. Please make sure all required fields are correctly filled in and try again.",
-    });
+    }
   }
-});
+);
