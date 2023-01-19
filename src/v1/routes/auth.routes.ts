@@ -3,7 +3,6 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import * as Middlewares from "../middlewares/auth.middlewares";
 import * as UserTypes from "../types/users.types";
 import { UserRegistrationData } from "../types/auth.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
@@ -53,39 +52,53 @@ authRouter_v1.post(
 // Log in a user
 authRouter_v1.post("/login", async (request: Request, response: Response) => {
   try {
-    const user = await prisma.user.findFirstOrThrow({
-      where: {
-        username: request.body.username,
-      },
-    });
-    const passwordsMatch = bcrypt.compareSync(
-      request.body.password,
-      user.password
-    );
-    const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
-    if (!accessTokenSecretKey) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: "No key.",
-      });
-    } else if (passwordsMatch) {
-      const accessToken = jwt.sign(
-        { _id: user.id.toString(), username: user.username },
-        accessTokenSecretKey,
-        {
-          expiresIn: "7 days",
+    await prisma.user
+      .findFirstOrThrow({
+        where: {
+          username: request.body.username,
+        },
+      })
+      .then((user: UserTypes.User) => {
+        // If user is found, do the following:
+        //    1. If there is no secret key, give a vague reason as to why login didn't work.
+        //    2. If the user inputted the correct password, log them in with a new JWT access token.
+        //    3. If the user inputted the incorrect password, send them a 400 error.
+        const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
+        const passwordsMatch = bcrypt.compareSync(
+          request.body.password,
+          user.password
+        );
+
+        if (!accessTokenSecretKey) {
+          response.status(HttpStatusCodes.BAD_REQUEST).json({
+            error: "Something went wrong.",
+          });
+        } else if (passwordsMatch) {
+          const accessToken = jwt.sign(
+            { _id: user.id.toString(), username: user.username },
+            accessTokenSecretKey,
+            {
+              expiresIn: request.body.thirtyDays ? "30 days" : "7 days",
+            }
+          );
+          const userWithoutPassword = excludeFieldFromUserObject(user, [
+            "password",
+          ]);
+          response
+            .status(HttpStatusCodes.OK)
+            .json({ user: userWithoutPassword, accessToken });
+        } else {
+          response.status(HttpStatusCodes.BAD_REQUEST).json({
+            error: "Incorrect password. Please try again.",
+          });
         }
-      );
-      const userWithoutPassword = excludeFieldFromUserObject(user, [
-        "password",
-      ]);
-      response
-        .status(HttpStatusCodes.OK)
-        .json({ user: userWithoutPassword, accessToken });
-    } else {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: "Incorrect password. Please try again.",
+      })
+      .catch((error: Error) => {
+        response.status(HttpStatusCodes.NOT_FOUND).json({
+          error:
+            "An account with that username does not exist. Please try again.",
+        });
       });
-    }
   } catch (error) {
     response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
