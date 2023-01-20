@@ -9,7 +9,7 @@ import { HttpStatusCodes } from "../../utils/http-status-codes";
 export const userRouter_v1 = express.Router();
 const prisma = new PrismaClient();
 
-// Fetch all users
+// ↓↓↓ Fetch all users ↓↓↓
 userRouter_v1.get("/", async (request: Request, response: Response) => {
   try {
     const users: Types.UserWithRelations[] = await prisma.user.findMany({
@@ -26,11 +26,11 @@ userRouter_v1.get("/", async (request: Request, response: Response) => {
   }
 });
 
-// Fetch one user
-userRouter_v1.get("/:id", async (request: Request, response: Response) => {
+// ↓↓↓ Fetch one user ↓↓↓
+userRouter_v1.get("/userId", async (request: Request, response: Response) => {
   try {
     const user: Types.UserWithRelations = await prisma.user.findFirstOrThrow({
-      where: { id: Number(request.params.id) },
+      where: { id: Number(request.params.userId) },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
@@ -45,8 +45,8 @@ userRouter_v1.get("/:id", async (request: Request, response: Response) => {
   }
 });
 
-// Update a user
-userRouter_v1.patch("/:id", async (request: Request, response: Response) => {
+// ↓↓↓ Update a user ↓↓↓
+userRouter_v1.patch("/userId", async (request: Request, response: Response) => {
   try {
     const userUpdate: Types.UserUpdateData = {
       email: request.body.email,
@@ -60,7 +60,7 @@ userRouter_v1.patch("/:id", async (request: Request, response: Response) => {
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { id: Number(request.params.id) },
+      where: { id: Number(request.params.userId) },
       data: userUpdate,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
@@ -76,13 +76,13 @@ userRouter_v1.patch("/:id", async (request: Request, response: Response) => {
   }
 });
 
-//; Update user password
+// ↓↓↓ Update user password ↓↓↓
 userRouter_v1.patch(
-  "/:id/updatePassword",
+  "/userId/updatePassword",
   async (request: Request, response: Response) => {
     try {
       const userWithOldPassword = await prisma.user.findFirstOrThrow({
-        where: { id: Number(request.params.id) },
+        where: { id: Number(request.params.userId) },
       });
       const oldPasswordsMatch = bcrypt.compareSync(
         request.body.oldPassword,
@@ -98,7 +98,7 @@ userRouter_v1.patch(
           password: hashedPassword,
         };
         const user: Types.UserWithRelations = await prisma.user.update({
-          where: { id: Number(request.params.id) },
+          where: { id: Number(request.params.userId) },
           data: userUpdatePasswordData,
           include: { overview: true, logbooks: true, logbookReviews: true },
         });
@@ -120,9 +120,9 @@ userRouter_v1.patch(
   }
 );
 
-// Update only an existing user's `totalMoneySavedToDate` field
+// ↓↓↓ Update only an existing user's `totalMoneySavedToDate` field ↓↓↓
 userRouter_v1.patch(
-  "/:id/totalMoneySavedToDate",
+  "/userId/totalMoneySavedToDate",
   async (request: Request, response: Response) => {
     // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
     // TODO : SET UP A CRON JOB TO HANDLE THIS LOGIC.
@@ -132,7 +132,7 @@ userRouter_v1.patch(
       };
 
       const user: Types.UserWithRelations = await prisma.user.update({
-        where: { id: Number(request.params.id) },
+        where: { id: Number(request.params.userId) },
         data: totalMoneySavedToDateData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
@@ -149,18 +149,22 @@ userRouter_v1.patch(
   }
 );
 
-// Delete a user
-userRouter_v1.delete("/:id", async (request: Request, response: Response) => {
-  try {
-    await prisma.user.delete({
-      where: { id: Number(request.params.id) },
-    });
-    response
-      .status(HttpStatusCodes.OK)
-      .json({ message: "Account successfully deleted." });
-  } catch (error) {
-    response.status(HttpStatusCodes.NOT_FOUND).json({
-      error: "Failed to delete account. Please refresh the page and try again.",
-    });
+// ↓↓↓ Delete a user ↓↓↓
+userRouter_v1.delete(
+  "/userId",
+  async (request: Request, response: Response) => {
+    try {
+      await prisma.user.delete({
+        where: { id: Number(request.params.userId) },
+      });
+      response
+        .status(HttpStatusCodes.OK)
+        .json({ message: "Account successfully deleted." });
+    } catch (error) {
+      response.status(HttpStatusCodes.NOT_FOUND).json({
+        error:
+          "Failed to delete account. Please refresh the page and try again.",
+      });
+    }
   }
-});
+);

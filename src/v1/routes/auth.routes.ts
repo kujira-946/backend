@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import * as UserTypes from "../types/users.types";
+import * as Controllers from "../controllers/auth.controllers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 import { UserRegistrationData } from "../types/auth.types";
 import {
@@ -15,77 +16,56 @@ import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 export const authRouter_v1 = express.Router();
 const prisma = new PrismaClient();
 
-// Register (create) a user
-authRouter_v1.post(
-  "/register",
-  async (request: Request, response: Response) => {
-    try {
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(
-        request.body.password,
-        saltRounds
-      );
+// ↓↓↓ Register (create) a user ↓↓↓
+authRouter_v1.post("/register", Controllers.registrationController);
 
-      const userRegistrationData: UserRegistrationData = {
-        email: request.body.email,
-        username: request.body.username,
-        password: hashedPassword,
-        firstName: request.body.firstName,
-        lastName: request.body.lastName,
-        birthday: request.body.birthday,
-        currency: request.body.currency,
-      };
-
-      const user: UserTypes.UserWithRelations = await prisma.user.create({
-        data: userRegistrationData,
-        include: { overview: true, logbooks: true, logbookReviews: true },
-      });
-      const userWithoutPassword = excludeFieldFromUserObject(user, [
-        "password",
-      ]);
-      response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
-    } catch (error) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Failed to register. Please make sure all required fields are correctly filled in and try again.",
-      });
-    }
-  }
-);
-
-// Checking existence of email during registration
+// ↓↓↓ Checking existence of email during registration ↓↓↓
 authRouter_v1.get(
   "/register/check-email",
   async (request: Request, response: Response) => {
-    const userByEmail = await prisma.user.findUnique({
-      where: { email: request.body.email },
-    });
-    if (userByEmail) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: "An account with that email already exists. Please try again.",
+    try {
+      const userByEmail = await prisma.user.findUnique({
+        where: { email: request.body.email },
       });
-    } else {
-      response.status(HttpStatusCodes.OK).json({ success: "Email available." });
+      if (userByEmail) {
+        response.status(HttpStatusCodes.BAD_REQUEST).json({
+          error: "An account with that email already exists. Please try again.",
+        });
+      } else {
+        response
+          .status(HttpStatusCodes.OK)
+          .json({ success: "Email available." });
+      }
+    } catch (error) {
+      response
+        .status(HttpStatusCodes.BAD_REQUEST)
+        .json({ error: 'Body missing "email" field.' });
     }
   }
 );
 
-// Checking existence of username during registration
+// ↓↓↓ Checking existence of username during registration ↓↓↓
 authRouter_v1.get(
   "/register/check-username",
   async (request: Request, response: Response) => {
-    const userByUsername = await prisma.user.findUnique({
-      where: { username: request.body.username },
-    });
-    if (userByUsername) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "An account with that username already exists. Please try again.",
+    try {
+      const userByUsername = await prisma.user.findUnique({
+        where: { username: request.body.username },
       });
-    } else {
+      if (userByUsername) {
+        response.status(HttpStatusCodes.BAD_REQUEST).json({
+          error:
+            "An account with that username already exists. Please try again.",
+        });
+      } else {
+        response
+          .status(HttpStatusCodes.OK)
+          .json({ success: "Username available." });
+      }
+    } catch (error) {
       response
-        .status(HttpStatusCodes.OK)
-        .json({ success: "Username available." });
+        .status(HttpStatusCodes.BAD_REQUEST)
+        .json({ error: 'Body missing "username" field.' });
     }
   }
 );
