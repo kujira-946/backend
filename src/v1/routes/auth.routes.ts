@@ -11,6 +11,7 @@ import {
   checkEmailDuringRegistration,
   checkUsernameDuringLogin,
   checkUsernameDuringRegistration,
+  checkEmailAndUsernameDuringRegistration,
 } from "../middlewares/auth.middlewares";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 
@@ -20,8 +21,7 @@ const prisma = new PrismaClient();
 // Register (create) a user
 authRouter_v1.post(
   "/register",
-  checkEmailDuringRegistration,
-  checkUsernameDuringRegistration,
+  checkEmailAndUsernameDuringRegistration,
   async (request: Request, response: Response) => {
     try {
       const saltRounds = 10;
@@ -53,6 +53,25 @@ authRouter_v1.post(
         error:
           "Failed to register. Please make sure all required fields are correctly filled in and try again.",
       });
+    }
+  }
+);
+
+// Checking existence of email during registration
+authRouter_v1.get(
+  "/register/check-username",
+  async (request: Request, response: Response) => {
+    const userByUsername = await prisma.user.findUnique({
+      where: { username: request.body.username },
+    });
+    if (userByUsername) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "An account with that email already exists. Please try again.",
+      });
+    } else {
+      response
+        .status(HttpStatusCodes.OK)
+        .json({ success: "Username available." });
     }
   }
 );

@@ -7,6 +7,39 @@ import { User } from "../types/users.types";
 
 const prisma = new PrismaClient();
 
+type RegistrationError = {
+  email?: string;
+  username?: string;
+};
+export async function checkEmailAndUsernameDuringRegistration(
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> {
+  const userByEmail = await prisma.user.findFirst({
+    where: { email: request.body.email },
+  });
+  const userByUsername = await prisma.user.findFirst({
+    where: { email: request.body.username },
+  });
+  const error: RegistrationError = {};
+
+  if (userByEmail) {
+    error["email"] = "An account with that email already exists.";
+  }
+  if (userByUsername) {
+    error["username"] = "An account with that username already exists.";
+  }
+
+  console.log("error:", error);
+
+  if (error["email"] || error["username"]) {
+    response.status(HttpStatusCodes.BAD_REQUEST).json({ error });
+  } else {
+    next();
+  }
+}
+
 export async function checkEmailDuringRegistration(
   request: Request,
   response: Response,

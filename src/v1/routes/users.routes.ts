@@ -27,10 +27,10 @@ userRouter_v1.get("/", async (request: Request, response: Response) => {
 });
 
 // Fetch one user
-userRouter_v1.get("/:userId", async (request: Request, response: Response) => {
+userRouter_v1.get("/:id", async (request: Request, response: Response) => {
   try {
     const user: Types.UserWithRelations = await prisma.user.findFirstOrThrow({
-      where: { id: Number(request.params.userId) },
+      where: { id: Number(request.params.id) },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
@@ -46,46 +46,43 @@ userRouter_v1.get("/:userId", async (request: Request, response: Response) => {
 });
 
 // Update a user
-userRouter_v1.patch(
-  "/:userId",
-  async (request: Request, response: Response) => {
-    try {
-      const userUpdate: Types.UserUpdateData = {
-        email: request.body.email,
-        username: request.body.username,
-        firstName: request.body.firstName,
-        lastName: request.body.lastName,
-        birthday: request.body.birthday,
-        currency: request.body.currency,
-        theme: request.body.theme,
-        mobileNumber: request.body.mobileNumber,
-      };
+userRouter_v1.patch("/:id", async (request: Request, response: Response) => {
+  try {
+    const userUpdate: Types.UserUpdateData = {
+      email: request.body.email,
+      username: request.body.username,
+      firstName: request.body.firstName,
+      lastName: request.body.lastName,
+      birthday: request.body.birthday,
+      currency: request.body.currency,
+      theme: request.body.theme,
+      mobileNumber: request.body.mobileNumber,
+    };
 
-      const user: Types.UserWithRelations = await prisma.user.update({
-        where: { id: Number(request.params.userId) },
-        data: userUpdate,
-        include: { overview: true, logbooks: true, logbookReviews: true },
-      });
-      const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-        "password",
-      ]);
-      response.status(HttpStatusCodes.OK).json(userWithoutPassword);
-    } catch (error) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
-      });
-    }
+    const user: Types.UserWithRelations = await prisma.user.update({
+      where: { id: Number(request.params.id) },
+      data: userUpdate,
+      include: { overview: true, logbooks: true, logbookReviews: true },
+    });
+    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
+      "password",
+    ]);
+    response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+  } catch (error) {
+    response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error:
+        "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
+    });
   }
-);
+});
 
 //; Update user password
 userRouter_v1.patch(
-  "/:userId/updatePassword",
+  "/:id/updatePassword",
   async (request: Request, response: Response) => {
     try {
       const userWithOldPassword = await prisma.user.findFirstOrThrow({
-        where: { id: Number(request.params.userId) },
+        where: { id: Number(request.params.id) },
       });
       const oldPasswordsMatch = bcrypt.compareSync(
         request.body.oldPassword,
@@ -101,7 +98,7 @@ userRouter_v1.patch(
           password: hashedPassword,
         };
         const user: Types.UserWithRelations = await prisma.user.update({
-          where: { id: Number(request.params.userId) },
+          where: { id: Number(request.params.id) },
           data: userUpdatePasswordData,
           include: { overview: true, logbooks: true, logbookReviews: true },
         });
@@ -125,7 +122,7 @@ userRouter_v1.patch(
 
 // Update only an existing user's `totalMoneySavedToDate` field
 userRouter_v1.patch(
-  "/:userId/totalMoneySavedToDate",
+  "/:id/totalMoneySavedToDate",
   async (request: Request, response: Response) => {
     // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
     // TODO : SET UP A CRON JOB TO HANDLE THIS LOGIC.
@@ -135,7 +132,7 @@ userRouter_v1.patch(
       };
 
       const user: Types.UserWithRelations = await prisma.user.update({
-        where: { id: Number(request.params.userId) },
+        where: { id: Number(request.params.id) },
         data: totalMoneySavedToDateData,
         include: { overview: true, logbooks: true, logbookReviews: true },
       });
@@ -153,21 +150,17 @@ userRouter_v1.patch(
 );
 
 // Delete a user
-userRouter_v1.delete(
-  "/:userId",
-  async (request: Request, response: Response) => {
-    try {
-      await prisma.user.delete({
-        where: { id: Number(request.params.userId) },
-      });
-      response
-        .status(HttpStatusCodes.OK)
-        .json({ message: "Account successfully deleted." });
-    } catch (error) {
-      response.status(HttpStatusCodes.NOT_FOUND).json({
-        error:
-          "Failed to delete account. Please refresh the page and try again.",
-      });
-    }
+userRouter_v1.delete("/:id", async (request: Request, response: Response) => {
+  try {
+    await prisma.user.delete({
+      where: { id: Number(request.params.id) },
+    });
+    response
+      .status(HttpStatusCodes.OK)
+      .json({ message: "Account successfully deleted." });
+  } catch (error) {
+    response.status(HttpStatusCodes.NOT_FOUND).json({
+      error: "Failed to delete account. Please refresh the page and try again.",
+    });
   }
-);
+});
