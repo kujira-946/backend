@@ -123,7 +123,7 @@ export async function registrationCheckEmailController(
 export async function registrationCheckUsernameController(
   request: Request,
   response: Response
-) {
+): Promise<void> {
   try {
     const userByUsername = await prisma.user.findUnique({
       where: { username: request.body.username },
@@ -150,7 +150,10 @@ export async function registrationCheckUsernameController(
 // [ LOGIN ] =============================================================================== //
 // ========================================================================================= //
 
-export async function loginController(request: Request, response: Response) {
+export async function loginController(
+  request: Request,
+  response: Response
+): Promise<void> {
   try {
     const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
     const passwordsMatch = bcrypt.compareSync(
