@@ -29,11 +29,11 @@ export async function checkUsernameUniquenessDuringLogin(
     });
 }
 
-// Middleware that authenticates user actions via a JWT access token.
-// Checks if there is a valid access token (e.g. it exists or supplies the correct secret key).
-// If not, user is not authorized to make an action.
+// ↓↓↓ Middleware that authenticates user actions via a JWT access token. ↓↓↓
+// ↓↓↓ Checks if there is a valid access token (e.g. it exists or supplies the correct secret key). ↓↓↓
+// ↓↓↓ If not, user is not authorized to make an action. ↓↓↓
 //
-// This middleware is performed before hitting any endpoint that requires validation credentials.
+// ↓↓↓ This middleware is performed before hitting any endpoint that requires validation credentials. ↓↓↓
 type RequestWithAccessToken = { accessToken: string | JwtPayload } & Request;
 export async function verifyAccessToken(
   request: Request,
@@ -54,8 +54,8 @@ export async function verifyAccessToken(
       next(new Error("Something went wrong."));
     } else {
       const decodedAccessToken = jwt.verify(accessToken, accessTokenSecretKey);
-      // Appending our decoded access token to Express's `request` object for use
-      // in the action the user wanted to perform.
+      // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
+      // ↓↓↓ in the action the user wanted to perform. ↓↓↓
       (request as RequestWithAccessToken).accessToken = decodedAccessToken;
       next();
     }

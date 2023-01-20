@@ -3,9 +3,7 @@ import { Prisma } from "@prisma/client";
 const user = Prisma.validator<Prisma.UserArgs>()({});
 export type User = Prisma.UserGetPayload<typeof user>;
 
-// Prisma's automated type interfaces generated via the schema models don't
-// include relations. Therefore, we have to manually include them, which is
-// implemented below.
+// ↓↓↓ Prisma's automated type interfaces generated via the schema models don't include relations. Therefore, we have to manually include them, which is implemented below. ↓↓↓
 const userWithRelations = Prisma.validator<Prisma.UserArgs>()({
   include: { overview: true, logbooks: true, logbookReviews: true },
 });
@@ -36,9 +34,8 @@ export type UserUpdatePasswordData = Prisma.UserGetPayload<
   typeof userUpdatePasswordData
 >;
 
-// Used for only updating the user's total money saved to date.
-// Doing this because this field is automatically updated at the end of every month
-// via a cron job.
+// ↓↓↓ Used for only updating the user's total money saved to date. ↓↓↓
+// ↓↓↓ Doing this because this field is automatically updated at the end of every month via a cron job. ↓↓↓
 const userTotalMoneySavedToDate = Prisma.validator<Prisma.UserArgs>()({
   select: { totalMoneySavedToDate: true },
 });

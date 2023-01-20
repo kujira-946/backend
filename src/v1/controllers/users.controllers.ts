@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import * as Helpers from "../helpers/users.helpers";
 import * as Types from "../types/users.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
-import { allowedUserCreationFormFields } from "../utils/users.utils";
 
 const prisma = new PrismaClient();
 
@@ -65,7 +64,6 @@ export async function updateUserController(
   response: Response
 ) {
   try {
-    // TODO : DOES NOT ERROR CAPTURE FORM DATA THAT SHOULD NOT BE IN THERE, SUCH AS "foo"
     const userUpdateData: Types.UserUpdateData = {
       email: request.body.email,
       username: request.body.username,
@@ -87,8 +85,6 @@ export async function updateUserController(
     ]);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
-    // 1. User with :userId is not found.
-    // 2. User sent in bad form data.
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
         "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
