@@ -4,17 +4,23 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 import { User } from "../types/users.types";
+import { UserRegistrationData } from "../types/auth.types";
+import { removeLastCharacterFromString } from "../../utils/strings.utils";
 
 const prisma = new PrismaClient();
 
+// ========================================================================================= //
+// [ LOGIN : MAKING SURE CLIENT-PROVIDED USERNAME EXISTS ] ================================= //
+// ========================================================================================= //
+
 export type RequestWithUser = { existingUser: User } & Request;
-export async function checkUsernameUniquenessDuringLogin(
+export async function verifyLoginUsernameMiddleware(
   request: Request,
   response: Response,
   next: NextFunction
-): Promise<void> {
+) {
   await prisma.user
-    .findFirstOrThrow({
+    .findUniqueOrThrow({
       where: { username: request.body.username },
     })
     .then((user: User) => {
@@ -29,13 +35,17 @@ export async function checkUsernameUniquenessDuringLogin(
     });
 }
 
+// ========================================================================================= //
+// [ VERIFYING JWT ACCESS TOKEN ] ========================================================== //
+// ========================================================================================= //
+
 // ↓↓↓ Middleware that authenticates user actions via a JWT access token. ↓↓↓
 // ↓↓↓ Checks if there is a valid access token (e.g. it exists or supplies the correct secret key). ↓↓↓
 // ↓↓↓ If not, user is not authorized to make an action. ↓↓↓
 //
 // ↓↓↓ This middleware is performed before hitting any endpoint that requires validation credentials. ↓↓↓
 type RequestWithAccessToken = { accessToken: string | JwtPayload } & Request;
-export async function verifyAccessToken(
+export async function verifyAccessTokenMiddleware(
   request: Request,
   response: Response,
   next: NextFunction

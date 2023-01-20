@@ -13,90 +13,52 @@ import { removeLastCharacterFromString } from "../../utils/strings.utils";
 const prisma = new PrismaClient();
 
 // ========================================================================================= //
-// [ REGISTRATION ] ======================================================================== //
+// [ REGISTRATION : CREATING A NEW ACCOUNT ] =============================================== //
 // ========================================================================================= //
 
-type ErrorStrings = { [key in keyof UserRegistrationData]: string };
 export async function registrationController(
   request: Request,
   response: Response
-): Promise<void> {
-  const userRegistrationData: UserRegistrationData = {
-    email: request.body.email,
-    username: request.body.username,
-    password: request.body.password,
-    firstName: request.body.firstName,
-    lastName: request.body.lastName,
-    birthday: request.body.birthday,
-    currency: request.body.currency,
-  };
-
+) {
   try {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
-    userRegistrationData["password"] = hashedPassword;
-    // ↓↓↓ Double checking to make sure the `password` field in the `userRegistrationData` was replaced with the `hashedPassword`. ↓↓↓
-    if (userRegistrationData.password !== request.body.password) {
-      const user: UserTypes.UserWithRelations = await prisma.user.create({
-        data: userRegistrationData,
-        include: { overview: true, logbooks: true, logbookReviews: true },
-      });
-      const userWithoutPassword = excludeFieldFromUserObject(user, [
-        "password",
-      ]);
-      response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
-    }
-    // ↓↓↓ If the `password` field in the `userRegistrationData` failed to get replaced with the `hashedPassword`, throw a 500 error. ↓↓↓
-    else {
-      response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
-        error:
-          "There was an error in creating your account. Please refresh the page and try again.",
-      });
-    }
-  } catch (error) {
-    let errorMessage = "Missing fields:";
-    const errorStrings: ErrorStrings = {
-      email: "Email",
-      username: "Username",
-      password: "Password",
-      firstName: "First Name",
-      lastName: "Last name",
-      birthday: "Birthday",
-      currency: "Currency",
+
+    const userRegistrationData: UserRegistrationData = {
+      email: request.body.email,
+      username: request.body.username,
+      password: hashedPassword,
+      firstName: request.body.firstName,
+      lastName: request.body.lastName,
+      birthday: request.body.birthday,
+      currency: request.body.currency,
     };
-    for (const key in userRegistrationData) {
-      const registrationField = request.body[key] as keyof UserRegistrationData;
-      if (!registrationField) {
-        errorMessage += ` ${errorStrings[key as keyof UserRegistrationData]},`;
-      }
-    }
-    errorMessage = removeLastCharacterFromString(errorMessage) + ".";
-    // ↓↓↓ NOTE : The client should first hit the `/register/check-email` and `/register/check-username` endpoints before hitting this one. ↓↓↓
-    // ↓↓↓ The `errorMessage` would only ever === "Missing fields." if the user was allowed to send a request to create an account, despite not having created a unique email or username. ↓↓↓
-    // ↓↓↓ This `if` block covers sends an error message on the off chance the client decides to be a big dumb and allow the user to send a POST request without first verifying that their email and username are unique via the endpoints mentioned above. ↓↓↓
-    if (errorMessage === "Missing fields.") {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Failed to created account. You might have entered a non-unique email or username. Please try again.",
-      });
-    }
-    // ↓↓↓ Sends a detailed error message, telling the user exactly what fields they've failed to fill in. ↓↓↓
-    else {
-      response
-        .status(HttpStatusCodes.BAD_REQUEST)
-        .json({ error: errorMessage });
-    }
+
+    const user: UserTypes.UserWithRelations = await prisma.user.create({
+      data: userRegistrationData,
+      include: { overview: true, logbooks: true, logbookReviews: true },
+    });
+    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);s
+    return response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
+  } catch (error) {
+    // ↓↓↓ The client should be making sure that the app never enters this catch block. ↓↓↓
+    // ↓↓↓ That is, the client is responsible for using the `/register/check-email` and `/register/check-username` endpoints to make sure that the user has provided a unique email and username BEFORE hitting this controller. ↓↓↓
+    // ↓↓↓ On the off chance that the client decides to be a big dumb, this is a fallback error handler that notifies the user of possibly having provided a non-unique email or username. ↓↓↓
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error:
+        "Failed to created account. You might have entered a non-unique email or username. Please try again.",
+    });
   }
 }
 
 // ========================================================================================= //
-// [ REGISTRATION / CHECK EMAIL ] ========================================================== //
+// [ REGISTRATION : CHECKING IF CLIENT-PROVIDED EMAIL ALREADY EXISTS IN DATABASE ] ========= //
 // ========================================================================================= //
 
-export async function registrationCheckEmailController(
+export async function checkRegistrationEmailController(
   request: Request,
   response: Response
-): Promise<void> {
+) {
   try {
     const userByEmail = await prisma.user.findUnique({
       where: { email: request.body.email },
@@ -117,13 +79,13 @@ export async function registrationCheckEmailController(
 }
 
 // ========================================================================================= //
-// [ REGISTRATION / CHECK USERNAME ] ======================================================= //
+// [ REGISTRATION : CHECKING IF CLIENT-PROVIDED USERNAME ALREADY EXISTS IN DATABASE ] ====== //
 // ========================================================================================= //
 
-export async function registrationCheckUsernameController(
+export async function checkRegistrationUsernameController(
   request: Request,
   response: Response
-): Promise<void> {
+) {
   try {
     const userByUsername = await prisma.user.findUnique({
       where: { username: request.body.username },
@@ -147,13 +109,10 @@ export async function registrationCheckUsernameController(
 }
 
 // ========================================================================================= //
-// [ LOGIN ] =============================================================================== //
+// [ LOGIN : LOGGING IN A USER AND PROVIDING CLIENT WITH A JSON WEB TOKEN ] ================ //
 // ========================================================================================= //
 
-export async function loginController(
-  request: Request,
-  response: Response
-): Promise<void> {
+export async function loginController(request: Request, response: Response) {
   try {
     const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
     const passwordsMatch = bcrypt.compareSync(

@@ -1,24 +1,45 @@
 import express from "express";
 
 import * as Controllers from "../controllers/auth.controllers";
-import { checkUsernameUniquenessDuringLogin } from "../middlewares/auth.middlewares";
+import { verifyLoginUsernameMiddleware } from "../middlewares/auth.middlewares";
+import {
+  checkIfAllRequiredFormFieldsWereSentMiddleware,
+  checkInvalidFormFieldsMiddleware,
+} from "../middlewares/helpers.middlewares";
+import { UserRegistrationData } from "../types/auth.types";
 
 export const authRouter_v1 = express.Router();
 
-authRouter_v1.post("/register", Controllers.registrationController);
+type RequiredRegistrationFields = (keyof UserRegistrationData)[];
+const requiredRegistrationFields: RequiredRegistrationFields = [
+  "email",
+  "username",
+  "password",
+  "firstName",
+  "lastName",
+  "birthday",
+  "currency",
+];
+
+authRouter_v1.post(
+  "/register",
+  checkInvalidFormFieldsMiddleware(requiredRegistrationFields),
+  checkIfAllRequiredFormFieldsWereSentMiddleware(requiredRegistrationFields),
+  Controllers.registrationController
+);
 
 authRouter_v1.get(
   "/register/check-email",
-  Controllers.registrationCheckEmailController
+  Controllers.checkRegistrationEmailController
 );
 
 authRouter_v1.get(
   "/register/check-username",
-  Controllers.registrationCheckUsernameController
+  Controllers.checkRegistrationUsernameController
 );
 
 authRouter_v1.post(
   "/login",
-  checkUsernameUniquenessDuringLogin,
+  verifyLoginUsernameMiddleware,
   Controllers.loginController
 );

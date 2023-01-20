@@ -4,8 +4,9 @@ import bcrypt from "bcrypt";
 
 import * as Middlewares from "../middlewares/users.middlewares";
 import * as Controllers from "../controllers/users.controllers";
-import * as Types from "../types/users.types";
+import { checkInvalidFormFieldsMiddleware } from "../middlewares/helpers.middlewares";
 import * as Helpers from "../helpers/users.helpers";
+import * as Types from "../types/users.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const userRouter_v1 = express.Router();
@@ -17,7 +18,7 @@ userRouter_v1.get("/:userId", Controllers.fetchUserController);
 
 userRouter_v1.patch(
   "/:userId",
-  Middlewares.checkUserCreationInvalidFormInputMiddleware([
+  checkInvalidFormFieldsMiddleware([
     "email",
     "username",
     "firstName",
@@ -33,7 +34,8 @@ userRouter_v1.patch(
 // ↓↓↓ Update user password ↓↓↓
 userRouter_v1.patch(
   "/:userId/updatePassword",
-  Middlewares.checkUserCreationInvalidFormInputMiddleware,
+  checkInvalidFormFieldsMiddleware(["oldPassword", "newPassword"]),
+  Middlewares.checkOldPasswordMatchMiddleware,
   Controllers.updateUserPasswordController
 );
 

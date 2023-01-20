@@ -97,45 +97,37 @@ export async function updateUserController(
 // [ UPDATE A USER'S PASSWORD ] ============================================================ //
 // ========================================================================================= //
 
-export async function updateUserPasswordController(request: Request, response: Response)  {
-    try {
-      const userWithOldPassword = await prisma.user.findFirstOrThrow({
-        where: { id: Number(request.params.userId) },
-      });
-      const oldPasswordsMatch = bcrypt.compareSync(
-        request.body.oldPassword,
-        userWithOldPassword.password
-      );
-      if (oldPasswordsMatch) {
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(
-          request.body.newPassword,
-          saltRounds
-        );
-        const userUpdatePasswordData: Types.UserUpdatePasswordData = {
-          password: hashedPassword,
-        };
-        const user: Types.UserWithRelations = await prisma.user.update({
-          where: { id: Number(request.params.userId) },
-          data: userUpdatePasswordData,
-          include: { overview: true, logbooks: true, logbookReviews: true },
-        });
-        const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-          "password",
-        ]);
-        response.status(HttpStatusCodes.OK).json(userWithoutPassword);
-      } else {
-        response.status(HttpStatusCodes.BAD_REQUEST).json({
-          error: "Incorrect old password. Please try again.",
-        });
-      }
-    } catch (error) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
-      });
-    }
+export async function updateUserPasswordController(
+  request: Request,
+  response: Response
+) {
+  try {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(
+      request.body.newPassword,
+      saltRounds
+    );
+
+    const userUpdatePasswordData: Types.UserUpdatePasswordData = {
+      password: hashedPassword,
+    };
+
+    const user: Types.UserWithRelations = await prisma.user.update({
+      where: { id: Number(request.params.userId) },
+      data: userUpdatePasswordData,
+      include: { overview: true, logbooks: true, logbookReviews: true },
+    });
+    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
+      "password",
+    ]);
+    return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+  } catch (error) {
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error:
+        "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
+    });
   }
+}
 
 // ========================================================================================= //
 // [ UPDATE A USER'S `totalMoneySavedToDate` FIELD ] ======================================= //
