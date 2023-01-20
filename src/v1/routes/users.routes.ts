@@ -11,61 +11,30 @@ import { HttpStatusCodes } from "../../utils/http-status-codes";
 export const userRouter_v1 = express.Router();
 const prisma = new PrismaClient();
 
-// ↓↓↓ Fetch all users ↓↓↓
 userRouter_v1.get("/", Controllers.fetchUsersController);
 
-// ↓↓↓ Fetch one user ↓↓↓
 userRouter_v1.get("/:userId", Controllers.fetchUserController);
 
-// ↓↓↓ Update a user ↓↓↓
 userRouter_v1.patch(
   "/:userId",
-  Middlewares.checkUserCreationInvalidFormInput,
+  Middlewares.checkUserCreationInvalidFormInputMiddleware([
+    "email",
+    "username",
+    "firstName",
+    "lastName",
+    "birthday",
+    "currency",
+    "theme",
+    "mobileNumber",
+  ]),
   Controllers.updateUserController
 );
 
 // ↓↓↓ Update user password ↓↓↓
 userRouter_v1.patch(
   "/:userId/updatePassword",
-  async (request: Request, response: Response) => {
-    try {
-      const userWithOldPassword = await prisma.user.findFirstOrThrow({
-        where: { id: Number(request.params.userId) },
-      });
-      const oldPasswordsMatch = bcrypt.compareSync(
-        request.body.oldPassword,
-        userWithOldPassword.password
-      );
-      if (oldPasswordsMatch) {
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(
-          request.body.newPassword,
-          saltRounds
-        );
-        const userUpdatePasswordData: Types.UserUpdatePasswordData = {
-          password: hashedPassword,
-        };
-        const user: Types.UserWithRelations = await prisma.user.update({
-          where: { id: Number(request.params.userId) },
-          data: userUpdatePasswordData,
-          include: { overview: true, logbooks: true, logbookReviews: true },
-        });
-        const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-          "password",
-        ]);
-        response.status(HttpStatusCodes.OK).json(userWithoutPassword);
-      } else {
-        response.status(HttpStatusCodes.BAD_REQUEST).json({
-          error: "Incorrect old password. Please try again.",
-        });
-      }
-    } catch (error) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
-      });
-    }
-  }
+  Middlewares.checkUserCreationInvalidFormInputMiddleware,
+  Controllers.updateUserPasswordController
 );
 
 // ↓↓↓ Update only an existing user's `totalMoneySavedToDate` field ↓↓↓
