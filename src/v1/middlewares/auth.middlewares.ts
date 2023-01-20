@@ -8,7 +8,7 @@ import { User } from "../types/users.types";
 const prisma = new PrismaClient();
 
 export type RequestWithUser = { existingUser: User } & Request;
-export async function checkUsernameDuringLogin(
+export async function checkUsernameUniquenessDuringLogin(
   request: Request,
   response: Response,
   next: NextFunction

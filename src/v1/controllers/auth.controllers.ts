@@ -1,20 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 import * as UserTypes from "../types/users.types";
 import { UserRegistrationData } from "../types/auth.types";
+import { RequestWithUser } from "../middlewares/auth.middlewares";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 import { removeLastCharacterFromString } from "../../utils/strings.utils";
 
 const prisma = new PrismaClient();
 
+// ========================================================================================= //
+// [ REGISTRATION ] ======================================================================== //
+// ========================================================================================= //
+
 type ErrorStrings = { [key in keyof UserRegistrationData]: string };
 export async function registrationController(
   request: Request,
   response: Response
-) {
+): Promise<void> {
   const userRegistrationData: UserRegistrationData = {
     email: request.body.email,
     username: request.body.username,
@@ -80,5 +86,107 @@ export async function registrationController(
         .status(HttpStatusCodes.BAD_REQUEST)
         .json({ error: errorMessage });
     }
+  }
+}
+
+// ========================================================================================= //
+// [ REGISTRATION / CHECK EMAIL ] ========================================================== //
+// ========================================================================================= //
+
+export async function registrationCheckEmailController(
+  request: Request,
+  response: Response
+): Promise<void> {
+  try {
+    const userByEmail = await prisma.user.findUnique({
+      where: { email: request.body.email },
+    });
+    if (userByEmail) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "An account with that email already exists. Please try again.",
+      });
+    } else {
+      response.status(HttpStatusCodes.OK).json({ success: "Email available." });
+    }
+  } catch (error) {
+    // ↓↓↓ On the off chance that the client forgets to include the `email` field in the JSON payload. ↓↓↓
+    response
+      .status(HttpStatusCodes.BAD_REQUEST)
+      .json({ error: 'Missing "email" field.' });
+  }
+}
+
+// ========================================================================================= //
+// [ REGISTRATION / CHECK USERNAME ] ======================================================= //
+// ========================================================================================= //
+
+export async function registrationCheckUsernameController(
+  request: Request,
+  response: Response
+) {
+  try {
+    const userByUsername = await prisma.user.findUnique({
+      where: { username: request.body.username },
+    });
+    if (userByUsername) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "An account with that username already exists. Please try again.",
+      });
+    } else {
+      response
+        .status(HttpStatusCodes.OK)
+        .json({ success: "Username available." });
+    }
+  } catch (error) {
+    // ↓↓↓ On the off change that the client forgets to include the `username` field in the JSON payload. ↓↓↓
+    response
+      .status(HttpStatusCodes.BAD_REQUEST)
+      .json({ error: 'Missing "username" field.' });
+  }
+}
+
+// ========================================================================================= //
+// [ LOGIN ] =============================================================================== //
+// ========================================================================================= //
+
+export async function loginController(request: Request, response: Response) {
+  try {
+    const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
+    const passwordsMatch = bcrypt.compareSync(
+      request.body.password,
+      (request as RequestWithUser).existingUser.password
+    );
+
+    if (!accessTokenSecretKey) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "Something went wrong.",
+      });
+    } else if (passwordsMatch) {
+      const accessToken = jwt.sign(
+        {
+          _id: (request as RequestWithUser).existingUser.id.toString(),
+          username: (request as RequestWithUser).existingUser.username,
+        },
+        accessTokenSecretKey,
+        { expiresIn: request.body.thirtyDays ? "30 days" : "7 days" }
+      );
+      const userWithoutPassword = excludeFieldFromUserObject(
+        (request as RequestWithUser).existingUser,
+        ["password"]
+      );
+      response
+        .status(HttpStatusCodes.OK)
+        .json({ user: userWithoutPassword, accessToken });
+    } else {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "Incorrect password. Please try again.",
+      });
+    }
+  } catch (error) {
+    response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error:
+        "Failed to log in. Please make sure all required fields are correctly filled in and try again.",
+    });
   }
 }
