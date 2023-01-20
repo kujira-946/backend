@@ -3,70 +3,112 @@ import { NextFunction, Request, Response } from "express";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
 // ========================================================================================= //
-// [ CHECKS IF THE CLIENT HAS SENT ANY INVALID FORM FIELDS ] ================================ //
+// [ MAKING SURE THE CLIENT HAS INPUTTED ALL FIELDS REQUIRED BY ENDPOINT ] ================= //
 // ========================================================================================= //
 
-export function checkInvalidFormFieldsMiddleware(allowedFormFields: string[]) {
+function _generateInvalidClientInputs(
+  expectedClientInputs: string[],
+  providedClientInputs: string[]
+): string[] {
+  return providedClientInputs.filter((providedClientInput: string) => {
+    return !expectedClientInputs.includes(providedClientInput);
+  });
+
+  // const invalidClientInputs: string[] = [];
+  // providedClientInputs.forEach((clientFormInput: string) => {
+  //   if (!expectedClientInputs.includes(clientFormInput)) {
+  //     invalidClientInputs.push(clientFormInput);
+  //   }
+  // });
+  // return invalidClientInputs;
+}
+
+function _generateMissingClientInputs(
+  expectedClientInputs: string[],
+  providedClientInputs: string[]
+): string[] {
+  return expectedClientInputs.filter((expectedClientInput: string) => {
+    return !providedClientInputs.includes(expectedClientInput);
+  });
+
+  // const missingClientPayloadProperties: string[] = [];
+  // expectedClientInputs.forEach((requiredFormField: string) => {
+  //   if (!providedClientInputs.includes(requiredFormField)) {
+  //     missingClientPayloadProperties.push(requiredFormField);
+  //   }
+  // });
+  // return missingClientPayloadProperties;
+}
+
+function _checkAtLeastOneRequiredInputProvided(
+  expectedClientInputs: string[],
+  providedClientInputs: string[]
+): boolean {
+  for (let index = 0; index < providedClientInputs.length; index++) {
+    const providedClientInput = providedClientInputs[index];
+    return expectedClientInputs.includes(providedClientInput);
+  }
+  return false;
+}
+
+type RequireAllInputs = { requireAllInputs: boolean };
+export function checkValidityOfClientRequestMiddleware(
+  expectedClientInputs: string[],
+  { requireAllInputs }: RequireAllInputs = { requireAllInputs: true }
+) {
   return function (request: Request, response: Response, next: NextFunction) {
-    const invalidFormFields = [];
+    const providedClientInputs = Object.keys(request.body);
 
-    const clientFormFields = Object.keys(request.body);
-
-    for (let index = 0; index < clientFormFields.length; index++) {
-      const currentClientFormField = clientFormFields[index];
-      const theClientSentAnInvalidFormField = !allowedFormFields.includes(
-        currentClientFormField
-      );
-      if (theClientSentAnInvalidFormField) {
-        invalidFormFields.push(currentClientFormField);
-      }
-    }
-
-    if (invalidFormFields.length > 0) {
+    // ↓↓↓ Any form inputs sent by the client that are not supposed to be in the payload. ↓↓↓
+    const invalidClientInputs = _generateInvalidClientInputs(
+      expectedClientInputs,
+      providedClientInputs
+    );
+    // ↓↓↓ If there were any invalid client inputs, send HTTP 400 error to the client and stop the validity check here. ↓↓↓
+    if (invalidClientInputs.length > 0) {
       return response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: `Invalid form field(s): ${invalidFormFields.join(", ")}.`,
+        error: `Invalid input(s): ${invalidClientInputs.join(", ")}.`,
       });
-    } else {
-      return next();
     }
-  };
-}
 
-// ========================================================================================= //
-// [ CHECKS IF THE CLIENT FAILED TO SEND ALL REQUIRED FORM FIELDS ] ======================== //
-// ========================================================================================= //
-
-// ↓↓↓ NOTE : This function is BEST used by FIRST using `checkInvalidFormFieldsMiddleware` to make sure that the client didn't send any invalid form fields. ↓↓↓
-
-export function checkIfAllRequiredFormFieldsWereSentMiddleware(
-  requiredFormFields: string[]
-) {
-  return function (request: Request, response: Response, next: NextFunction) {
-    const missingFormFields: string[] = [];
-    const clientFormFields = Object.keys(request.body);
-
-    requiredFormFields.forEach((requiredFormField: string) => {
-      if (!clientFormFields.includes(requiredFormField)) {
-        missingFormFields.push(requiredFormField);
+    // ↓↓↓ If the client didn't provide any invalid form input, move onto checking to see if it provided all required form inputs. ↓↓↓
+    else {
+      // ↓↓↓ If we require that all expected client inputs be provided. `true` by default. ↓↓↓
+      if (requireAllInputs) {
+        const missingClientInputs = _generateMissingClientInputs(
+          expectedClientInputs,
+          providedClientInputs
+        );
+        // ↓↓↓ If the client didn't provide all required form inputs, respond with a HTTP 400 error to the client and stop the validity check here. ↓↓↓
+        if (missingClientInputs.length > 0) {
+          return response.status(HttpStatusCodes.BAD_REQUEST).json({
+            error: `Missing input(s): ${missingClientInputs.join(", ")}.`,
+          });
+        }
+        // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
+        else {
+          return next();
+        }
       }
-    });
-
-    if (missingFormFields.length > 0) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: `Missing form field(s): ${missingFormFields.join(", ")}.`,
-      });
-    } else {
-      next();
+      // ↓↓↓ If we only require at least one expected client input be provided. ↓↓↓
+      else {
+        const atLeastOneRequiredInputProvided =
+          _checkAtLeastOneRequiredInputProvided(
+            expectedClientInputs,
+            providedClientInputs
+          );
+        if (atLeastOneRequiredInputProvided) {
+          // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
+          return next();
+        } else {
+          return response
+            .status(HttpStatusCodes.BAD_REQUEST)
+            .json({
+              error:
+                "Missing at least one required field. Please provide the missing field and try again.",
+            });
+        }
+      }
     }
   };
-}
-
-// ========================================================================================= //
-// [ CHECKS IF THE CLIENT HAS SENT AT LEAST ONE REQUIRED FORM FIELD ] ====================== //
-// ========================================================================================= //
-
-export function checkIfAtLeastOneRequiredFormFieldWasSentMiddleware(
-  requiredFormFields: string[]
-) {
-  return function (request: Request, response: Response, next: NextFunction) {};
 }

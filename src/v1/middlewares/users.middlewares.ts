@@ -7,7 +7,7 @@ import { HttpStatusCodes } from "../../utils/http-status-codes";
 const prisma = new PrismaClient();
 
 // ========================================================================================= //
-// [ CHECKING IF USER INPUT `oldPassword` MATCH THE ONE STORED IN THE DATABASE ] =========== //
+// [ CHECKS `oldPassword` SENT BY THE CLIENT MATCHES THE ONE STORED IN THE DATABASE ] ====== //
 // ========================================================================================= //
 
 export async function checkOldPasswordMatchMiddleware(

@@ -4,8 +4,6 @@ import { NextFunction, Request, Response } from "express";
 
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 import { User } from "../types/users.types";
-import { UserRegistrationData } from "../types/auth.types";
-import { removeLastCharacterFromString } from "../../utils/strings.utils";
 
 const prisma = new PrismaClient();
 
@@ -19,20 +17,17 @@ export async function verifyLoginUsernameMiddleware(
   response: Response,
   next: NextFunction
 ) {
-  await prisma.user
-    .findUniqueOrThrow({
+  try {
+    const user = await prisma.user.findUniqueOrThrow({
       where: { username: request.body.username },
-    })
-    .then((user: User) => {
-      (request as RequestWithUser).existingUser = user;
-      next();
-    })
-    .catch((error: Error) => {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "An account with that username does not exist. Please try again.",
-      });
     });
+    (request as RequestWithUser).existingUser = user;
+    return next();
+  } catch (error) {
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error: "An account with that username does not exist. Please try again.",
+    });
+  }
 }
 
 // ========================================================================================= //
@@ -55,22 +50,22 @@ export async function verifyAccessTokenMiddleware(
     const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
 
     if (!accessToken) {
-      next(
+      return next(
         new Error(
           "No access token. Either the token has expired or there was an error in locating it."
         )
       );
     } else if (!accessTokenSecretKey) {
-      next(new Error("Something went wrong."));
+      return next(new Error("Something went wrong."));
     } else {
       const decodedAccessToken = jwt.verify(accessToken, accessTokenSecretKey);
       // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
       // ↓↓↓ in the action the user wanted to perform. ↓↓↓
       (request as RequestWithAccessToken).accessToken = decodedAccessToken;
-      next();
+      return next();
     }
   } catch (error) {
-    response
+    return response
       .status(HttpStatusCodes.UNAUTHORIZED)
       .json({ message: "Unauthorized access." });
   }

@@ -18,6 +18,7 @@ export async function fetchUsersController(
 ) {
   try {
     const users: Types.UserWithRelations[] = await prisma.user.findMany({
+      orderBy: { id: "asc" },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
@@ -133,6 +134,52 @@ export async function updateUserPasswordController(
 // [ UPDATE A USER'S `totalMoneySavedToDate` FIELD ] ======================================= //
 // ========================================================================================= //
 
+export async function updateUserTotalMoneySavedToDateController(
+  request: Request,
+  response: Response
+) {
+  // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
+  // TODO : SET UP A CRON JOB TO HANDLE THIS LOGIC.
+  try {
+    const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
+      totalMoneySavedToDate: request.body.totalMoneySavedToDate,
+    };
+
+    const user: Types.UserWithRelations = await prisma.user.update({
+      where: { id: Number(request.params.userId) },
+      data: totalMoneySavedToDateData,
+      include: { overview: true, logbooks: true, logbookReviews: true },
+    });
+    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
+      "password",
+    ]);
+    return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+  } catch (error) {
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error:
+        "Failed to update your total money saved to date. Please refresh the page.",
+    });
+  }
+}
+
 // ========================================================================================= //
 // [ DELETE A USER ] ======================================================================== //
 // ========================================================================================= //
+
+export async function deleteUserController(
+  request: Request,
+  response: Response
+) {
+  try {
+    await prisma.user.delete({
+      where: { id: Number(request.params.userId) },
+    });
+    return response
+      .status(HttpStatusCodes.OK)
+      .json({ message: "Account successfully deleted." });
+  } catch (error) {
+    return response.status(HttpStatusCodes.NOT_FOUND).json({
+      error: "Failed to delete account. Please refresh the page and try again.",
+    });
+  }
+}

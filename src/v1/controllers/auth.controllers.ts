@@ -8,7 +8,6 @@ import { UserRegistrationData } from "../types/auth.types";
 import { RequestWithUser } from "../middlewares/auth.middlewares";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
-import { removeLastCharacterFromString } from "../../utils/strings.utils";
 
 const prisma = new PrismaClient();
 
@@ -38,7 +37,7 @@ export async function registrationController(
       data: userRegistrationData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);s
+    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
     return response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
   } catch (error) {
     // ↓↓↓ The client should be making sure that the app never enters this catch block. ↓↓↓
@@ -60,21 +59,16 @@ export async function checkRegistrationEmailController(
   response: Response
 ) {
   try {
-    const userByEmail = await prisma.user.findUnique({
+    await prisma.user.findUniqueOrThrow({
       where: { email: request.body.email },
     });
-    if (userByEmail) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: "An account with that email already exists. Please try again.",
-      });
-    } else {
-      response.status(HttpStatusCodes.OK).json({ success: "Email available." });
-    }
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error: "An account with that email already exists. Please try again.",
+    });
   } catch (error) {
-    // ↓↓↓ On the off chance that the client forgets to include the `email` field in the JSON payload. ↓↓↓
-    response
-      .status(HttpStatusCodes.BAD_REQUEST)
-      .json({ error: 'Missing "email" field.' });
+    return response
+      .status(HttpStatusCodes.OK)
+      .json({ success: "Email available." });
   }
 }
 
@@ -87,24 +81,16 @@ export async function checkRegistrationUsernameController(
   response: Response
 ) {
   try {
-    const userByUsername = await prisma.user.findUnique({
+    await prisma.user.findUniqueOrThrow({
       where: { username: request.body.username },
     });
-    if (userByUsername) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "An account with that username already exists. Please try again.",
-      });
-    } else {
-      response
-        .status(HttpStatusCodes.OK)
-        .json({ success: "Username available." });
-    }
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error: "An account with that username already exists. Please try again.",
+    });
   } catch (error) {
-    // ↓↓↓ On the off change that the client forgets to include the `username` field in the JSON payload. ↓↓↓
-    response
-      .status(HttpStatusCodes.BAD_REQUEST)
-      .json({ error: 'Missing "username" field.' });
+    return response
+      .status(HttpStatusCodes.OK)
+      .json({ success: "Username available." });
   }
 }
 
@@ -121,7 +107,7 @@ export async function loginController(request: Request, response: Response) {
     );
 
     if (!accessTokenSecretKey) {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
+      return response.status(HttpStatusCodes.BAD_REQUEST).json({
         error: "Something went wrong.",
       });
     } else if (passwordsMatch) {
@@ -137,16 +123,16 @@ export async function loginController(request: Request, response: Response) {
         (request as RequestWithUser).existingUser,
         ["password"]
       );
-      response
+      return response
         .status(HttpStatusCodes.OK)
         .json({ user: userWithoutPassword, accessToken });
     } else {
-      response.status(HttpStatusCodes.BAD_REQUEST).json({
+      return response.status(HttpStatusCodes.BAD_REQUEST).json({
         error: "Incorrect password. Please try again.",
       });
     }
   } catch (error) {
-    response.status(HttpStatusCodes.BAD_REQUEST).json({
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
         "Failed to log in. Please make sure all required fields are correctly filled in and try again.",
     });
