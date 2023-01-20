@@ -8,10 +8,7 @@ import { HttpStatusCodes } from "../../utils/http-status-codes";
 import { UserRegistrationData } from "../types/auth.types";
 import {
   RequestWithUser,
-  checkEmailDuringRegistration,
   checkUsernameDuringLogin,
-  checkUsernameDuringRegistration,
-  checkEmailAndUsernameDuringRegistration,
 } from "../middlewares/auth.middlewares";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 
@@ -21,7 +18,6 @@ const prisma = new PrismaClient();
 // Register (create) a user
 authRouter_v1.post(
   "/register",
-  checkEmailAndUsernameDuringRegistration,
   async (request: Request, response: Response) => {
     try {
       const saltRounds = 10;
@@ -59,6 +55,23 @@ authRouter_v1.post(
 
 // Checking existence of email during registration
 authRouter_v1.get(
+  "/register/check-email",
+  async (request: Request, response: Response) => {
+    const userByEmail = await prisma.user.findUnique({
+      where: { email: request.body.email },
+    });
+    if (userByEmail) {
+      response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error: "An account with that email already exists. Please try again.",
+      });
+    } else {
+      response.status(HttpStatusCodes.OK).json({ success: "Email available." });
+    }
+  }
+);
+
+// Checking existence of username during registration
+authRouter_v1.get(
   "/register/check-username",
   async (request: Request, response: Response) => {
     const userByUsername = await prisma.user.findUnique({
@@ -66,7 +79,8 @@ authRouter_v1.get(
     });
     if (userByUsername) {
       response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: "An account with that email already exists. Please try again.",
+        error:
+          "An account with that username already exists. Please try again.",
       });
     } else {
       response
