@@ -12,10 +12,7 @@ const prisma = new PrismaClient();
 // [ FETCH ALL USERS ] ===================================================================== //
 // ========================================================================================= //
 
-export async function fetchUsersController(
-  request: Request,
-  response: Response
-) {
+export async function fetchUsers(request: Request, response: Response) {
   try {
     const users: Types.UserWithRelations[] = await prisma.user.findMany({
       orderBy: { id: "asc" },
@@ -36,10 +33,7 @@ export async function fetchUsersController(
 // [ FETCH ONE USER ] ====================================================================== //
 // ========================================================================================= //
 
-export async function fetchUserController(
-  request: Request,
-  response: Response
-) {
+export async function fetchUser(request: Request, response: Response) {
   try {
     const user: Types.UserWithRelations = await prisma.user.findUniqueOrThrow({
       where: { id: Number(request.params.userId) },
@@ -59,14 +53,12 @@ export async function fetchUserController(
 
 // ========================================================================================= //
 // [ UPDATE A USER ] ======================================================================= //
+// [ `password` & `totalMoneySavedToDate` UPDATE IS HANDLED BY ANOTHER CONTROLLER ] ======== //
 // ========================================================================================= //
 
-export async function updateUserController(
-  request: Request,
-  response: Response
-) {
+export async function updateUser(request: Request, response: Response) {
   try {
-    const userUpdateData: Types.UserUpdateData = {
+    const userUpdateData: Partial<Types.UserUpdateData> = {
       email: request.body.email,
       username: request.body.username,
       firstName: request.body.firstName,
@@ -98,10 +90,7 @@ export async function updateUserController(
 // [ UPDATE A USER'S PASSWORD ] ============================================================ //
 // ========================================================================================= //
 
-export async function updateUserPasswordController(
-  request: Request,
-  response: Response
-) {
+export async function updateUserPassword(request: Request, response: Response) {
   try {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(
@@ -134,7 +123,7 @@ export async function updateUserPasswordController(
 // [ UPDATE A USER'S `totalMoneySavedToDate` FIELD ] ======================================= //
 // ========================================================================================= //
 
-export async function updateUserTotalMoneySavedToDateController(
+export async function updateUserTotalMoneySavedToDate(
   request: Request,
   response: Response
 ) {
@@ -166,10 +155,7 @@ export async function updateUserTotalMoneySavedToDateController(
 // [ DELETE A USER ] ======================================================================== //
 // ========================================================================================= //
 
-export async function deleteUserController(
-  request: Request,
-  response: Response
-) {
+export async function deleteUser(request: Request, response: Response) {
   try {
     await prisma.user.delete({
       where: { id: Number(request.params.userId) },

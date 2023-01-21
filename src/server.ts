@@ -11,14 +11,14 @@ import * as Routes from "./v1/routes";
 dotenv.config();
 const app = express();
 
-// ↓↓↓ Allows API to parse incoming JSON payload from the client. ↓↓↓
+// ↓↓↓ Allows API to parse client payload. ↓↓↓
 app.use(express.json());
 
 // Routes
 app.use("/api/v1/auth", Routes.authRouter_v1);
 app.use("/api/v1/users", Routes.userRouter_v1);
 
-// ↓↓↓ Middleware for globally catching errors & sending them as JSON to the client. ↓↓↓
+// ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
   error: Error,
   request: Request,

@@ -8,10 +8,10 @@ import { HttpStatusCodes } from "./../../utils/http-status-codes";
 const prisma = new PrismaClient();
 
 // ========================================================================================= //
-// [ LOGIN : MAKING SURE CLIENT-PROVIDED USERNAME EXISTS ] ================================= //
+// [ LOGIN : CHECKS IF USERNAME PROVIDED BY CLIENT ALREADY EXISTS ] ======================== //
 // ========================================================================================= //
 
-export async function verifyLoginUsernameMiddleware(
+export async function verifyLoginUsername(
   request: Request,
   response: Response,
   next: NextFunction
@@ -30,7 +30,7 @@ export async function verifyLoginUsernameMiddleware(
 }
 
 // ========================================================================================= //
-// [ VERIFYING JWT ACCESS TOKEN ] ========================================================== //
+// [ VERIFIES JWT ACCESS TOKEN ] =========================================================== //
 // ========================================================================================= //
 
 // ↓↓↓ Middleware that authenticates user actions via a JWT access token. ↓↓↓
@@ -39,7 +39,7 @@ export async function verifyLoginUsernameMiddleware(
 //
 // ↓↓↓ This middleware is performed before hitting any endpoint that requires validation credentials. ↓↓↓
 type RequestWithAccessToken = { accessToken: string | JwtPayload } & Request;
-export async function verifyAccessTokenMiddleware(
+export async function verifyAccessToken(
   request: Request,
   response: Response,
   next: NextFunction

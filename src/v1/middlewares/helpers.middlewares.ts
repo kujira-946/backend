@@ -3,84 +3,72 @@ import { NextFunction, Request, Response } from "express";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
 // ========================================================================================= //
-// [ MAKING SURE THE CLIENT HAS INPUTTED ALL FIELDS REQUIRED BY ENDPOINT ] ================= //
+// [ MAKES SURE THE CLIENT HAS INPUTTED ALL FIELDS REQUIRED BY ENDPOINT ] ================== //
 // ========================================================================================= //
 
-function _generateInvalidClientInputs(
-  expectedClientInputs: string[],
-  providedClientInputs: string[]
+function _generateInvalidData(
+  requiredData: string[],
+  providedData: string[]
 ): string[] {
-  return providedClientInputs.filter((providedClientInput: string) => {
-    return !expectedClientInputs.includes(providedClientInput);
+  return providedData.filter((providedClientInput: string) => {
+    return !requiredData.includes(providedClientInput);
   });
 }
 
-function _generateMissingClientInputs(
-  expectedClientInputs: string[],
-  providedClientInputs: string[]
+function _generateMissingData(
+  requiredData: string[],
+  providedData: string[]
 ): string[] {
-  return expectedClientInputs.filter((expectedClientInput: string) => {
-    return !providedClientInputs.includes(expectedClientInput);
+  return requiredData.filter((expectedClientInput: string) => {
+    return !providedData.includes(expectedClientInput);
   });
 }
 
-function _checkAtLeastOneRequiredInputProvided(
-  expectedClientInputs: string[],
-  providedClientInputs: string[]
+function _checkAtLeastOneRequiredData(
+  requiredData: string[],
+  providedData: string[]
 ): boolean {
-  for (let index = 0; index < providedClientInputs.length; index++) {
-    const providedClientInput = providedClientInputs[index];
-    return expectedClientInputs.includes(providedClientInput);
+  for (let index = 0; index < providedData.length; index++) {
+    const providedClientInput = providedData[index];
+    return requiredData.includes(providedClientInput);
   }
   return false;
 }
 
-type RequireAllInputs = { requireAllInputs: boolean };
-export function checkValidityOfClientRequestMiddleware(
-  expectedClientInputs: string[],
-  { requireAllInputs }: RequireAllInputs = { requireAllInputs: true }
+type RequireAllData = { requireAllData: boolean };
+export function checkValidityOfClientData(
+  requiredData: string[],
+  { requireAllData }: RequireAllData = { requireAllData: true }
 ) {
   return function (request: Request, response: Response, next: NextFunction) {
-    const providedClientInputs = Object.keys(request.body);
+    // ↓↓↓ Data provided by the client. ↓↓↓
+    const providedData = Object.keys(request.body);
 
-    // ↓↓↓ Any form inputs sent by the client that are not supposed to be in the payload. ↓↓↓
-    const invalidClientInputs = _generateInvalidClientInputs(
-      expectedClientInputs,
-      providedClientInputs
-    );
-    // ↓↓↓ If there were any invalid client inputs, send HTTP 400 error to the client and stop the validity check here. ↓↓↓
-    if (invalidClientInputs.length > 0) {
+    // ↓↓↓ If the client's request contains any invalid inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
+    const invalidData = _generateInvalidData(requiredData, providedData);
+    if (invalidData.length > 0) {
       return response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: `Invalid input(s): ${invalidClientInputs.join(", ")}.`,
+        error: `Invalid data: ${invalidData.join(", ")}.`,
       });
     }
-
-    // ↓↓↓ If the client didn't provide any invalid form input, move onto checking to see if it provided all required form inputs. ↓↓↓
+    // ↓↓↓ If the client's request contains only valid inputs, we move onto checking if all required inputs were provided. ↓↓↓
     else {
-      // ↓↓↓ If we require that all expected client inputs be provided. `true` by default. ↓↓↓
-      if (requireAllInputs) {
-        const missingClientInputs = _generateMissingClientInputs(
-          expectedClientInputs,
-          providedClientInputs
-        );
-        // ↓↓↓ If the client didn't provide all required form inputs, respond with a HTTP 400 error to the client and stop the validity check here. ↓↓↓
-        if (missingClientInputs.length > 0) {
+      if (requireAllData) {
+        const missingData = _generateMissingData(requiredData, providedData);
+        // ↓↓↓ If the client's request doesn't contain all required inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
+        if (missingData.length > 0) {
           return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error: `Missing input(s): ${missingClientInputs.join(", ")}.`,
+            error: `Missing data: ${missingData.join(", ")}.`,
           });
-        }
-        // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
-        else {
+        } else {
+          // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
           return next();
         }
-      }
-      // ↓↓↓ If we only require at least one expected client input be provided. ↓↓↓
-      else {
-        const atLeastOneRequiredInputProvided =
-          _checkAtLeastOneRequiredInputProvided(
-            expectedClientInputs,
-            providedClientInputs
-          );
+      } else {
+        const atLeastOneRequiredInputProvided = _checkAtLeastOneRequiredData(
+          requiredData,
+          providedData
+        );
         if (atLeastOneRequiredInputProvided) {
           // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
           return next();

@@ -22,9 +22,7 @@ const userUpdateData = Prisma.validator<Prisma.UserArgs>()({
     mobileNumber: true,
   },
 });
-export type UserUpdateData = Partial<
-  Prisma.UserGetPayload<typeof userUpdateData>
->;
+export type UserUpdateData = Prisma.UserGetPayload<typeof userUpdateData>;
 
 const userUpdatePasswordData = Prisma.validator<Prisma.UserArgs>()({
   select: {

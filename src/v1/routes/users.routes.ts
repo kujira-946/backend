@@ -2,49 +2,50 @@ import express from "express";
 
 import * as Middlewares from "../middlewares/users.middlewares";
 import * as Controllers from "../controllers/users.controllers";
-import { checkValidityOfClientRequestMiddleware } from "../middlewares/helpers.middlewares";
+import { checkValidityOfClientData } from "../middlewares/helpers.middlewares";
+import { UserUpdateData } from "./../types/users.types";
 
 export const userRouter_v1 = express.Router();
 
+type UserUpdateDataFields = (keyof UserUpdateData)[];
+const userUpdateData: UserUpdateDataFields = [
+  "email",
+  "username",
+  "firstName",
+  "lastName",
+  "birthday",
+  "currency",
+  "theme",
+  "mobileNumber",
+];
+
 // ↓↓↓ Fetch all users. ↓↓↓
-userRouter_v1.get("/", Controllers.fetchUsersController);
+userRouter_v1.get("/", Controllers.fetchUsers);
 
 // ↓↓↓ Fetch one user. ↓↓↓
-userRouter_v1.get("/:userId", Controllers.fetchUserController);
+userRouter_v1.get("/:userId", Controllers.fetchUser);
 
 // ↓↓↓ Update a user. ↓↓↓
 userRouter_v1.patch(
   "/:userId",
-  checkValidityOfClientRequestMiddleware(
-    [
-      "email",
-      "username",
-      "firstName",
-      "lastName",
-      "birthday",
-      "currency",
-      "theme",
-      "mobileNumber",
-    ],
-    { requireAllInputs: false }
-  ),
-  Controllers.updateUserController
+  checkValidityOfClientData(userUpdateData, { requireAllData: false }),
+  Controllers.updateUser
 );
 
 // ↓↓↓ Update a user's password. ↓↓↓
 userRouter_v1.patch(
   "/:userId/update-password",
-  checkValidityOfClientRequestMiddleware(["oldPassword", "newPassword"]),
-  Middlewares.checkOldPasswordMatchMiddleware,
-  Controllers.updateUserPasswordController
+  checkValidityOfClientData(["oldPassword", "newPassword"]),
+  Middlewares.checkOldPasswordMatch,
+  Controllers.updateUserPassword
 );
 
-// ↓↓↓ Update a user's total money saved to date. ↓↓↓
+// ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓
 userRouter_v1.patch(
   "/:userId/total-money-saved-to-date",
-  checkValidityOfClientRequestMiddleware(["totalMoneySavedToDate"]),
-  Controllers.updateUserTotalMoneySavedToDateController
+  checkValidityOfClientData(["totalMoneySavedToDate"]),
+  Controllers.updateUserTotalMoneySavedToDate
 );
 
 // ↓↓↓ Delete a user. ↓↓↓
-userRouter_v1.delete("/:userId", Controllers.deleteUserController);
+userRouter_v1.delete("/:userId", Controllers.deleteUser);

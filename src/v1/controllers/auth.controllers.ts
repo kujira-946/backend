@@ -11,13 +11,10 @@ import { HttpStatusCodes } from "../../utils/http-status-codes";
 const prisma = new PrismaClient();
 
 // ========================================================================================= //
-// [ REGISTRATION : CREATING A NEW ACCOUNT ] =============================================== //
+// [ REGISTRATION : CREATES A NEW ACCOUNT ] ================================================ //
 // ========================================================================================= //
 
-export async function registrationController(
-  request: Request,
-  response: Response
-) {
+export async function registration(request: Request, response: Response) {
   try {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
@@ -39,9 +36,8 @@ export async function registrationController(
     const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
     return response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
   } catch (error) {
-    // ↓↓↓ The client should be making sure that the app never enters this catch block. ↓↓↓
-    // ↓↓↓ That is, the client is responsible for using the `/register/check-email` and `/register/check-username` endpoints to make sure that the user has provided a unique email and username BEFORE hitting this controller. ↓↓↓
-    // ↓↓↓ On the off chance that the client decides to be a big dumb, this is a fallback error handler that notifies the user of possibly having provided a non-unique email or username. ↓↓↓
+    // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
+    // ↓↓↓ If it, for whatever reason, does not verify first, we hit this back-up `catch` block. ↓↓↓
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
         "Failed to created account. You might have entered a non-unique email or username. Please try again.",
@@ -50,10 +46,10 @@ export async function registrationController(
 }
 
 // ========================================================================================= //
-// [ REGISTRATION : CHECKING IF CLIENT-PROVIDED EMAIL ALREADY EXISTS IN DATABASE ] ========= //
+// [ REGISTRATION : ALLOWS CLIENT TO CHECK IF EMAIL ALREADY EXISTS IN DATABASE ] =========== //
 // ========================================================================================= //
 
-export async function checkRegistrationEmailController(
+export async function checkRegistrationEmail(
   request: Request,
   response: Response
 ) {
@@ -72,10 +68,10 @@ export async function checkRegistrationEmailController(
 }
 
 // ========================================================================================= //
-// [ REGISTRATION : CHECKING IF CLIENT-PROVIDED USERNAME ALREADY EXISTS IN DATABASE ] ====== //
+// [ REGISTRATION : ALLOWS CLIENT TO CHECK IF USERNAME ALREADY EXISTS IN DATABASE ] ======== //
 // ========================================================================================= //
 
-export async function checkRegistrationUsernameController(
+export async function checkRegistrationUsername(
   request: Request,
   response: Response
 ) {
@@ -94,10 +90,10 @@ export async function checkRegistrationUsernameController(
 }
 
 // ========================================================================================= //
-// [ LOGIN : LOGGING IN A USER AND PROVIDING CLIENT WITH A JSON WEB TOKEN ] ================ //
+// [ LOGIN : LOGS IN A USER & PROVIDES CLIENT WITH A JSON WEB TOKEN ] ====================== //
 // ========================================================================================= //
 
-export async function loginController(request: Request, response: Response) {
+export async function login(request: Request, response: Response) {
   try {
     const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
     const passwordsMatch = bcrypt.compareSync(
