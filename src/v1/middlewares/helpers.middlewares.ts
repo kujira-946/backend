@@ -13,14 +13,6 @@ function _generateInvalidClientInputs(
   return providedClientInputs.filter((providedClientInput: string) => {
     return !expectedClientInputs.includes(providedClientInput);
   });
-
-  // const invalidClientInputs: string[] = [];
-  // providedClientInputs.forEach((clientFormInput: string) => {
-  //   if (!expectedClientInputs.includes(clientFormInput)) {
-  //     invalidClientInputs.push(clientFormInput);
-  //   }
-  // });
-  // return invalidClientInputs;
 }
 
 function _generateMissingClientInputs(
@@ -30,14 +22,6 @@ function _generateMissingClientInputs(
   return expectedClientInputs.filter((expectedClientInput: string) => {
     return !providedClientInputs.includes(expectedClientInput);
   });
-
-  // const missingClientPayloadProperties: string[] = [];
-  // expectedClientInputs.forEach((requiredFormField: string) => {
-  //   if (!providedClientInputs.includes(requiredFormField)) {
-  //     missingClientPayloadProperties.push(requiredFormField);
-  //   }
-  // });
-  // return missingClientPayloadProperties;
 }
 
 function _checkAtLeastOneRequiredInputProvided(
@@ -101,12 +85,10 @@ export function checkValidityOfClientRequestMiddleware(
           // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
           return next();
         } else {
-          return response
-            .status(HttpStatusCodes.BAD_REQUEST)
-            .json({
-              error:
-                "Missing at least one required field. Please provide the missing field and try again.",
-            });
+          return response.status(HttpStatusCodes.BAD_REQUEST).json({
+            error:
+              "Missing at least one required field. Please provide the missing field and try again.",
+          });
         }
       }
     }

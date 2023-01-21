@@ -1,9 +1,9 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
+import { RequestWithUser } from "../types/auth.types";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
-import { User } from "../types/users.types";
 
 const prisma = new PrismaClient();
 
@@ -11,7 +11,6 @@ const prisma = new PrismaClient();
 // [ LOGIN : MAKING SURE CLIENT-PROVIDED USERNAME EXISTS ] ================================= //
 // ========================================================================================= //
 
-export type RequestWithUser = { existingUser: User } & Request;
 export async function verifyLoginUsernameMiddleware(
   request: Request,
   response: Response,

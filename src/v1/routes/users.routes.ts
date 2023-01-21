@@ -1,20 +1,18 @@
-import { PrismaClient } from "@prisma/client";
-import express, { Request, Response } from "express";
+import express from "express";
 
 import * as Middlewares from "../middlewares/users.middlewares";
 import * as Controllers from "../controllers/users.controllers";
 import { checkValidityOfClientRequestMiddleware } from "../middlewares/helpers.middlewares";
-import * as Helpers from "../helpers/users.helpers";
-import * as Types from "../types/users.types";
-import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export const userRouter_v1 = express.Router();
-const prisma = new PrismaClient();
 
+// ↓↓↓ Fetch all users. ↓↓↓
 userRouter_v1.get("/", Controllers.fetchUsersController);
 
+// ↓↓↓ Fetch one user. ↓↓↓
 userRouter_v1.get("/:userId", Controllers.fetchUserController);
 
+// ↓↓↓ Update a user. ↓↓↓
 userRouter_v1.patch(
   "/:userId",
   checkValidityOfClientRequestMiddleware(
@@ -33,17 +31,20 @@ userRouter_v1.patch(
   Controllers.updateUserController
 );
 
+// ↓↓↓ Update a user's password. ↓↓↓
 userRouter_v1.patch(
-  "/:userId/updatePassword",
+  "/:userId/update-password",
   checkValidityOfClientRequestMiddleware(["oldPassword", "newPassword"]),
   Middlewares.checkOldPasswordMatchMiddleware,
   Controllers.updateUserPasswordController
 );
 
+// ↓↓↓ Update a user's total money saved to date. ↓↓↓
 userRouter_v1.patch(
-  "/:userId/totalMoneySavedToDate",
+  "/:userId/total-money-saved-to-date",
   checkValidityOfClientRequestMiddleware(["totalMoneySavedToDate"]),
   Controllers.updateUserTotalMoneySavedToDateController
 );
 
+// ↓↓↓ Delete a user. ↓↓↓
 userRouter_v1.delete("/:userId", Controllers.deleteUserController);

@@ -4,8 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import * as UserTypes from "../types/users.types";
-import { UserRegistrationData } from "../types/auth.types";
-import { RequestWithUser } from "../middlewares/auth.middlewares";
+import { RequestWithUser, UserRegistrationData } from "../types/auth.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
