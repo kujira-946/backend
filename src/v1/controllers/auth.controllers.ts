@@ -40,7 +40,11 @@ export async function registerUser(request: Request, response: Response) {
       "Thank you for registering with Kujira."
     );
     const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
-    return response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
+    return response.status(HttpStatusCodes.CREATED).json({
+      user: userWithoutPassword,
+      success:
+        "In order to access Kujira, you must first verify your account. Please enter the confirmation code sent to your email below to proceed.",
+    });
   } catch (error) {
     // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
     // ↓↓↓ If it, for whatever reason, does not verify first, we hit this back-up `catch` block. ↓↓↓

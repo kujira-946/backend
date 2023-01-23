@@ -20,13 +20,10 @@ export async function sendUserConfirmationEmail(
   const confirmationCode = "473829479";
 
   const confirmationMessage = {
-    from: `"The Express App" <foo@example.com>`,
+    from: `"Kujira" <foo@example.com>`,
     to: email,
     subject,
     text: `${text} This is a test confirmation email. Please copy and paste the following confirmation code into the app: ${confirmationCode}`,
   };
-  const info = await SMTPtransporter.sendMail(confirmationMessage);
-
-  console.log("Message sent: %s", info.messageId);
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  await SMTPtransporter.sendMail(confirmationMessage);
 }
