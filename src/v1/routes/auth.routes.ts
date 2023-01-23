@@ -24,7 +24,7 @@ const requiredRegistrationFields: RequiredRegistrationFields = [
 authRouter_v1.post(
   "/register",
   checkValidityOfClientData(requiredRegistrationFields),
-  Controllers.registration
+  Controllers.registerUser
 );
 
 authRouter_v1.get(
@@ -44,5 +44,5 @@ authRouter_v1.post(
   checkUsernameExistsOnLogin,
   checkAccountVerifiedOnLogin,
   checkValidityOfClientData(["username", "password", "thirtyDays"]),
-  Controllers.login
+  Controllers.loginUser
 );

@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+import * as Helpers from "../helpers/auth.helpers";
 import * as UserTypes from "../types/users.types";
 import { RequestWithUser, UserRegistrationData } from "../types/auth.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
@@ -14,13 +15,8 @@ const prisma = new PrismaClient();
 // [ REGISTRATION : CREATES A NEW ACCOUNT ] ================================================ //
 // ========================================================================================= //
 
-export async function registration(request: Request, response: Response) {
+export async function registerUser(request: Request, response: Response) {
   try {
-    const confirmationCode = jwt.sign(
-      { email: request.body.email },
-      "secretkey"
-    );
-
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
 
@@ -38,6 +34,11 @@ export async function registration(request: Request, response: Response) {
       data: userRegistrationData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
+    Helpers.sendUserConfirmationEmail(
+      request.body.email,
+      "Kujira Test Email Confirmation",
+      "Thank you for registering with Kujira."
+    );
     const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
     return response.status(HttpStatusCodes.CREATED).json(userWithoutPassword);
   } catch (error) {
@@ -98,7 +99,7 @@ export async function checkUsernameAvailability(
 // [ LOGIN : LOGS IN A USER & PROVIDES CLIENT WITH A JSON WEB TOKEN ] ====================== //
 // ========================================================================================= //
 
-export async function login(request: Request, response: Response) {
+export async function loginUser(request: Request, response: Response) {
   try {
     const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
     const passwordsMatch = bcrypt.compareSync(
