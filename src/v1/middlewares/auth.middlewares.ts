@@ -20,8 +20,17 @@ export async function verifyLoginUsername(
     const user = await prisma.user.findUniqueOrThrow({
       where: { username: request.body.username },
     });
-    (request as RequestWithUser).existingUser = user;
-    return next();
+    if (user.status === "pending") {
+      return response
+        .status(HttpStatusCodes.UNAUTHORIZED)
+        .json({
+          error:
+            "Account is still pending email verification. Please check your email and confirm your registration.",
+        });
+    } else {
+      (request as RequestWithUser).existingUser = user;
+      return next();
+    }
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error: "An account with that username does not exist. Please try again.",
