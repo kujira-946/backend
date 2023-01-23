@@ -1,5 +1,8 @@
+import { Response } from "express";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+
+import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export async function sendUserConfirmationEmail(
   email: string,
@@ -43,4 +46,15 @@ export function generateEmailConfirmationCode(secretKey: string): string {
     expiresIn: "5m",
   });
   return confirmationCode;
+}
+
+export function handleJWTSecretKeyFetch(response: Response) {
+  const tokenSecretKey = process.env.TOKEN_SECRET_KEY;
+  if (!tokenSecretKey) {
+    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: "Something went wrong.",
+    });
+  } else {
+    return tokenSecretKey;
+  }
 }

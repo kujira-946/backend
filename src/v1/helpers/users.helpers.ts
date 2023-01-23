@@ -1,3 +1,5 @@
+import { User } from "../types/users.types";
+
 export function excludeFieldFromUsersObject<User, Key extends keyof User>(
   users: User[],
   keys: Key[]
@@ -15,3 +17,8 @@ export function excludeFieldFromUserObject<User, Key extends keyof User>(
   for (let key of keys) delete user[key];
   return user;
 }
+
+export const confirmationCodeSuccessData: Partial<User> = {
+  accountStatus: "VERIFIED",
+  confirmationCode: null,
+};

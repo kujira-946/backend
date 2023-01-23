@@ -27,9 +27,9 @@ authRouter_v1.post(
   Controllers.registerUser
 );
 
-authRouter_v1.post(
+authRouter_v1.patch(
   "/register/:userId/confirm/:confirmationCode",
-  Controllers.confirmRegistration
+  Controllers.finalizeRegistrationWithConfirmationCode
 );
 
 authRouter_v1.get(
@@ -44,12 +44,18 @@ authRouter_v1.get(
   Controllers.checkUsernameAvailability
 );
 
-authRouter_v1.post(
+authRouter_v1.patch(
   "/login",
   checkUsernameExistsOnLogin,
   checkAccountVerifiedOnLogin,
-  checkValidityOfClientData(["username", "password", "thirtyDays"]),
-  Controllers.loginUser
+  checkValidityOfClientData(["username", "password"]),
+  Controllers.initializeLoginWithUsernameAndPassword
+);
+
+authRouter_v1.patch(
+  "/login/:userId/confirm/:confirmationCode",
+  checkValidityOfClientData(["thirtyDays"]),
+  Controllers.finalizeLoginWithConfirmationCode
 );
 
 authRouter_v1.post(

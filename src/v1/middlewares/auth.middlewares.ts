@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 import { RequestWithUser } from "../types/auth.types";
+import { handleJWTSecretKeyFetch } from "../helpers/auth.helpers";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
@@ -66,19 +67,18 @@ export async function verifyAccessToken(
 ) {
   try {
     const accessToken = request.header("Authorization")?.replace("Bearer ", "");
-    const accessTokenSecretKey = process.env.TOKEN_SECRET_KEY;
+    const accessTokenSecretKey = handleJWTSecretKeyFetch(response);
 
     if (!accessToken) {
       return response.status(HttpStatusCodes.UNAUTHORIZED).json({
         error:
           "No access token. Either the token has expired or there was an error in locating it. Please try again.",
       });
-    } else if (!accessTokenSecretKey) {
-      return response
-        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
-        .json({ error: "Something went wrong." });
     } else {
-      const decodedAccessToken = jwt.verify(accessToken, accessTokenSecretKey);
+      const decodedAccessToken = jwt.verify(
+        accessToken,
+        accessTokenSecretKey as string
+      );
       // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
       // ↓↓↓ in the action the user wanted to perform. ↓↓↓
       (request as RequestWithAccessToken).accessToken = decodedAccessToken;
