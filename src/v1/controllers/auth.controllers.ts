@@ -20,6 +20,8 @@ export async function registerUser(request: Request, response: Response) {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
 
+    const confirmationCode = Helpers.generateEmailConfirmationCode();
+
     const userRegistrationData: UserRegistrationData = {
       email: request.body.email,
       username: request.body.username,
@@ -28,6 +30,7 @@ export async function registerUser(request: Request, response: Response) {
       lastName: request.body.lastName,
       birthday: request.body.birthday,
       currency: request.body.currency,
+      confirmationCode,
     };
 
     const user: UserTypes.UserWithRelations = await prisma.user.create({
@@ -37,13 +40,14 @@ export async function registerUser(request: Request, response: Response) {
     Helpers.sendUserConfirmationEmail(
       request.body.email,
       "Kujira Test Email Confirmation",
-      "Thank you for registering with Kujira."
+      "Thank you for registering with Kujira. We're glad to have you on board :)",
+      confirmationCode
     );
     const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
     return response.status(HttpStatusCodes.CREATED).json({
       user: userWithoutPassword,
       success:
-        "In order to access Kujira, you must first verify your account. Please enter the confirmation code sent to your email below to proceed.",
+        "Thank you for registering with Kujira. We're happy to have you on board! However, in order to access all the wonders of the app, you're going to have to first verify your account. We've sent a confirmation code to your email. Please check your email and enter the code below to proceed.",
     });
   } catch (error) {
     // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
@@ -51,6 +55,34 @@ export async function registerUser(request: Request, response: Response) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
         "Failed to created account. You might have entered a non-unique email or username. Please try again.",
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ REGISTRATION : CONFIRMS USER REGISTRATION WITH SUPPLIED CONFIRMATION CODE ] =========== //
+// ========================================================================================= //
+
+export async function confirmRegistration(
+  request: Request,
+  response: Response
+) {
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: request.body.userId,
+        confirmationCode: request.body.confirmationCode,
+      },
+      data: { status: "active", confirmationCode: null },
+    });
+    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
+    return response
+      .status(HttpStatusCodes.OK)
+      .json({ user: userWithoutPassword });
+  } catch (error) {
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error:
+        "You've supplied an incorrect confirmation code. Please enter the correct code and try again.",
     });
   }
 }

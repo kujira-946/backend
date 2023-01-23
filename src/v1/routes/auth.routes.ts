@@ -27,6 +27,11 @@ authRouter_v1.post(
   Controllers.registerUser
 );
 
+authRouter_v1.post(
+  "/register/:userId/confirm/:confirmationCode",
+  Controllers.confirmRegistration
+);
+
 authRouter_v1.get(
   "/register/check-email-availability",
   checkValidityOfClientData(["email"]),

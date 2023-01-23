@@ -3,10 +3,9 @@ import nodemailer from "nodemailer";
 export async function sendUserConfirmationEmail(
   email: string,
   subject: string,
-  text: string
+  text: string,
+  confirmationCode: string
 ) {
-  const testAccount = await nodemailer.createTestAccount();
-
   const SMTPtransporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",
     port: 587,
@@ -17,13 +16,22 @@ export async function sendUserConfirmationEmail(
     },
   });
 
-  const confirmationCode = "473829479";
-
   const confirmationMessage = {
     from: `"Kujira" <foo@example.com>`,
     to: email,
     subject,
-    text: `${text} This is a test confirmation email. Please copy and paste the following confirmation code into the app: ${confirmationCode}`,
+    html: `
+      <p>${text}</p>
+      <p>This is a test confirmation email. Please copy and paste the following confirmation code into the app: ${confirmationCode}</p>
+    `,
   };
   await SMTPtransporter.sendMail(confirmationMessage);
+}
+
+export function generateEmailConfirmationCode(): string {
+  let confirmationCode = "";
+  for (let i = 0; i < 8; i++) {
+    confirmationCode += Math.floor(Math.random() * 10);
+  }
+  return confirmationCode;
 }
