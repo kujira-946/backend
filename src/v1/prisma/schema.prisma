@@ -13,7 +13,7 @@ enum Theme {
 }
 
 enum AccountStatus {
-  PENDING_VERIFICATION
+  PENDING
   VERIFIED
 }
 
@@ -27,7 +27,7 @@ model User {
   birthday              DateTime
   currency              String
   theme                 Theme           @default(light)
-  accountStatus         AccountStatus   @default(PENDING_VERIFICATION)
+  accountStatus         AccountStatus   @default(PENDING)
   confirmationCode      String?
   mobileNumber          String?
   totalMoneySavedToDate Float           @default(0)

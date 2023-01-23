@@ -39,7 +39,7 @@ export async function checkAccountVerifiedOnLogin(
   next: NextFunction
 ) {
   const { existingUser } = request as RequestWithUser;
-  if (existingUser.status === "pending") {
+  if (existingUser.accountStatus === "PENDING") {
     return response.status(HttpStatusCodes.UNAUTHORIZED).json({
       error:
         "Account is still pending email verification. Please check your email and confirm your registration.",

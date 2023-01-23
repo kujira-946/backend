@@ -47,7 +47,7 @@ export async function registerUser(request: Request, response: Response) {
     return response.status(HttpStatusCodes.CREATED).json({
       user: userWithoutPassword,
       success:
-        "Thank you for registering with Kujira. We're happy to have you on board! However, in order to access all the wonders of the app, you're going to have to first verify your account. We've sent a confirmation code to your email. Please check your email and enter the code below to proceed.",
+        "Thank you for registering with Kujira. We're happy to have you on board! However, in order to access all the wonders of the app, you're going to have to first verify your account. We've sent a confirmation code to your email. Please check your email and enter the code below to proceed. Note that if you do not verify your account within the next 7 days, it will be automatically terminated and you will have to register again.",
     });
   } catch (error) {
     // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
@@ -68,21 +68,31 @@ export async function confirmRegistration(
   response: Response
 ) {
   try {
-    const user = await prisma.user.update({
-      where: {
-        id: request.body.userId,
-        confirmationCode: request.body.confirmationCode,
-      },
-      data: { status: "active", confirmationCode: null },
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: Number(request.params.userId) },
     });
-    const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
-    return response
-      .status(HttpStatusCodes.OK)
-      .json({ user: userWithoutPassword });
+    
+    if (user.accountStatus === "VERIFIED") {
+      return response
+        .status(HttpStatusCodes.BAD_REQUEST)
+        .json({ error: "Account already verified." });
+    } else if (request.params.confirmationCode === user.confirmationCode) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { accountStatus: "VERIFIED", confirmationCode: null },
+      });
+      return response.status(HttpStatusCodes.OK).json({
+        success: "Account verification successful!",
+      });
+    } else {
+      return response.status(HttpStatusCodes.BAD_REQUEST).json({
+        error:
+          "You've supplied an incorrect confirmation code. Please enter the correct code and try again.",
+      });
+    }
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "You've supplied an incorrect confirmation code. Please enter the correct code and try again.",
+      error: "User not found. Please try again.",
     });
   }
 }
