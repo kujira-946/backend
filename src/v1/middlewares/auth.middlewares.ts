@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 // [ LOGIN : CHECKS IF USERNAME PROVIDED BY CLIENT ALREADY EXISTS ] ======================== //
 // ========================================================================================= //
 
-export async function verifyLoginUsername(
+export async function checkUsernameExistsOnLogin(
   request: Request,
   response: Response,
   next: NextFunction
@@ -20,21 +20,32 @@ export async function verifyLoginUsername(
     const user = await prisma.user.findUniqueOrThrow({
       where: { username: request.body.username },
     });
-    if (user.status === "pending") {
-      return response
-        .status(HttpStatusCodes.UNAUTHORIZED)
-        .json({
-          error:
-            "Account is still pending email verification. Please check your email and confirm your registration.",
-        });
-    } else {
-      (request as RequestWithUser).existingUser = user;
-      return next();
-    }
+    (request as RequestWithUser).existingUser = user;
+    return next();
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error: "An account with that username does not exist. Please try again.",
     });
+  }
+}
+
+// ========================================================================================= //
+// [ LOGIN : CHECKS IF USER HAS VERIFIED THEIR ACCOUNT ] =================================== //
+// ========================================================================================= //
+
+export async function checkAccountVerifiedOnLogin(
+  request: Request,
+  response: Response,
+  next: NextFunction
+) {
+  const { existingUser } = request as RequestWithUser;
+  if (existingUser.status === "pending") {
+    return response.status(HttpStatusCodes.UNAUTHORIZED).json({
+      error:
+        "Account is still pending email verification. Please check your email and confirm your registration.",
+    });
+  } else {
+    return next();
   }
 }
 

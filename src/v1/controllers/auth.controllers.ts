@@ -16,6 +16,11 @@ const prisma = new PrismaClient();
 
 export async function registration(request: Request, response: Response) {
   try {
+    const confirmationCode = jwt.sign(
+      { email: request.body.email },
+      "secretkey"
+    );
+
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
 

@@ -1,7 +1,10 @@
 import express from "express";
 
 import * as Controllers from "../controllers/auth.controllers";
-import { verifyLoginUsername } from "../middlewares/auth.middlewares";
+import {
+  checkAccountVerifiedOnLogin,
+  checkUsernameExistsOnLogin,
+} from "../middlewares/auth.middlewares";
 import { checkValidityOfClientData } from "../middlewares/helpers.middlewares";
 import { UserRegistrationData } from "../types/auth.types";
 
@@ -38,7 +41,8 @@ authRouter_v1.get(
 
 authRouter_v1.post(
   "/login",
-  verifyLoginUsername,
+  checkUsernameExistsOnLogin,
+  checkAccountVerifiedOnLogin,
   checkValidityOfClientData(["username", "password", "thirtyDays"]),
   Controllers.login
 );
