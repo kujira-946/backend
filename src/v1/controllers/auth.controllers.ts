@@ -8,6 +8,7 @@ import * as UserTypes from "../types/users.types";
 import { RequestWithUser, UserRegistrationData } from "../types/auth.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
+import { DetailedMessage } from "../types/general.types";
 
 const prisma = new PrismaClient();
 
@@ -46,21 +47,26 @@ export async function registerUser(request: Request, response: Response) {
     const userWithoutPassword = excludeFieldFromUserObject(user, ["password"]);
     return response.status(HttpStatusCodes.CREATED).json({
       user: userWithoutPassword,
-      success:
-        "Thank you for registering with Kujira. We're happy to have you on board! However, in order to access all the wonders of the app, you're going to have to first verify your account. We've sent a confirmation code to your email. Please check your email and enter the code below to proceed. Note that if you do not verify your account within the next 7 days, it will be automatically terminated and you will have to register again.",
+      success: {
+        header:
+          "Thank you for registering with Kujira. We're happy to have you on board!",
+        body: "We've sent a confirmation code to your email. Please enter it below to gain access to the app.",
+        footnote:
+          "Please note that we will automatically terminate your account if it hasn't been verified within 7 days.",
+      } as DetailedMessage,
     });
   } catch (error) {
     // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
     // ↓↓↓ If it, for whatever reason, does not verify first, we hit this back-up `catch` block. ↓↓↓
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
-        "Failed to created account. You might have entered a non-unique email or username. Please try again.",
+        "Failed to create account. You might have entered a non-unique email or username. Please try again.",
     });
   }
 }
 
 // ========================================================================================= //
-// [ REGISTRATION : CONFIRMS USER REGISTRATION WITH SUPPLIED CONFIRMATION CODE ] =========== //
+// [ REGISTRATION : VERIFIES USER ACCOUNT WITH SUPPLIED CONFIRMATION CODE ] ================ //
 // ========================================================================================= //
 
 export async function confirmRegistration(
@@ -71,7 +77,7 @@ export async function confirmRegistration(
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: Number(request.params.userId) },
     });
-    
+
     if (user.accountStatus === "VERIFIED") {
       return response
         .status(HttpStatusCodes.BAD_REQUEST)
