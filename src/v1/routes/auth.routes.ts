@@ -51,3 +51,8 @@ authRouter_v1.post(
   checkValidityOfClientData(["username", "password", "thirtyDays"]),
   Controllers.loginUser
 );
+
+authRouter_v1.post(
+  "/:userId/regenerate-email-confirmation-code",
+  Controllers.regenerateEmailConfirmationCode
+);

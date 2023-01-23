@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
 
 export async function sendUserConfirmationEmail(
   email: string,
@@ -6,13 +7,15 @@ export async function sendUserConfirmationEmail(
   text: string,
   confirmationCode: string
 ) {
+  let testAccount = await nodemailer.createTestAccount();
+
   const SMTPtransporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",
     port: 587,
     secure: false,
     auth: {
-      user: "cordia.carroll93@ethereal.email",
-      pass: "df2NhTpTaj7d6gxPKd",
+      user: testAccount.user,
+      pass: testAccount.pass,
     },
   });
 
@@ -22,16 +25,22 @@ export async function sendUserConfirmationEmail(
     subject,
     html: `
       <p>${text}</p>
-      <p>This is a test confirmation email. Please copy and paste the following confirmation code into the app: ${confirmationCode}</p>
+      <p>Please copy and paste the following confirmation code into the app: ${confirmationCode}</p>
     `,
   };
-  await SMTPtransporter.sendMail(confirmationMessage);
+  const info = await SMTPtransporter.sendMail(confirmationMessage);
+
+  console.log("Message sent: %s", info.messageId);
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
 }
 
-export function generateEmailConfirmationCode(): string {
-  let confirmationCode = "";
+export function generateEmailConfirmationCode(secretKey: string): string {
+  let code = "";
   for (let i = 0; i < 8; i++) {
-    confirmationCode += Math.floor(Math.random() * 10);
+    code += Math.floor(Math.random() * 10);
   }
+  const confirmationCode = jwt.sign({ code }, secretKey, {
+    expiresIn: "5m",
+  });
   return confirmationCode;
 }

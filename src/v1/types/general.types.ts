@@ -1,5 +1,5 @@
 export type DetailedMessage = {
-  header: string;
+  title: string;
   body?: string;
   footnote?: string;
 };

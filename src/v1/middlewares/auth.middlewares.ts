@@ -66,16 +66,17 @@ export async function verifyAccessToken(
 ) {
   try {
     const accessToken = request.header("Authorization")?.replace("Bearer ", "");
-    const accessTokenSecretKey = process.env.ACCESS_TOKEN_SECRET_KEY;
+    const accessTokenSecretKey = process.env.TOKEN_SECRET_KEY;
 
     if (!accessToken) {
-      return next(
-        new Error(
-          "No access token. Either the token has expired or there was an error in locating it."
-        )
-      );
+      return response.status(HttpStatusCodes.UNAUTHORIZED).json({
+        error:
+          "No access token. Either the token has expired or there was an error in locating it. Please try again.",
+      });
     } else if (!accessTokenSecretKey) {
-      return next(new Error("Something went wrong."));
+      return response
+        .status(HttpStatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ error: "Something went wrong." });
     } else {
       const decodedAccessToken = jwt.verify(accessToken, accessTokenSecretKey);
       // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
