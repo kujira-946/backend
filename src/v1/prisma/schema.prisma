@@ -12,6 +12,11 @@ enum Theme {
   dark
 }
 
+enum Status {
+  pending
+  active
+}
+
 model User {
   id                    Int             @id @default(autoincrement())
   email                 String          @unique
@@ -22,6 +27,7 @@ model User {
   birthday              DateTime
   currency              String
   theme                 Theme           @default(light)
+  status                Status          @default(pending)
   mobileNumber          String?
   totalMoneySavedToDate Float           @default(0)
   createdAt             DateTime        @default(now())

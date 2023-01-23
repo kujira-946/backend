@@ -49,7 +49,7 @@ export async function registration(request: Request, response: Response) {
 // [ REGISTRATION : ALLOWS CLIENT TO CHECK IF EMAIL ALREADY EXISTS IN DATABASE ] =========== //
 // ========================================================================================= //
 
-export async function checkRegistrationEmail(
+export async function checkEmailAvailability(
   request: Request,
   response: Response
 ) {
@@ -71,7 +71,7 @@ export async function checkRegistrationEmail(
 // [ REGISTRATION : ALLOWS CLIENT TO CHECK IF USERNAME ALREADY EXISTS IN DATABASE ] ======== //
 // ========================================================================================= //
 
-export async function checkRegistrationUsername(
+export async function checkUsernameAvailability(
   request: Request,
   response: Response
 ) {

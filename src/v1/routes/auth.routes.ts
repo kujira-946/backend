@@ -25,15 +25,15 @@ authRouter_v1.post(
 );
 
 authRouter_v1.get(
-  "/register/check-email",
+  "/register/check-email-availability",
   checkValidityOfClientData(["email"]),
-  Controllers.checkRegistrationEmail
+  Controllers.checkEmailAvailability
 );
 
 authRouter_v1.get(
-  "/register/check-username",
+  "/register/check-username-availability",
   checkValidityOfClientData(["username"]),
-  Controllers.checkRegistrationUsername
+  Controllers.checkUsernameAvailability
 );
 
 authRouter_v1.post(
