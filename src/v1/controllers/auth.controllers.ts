@@ -60,6 +60,43 @@ export async function checkUsernameAvailability(
 // [ ADDS NEW USER TO DATABASE & EMAILS THEM A VERIFICATION CODE ] ========================= //
 // ========================================================================================= //
 
+// ↓↓↓ Adds new user to database and returns new user object. ↓↓↓
+async function _addUserToDatabase(request: Request, verificationCode: string) {
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
+  const userRegistrationData: UserRegistrationData = {
+    email: request.body.email,
+    username: request.body.username,
+    password: hashedPassword,
+    firstName: request.body.firstName,
+    lastName: request.body.lastName,
+    birthday: request.body.birthday,
+    currency: request.body.currency,
+    verificationCode,
+  };
+  const newUser = await prisma.user.create({ data: userRegistrationData });
+  return newUser;
+}
+// ↓↓↓ Emailing user a code to verify the authenticity of their account. ↓↓↓
+async function _emailVerificationCodeToNewUser(
+  request: Request,
+  verificationCode: string,
+  secretKey: string
+) {
+  const extractedCode = Helpers.extractVerificationCode(
+    verificationCode,
+    secretKey
+  );
+  Helpers.emailUser(
+    request.body.email,
+    "Thank you for registering with Kujira.",
+    [
+      "We're glad to have you on board :)",
+      `Please copy and paste the following verification code into the app to verify your registration: ${extractedCode}`,
+    ]
+  );
+}
+
 export async function registerUser(
   request: Request<{}, {}, UserRegistrationData>,
   response: Response
@@ -69,43 +106,12 @@ export async function registerUser(
     if (!secretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
-      // ↓↓↓ Adding new user to database. ↓↓↓
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(
-        request.body.password,
-        saltRounds
-      );
       const verificationCode = Helpers.generateVerificationCode(secretKey);
-      const userRegistrationData: UserRegistrationData = {
-        email: request.body.email,
-        username: request.body.username,
-        password: hashedPassword,
-        firstName: request.body.firstName,
-        lastName: request.body.lastName,
-        birthday: request.body.birthday,
-        currency: request.body.currency,
-        verificationCode,
-      };
-      const user = await prisma.user.create({ data: userRegistrationData });
-
-      // ↓↓↓ Emailing user a code to verify the authenticity of their account. ↓↓↓
-      const extractedCode = Helpers.extractVerificationCode(
-        verificationCode,
-        secretKey
-      );
-      Helpers.emailUser(
-        request.body.email,
-        "Thank you for registering with Kujira.",
-        [
-          "We're glad to have you on board :)",
-          `Please copy and paste the following verification code into the app to verify your registration: ${extractedCode}`,
-        ]
-      );
-
-      // ↓↓↓ Response ↓↓↓
+      const newUser = await _addUserToDatabase(request, verificationCode);
+      _emailVerificationCodeToNewUser(request, verificationCode, secretKey);
       // ↓↓↓ Only need `userId` here for the client to hit proper endpoint to verify the correct account. ↓↓↓
       return response.status(HttpStatusCodes.CREATED).json({
-        userId: user.id,
+        userId: newUser.id,
         success: {
           title:
             "Thank you for registering with Kujira. We're glad to have you on board!",
@@ -117,7 +123,7 @@ export async function registerUser(
     }
   } catch (error) {
     // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
-    // ↓↓↓ If it, for whatever reason, does not verify first, we hit this back-up `catch` block. ↓↓↓
+    // ↓↓↓ Backup error handling in case it doesn't. ↓↓↓
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
       error:
         "Failed to create account. You may have entered a non-unique email or username. Please try again.",

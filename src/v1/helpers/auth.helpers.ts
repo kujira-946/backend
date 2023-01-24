@@ -6,7 +6,7 @@ import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 export function returnServerErrorOnUndefinedSecretKey(response: Response) {
   console.log(
-    "JWT_SECRET_KEY was not found in environment variables. Double check to make sure it's there."
+    "VERIFICATION_CODE_SECRET_KEY and/or AUTH_SECRET_KEY was not found in environment variables. Double check to make sure they're there."
   );
   return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
     error: "Something went wrong.",
