@@ -54,6 +54,7 @@ authRouter_v1.patch(
 
 authRouter_v1.patch(
   "/login/:userId/verify/:verificationCode",
+
   checkValidityOfClientData(["thirtyDays"]),
   Controllers.verifyLogin
 );

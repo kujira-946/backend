@@ -9,6 +9,7 @@ import { UserWithRelations } from "../types/users.types";
 import { DetailedMessage } from "../types/general.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
+import { AuthErrors, AuthSuccesses } from "../utils/auth.utils";
 
 const prisma = new PrismaClient();
 
@@ -81,11 +82,11 @@ async function _addUserToDatabase(request: Request, verificationCode: string) {
 async function _emailVerificationCodeToNewUser(
   request: Request,
   verificationCode: string,
-  secretKey: string
+  verificationSecretKey: string
 ) {
   const extractedCode = Helpers.extractVerificationCode(
     verificationCode,
-    secretKey
+    verificationSecretKey
   );
   Helpers.emailUser(
     request.body.email,
@@ -102,13 +103,19 @@ export async function registerUser(
   response: Response
 ) {
   try {
-    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
-    if (!secretKey) {
+    const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+    if (!verificationSecretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
-      const verificationCode = Helpers.generateVerificationCode(secretKey);
+      const verificationCode = Helpers.generateVerificationCode(
+        verificationSecretKey
+      );
       const newUser = await _addUserToDatabase(request, verificationCode);
-      _emailVerificationCodeToNewUser(request, verificationCode, secretKey);
+      _emailVerificationCodeToNewUser(
+        request,
+        verificationCode,
+        verificationSecretKey
+      );
       // ↓↓↓ Only need `userId` here for the client to hit proper endpoint to verify the correct account. ↓↓↓
       return response.status(HttpStatusCodes.CREATED).json({
         userId: newUser.id,
@@ -135,75 +142,87 @@ export async function registerUser(
 // [ VERIFIES REGISTRATION WITH VERIFICATION CODE ] ======================================== //
 // ========================================================================================= //
 
+// ↓↓↓ Checking database verification code against the one supplied by the user through the client. ↓↓↓
+async function _handleRegistrationVerification(
+  request: Request,
+  response: Response,
+  verificationCode: string,
+  verificationSecretKey: string,
+  userId: number
+) {
+  const userVerificationCode = Helpers.extractVerificationCode(
+    verificationCode,
+    verificationSecretKey
+  );
+  if (request.params.verificationCode === userVerificationCode) {
+    const updatedUser: UserWithRelations = await prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true, verificationCode: null },
+      include: { overview: true, logbooks: true, logbookReviews: true },
+    });
+    const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
+      "password",
+    ]);
+    return response.status(HttpStatusCodes.OK).json({
+      user: userWithoutPassword,
+      success: AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
+    });
+  } else {
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error: AuthErrors.INCORRECT_VERIFICATION_CODE,
+    });
+  }
+}
+
 export async function verifyRegistration(request: Request, response: Response) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: Number(request.params.userId) },
     });
 
-    // ↓↓↓ If the user's account is already verified. ↓↓↓
-    if (user.emailVerified) {
-      return response
-        .status(HttpStatusCodes.BAD_REQUEST)
-        .json({ error: "Account already verified. Please log in." });
-    }
-    // ↓↓↓ If the user's account is NOT yet verified and received a verification code. ↓↓↓
-    else if (user.verificationCode) {
-      const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
-      if (!secretKey) {
-        return Helpers.returnServerErrorOnUndefinedSecretKey(response);
-      } else {
-        // ↓↓↓ If user's verification code has expired. ↓↓↓
-        const verificationCodeExpired = Helpers.checkJWTExpired(
-          user.verificationCode,
-          secretKey
-        );
-        if (verificationCodeExpired) {
+    switch (user.emailVerified) {
+      case true:
+        return response
+          .status(HttpStatusCodes.BAD_REQUEST)
+          .json({ error: "Account already verified. Please log in." });
+
+      default:
+        if (user.verificationCode) {
+          const verificationSecretKey =
+            process.env.VERIFICATION_CODE_SECRET_KEY;
+          if (!verificationSecretKey) {
+            return Helpers.returnServerErrorOnUndefinedSecretKey(response);
+          } else {
+            // ↓↓↓ If user's verification code has expired. ↓↓↓
+            const verificationCodeExpired = Helpers.checkJWTExpired(
+              user.verificationCode,
+              verificationSecretKey
+            );
+            if (verificationCodeExpired) {
+              return response.status(HttpStatusCodes.BAD_REQUEST).json({
+                error: AuthErrors.VERIFICATION_CODE_EXPIRED,
+              });
+            }
+            // ↓↓↓ If user's verification code hasn't expired. ↓↓↓
+            else {
+              return _handleRegistrationVerification(
+                request,
+                response,
+                user.verificationCode,
+                verificationSecretKey,
+                user.id
+              );
+            }
+          }
+        } else {
           return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error:
-              "Verification code expired. Please request a new verification code.",
+            error: AuthErrors.ACCOUNT_HAS_NO_VERIFICATION_CODE,
           });
         }
-        // ↓↓↓ If user's verification code hasn't expired. ↓↓↓
-        // ↓↓↓ Checking database verification code against the one supplied by the user through the client. ↓↓↓
-        else {
-          const userVerificationCode = Helpers.extractVerificationCode(
-            user.verificationCode,
-            secretKey
-          );
-          if (request.params.verificationCode === userVerificationCode) {
-            const updatedUser: UserWithRelations = await prisma.user.update({
-              where: { id: user.id },
-              data: { emailVerified: true, verificationCode: null },
-              include: { overview: true, logbooks: true, logbookReviews: true },
-            });
-            const userWithoutPassword = excludeFieldFromUserObject(
-              updatedUser,
-              ["password"]
-            );
-            return response.status(HttpStatusCodes.OK).json({
-              user: userWithoutPassword,
-              success: "Account successfully verified!",
-            });
-          } else {
-            return response.status(HttpStatusCodes.BAD_REQUEST).json({
-              error:
-                "You've supplied an incorrect verification code. Please enter the correct code and try again. If your code has expired, please request a new verification code.",
-            });
-          }
-        }
-      }
-    }
-    // ↓↓↓ If the user's account is NOT verified and has not received a verification code. ↓↓↓
-    else {
-      return response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error:
-          "Account does not have a verification code. Please try logging in, registering, or request a new verification code.",
-      });
     }
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error: "Account does not exist. Please register to create a new account.",
+      error: AuthErrors.ACCOUNT_NOT_FOUND,
     });
   }
 }
@@ -212,42 +231,60 @@ export async function verifyRegistration(request: Request, response: Response) {
 // [ VERIFIES USERNAME/PASSWORD ON LOGIN & EMAILS CODE TO VERIFY LOGIN ATTEMPT ] =========== //
 // ========================================================================================= //
 
+async function _assignNewVerificationCodeToUser(
+  request: Request,
+  verificationCode: string
+) {
+  const updatedUser = await prisma.user.update({
+    where: { id: (request as RequestWithUser).existingUser.id },
+    data: { loggedIn: false, verificationCode },
+  });
+  return updatedUser.id;
+}
+function _emailNewVerificationCodeToUser(
+  request: Request,
+  verificationCode: string,
+  verificationSecretKey: string
+) {
+  const extractedCode = Helpers.extractVerificationCode(
+    verificationCode,
+    verificationSecretKey
+  );
+  Helpers.emailUser(
+    (request as RequestWithUser).existingUser.email,
+    "Kujira Login",
+    [
+      "Welcome back! This email is in response to your login request.",
+      `Please copy and paste the following verification code into the app to verify your login: ${extractedCode}`,
+    ]
+  );
+}
+
 export async function loginUser(request: Request, response: Response) {
   try {
-    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
-    if (!secretKey) {
+    const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+    if (!verificationSecretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
       const passwordsMatch = bcrypt.compareSync(
         request.body.password,
         (request as RequestWithUser).existingUser.password
       );
-
       if (passwordsMatch) {
-        // ↓↓↓ Generating user verification code. ↓↓↓
-        const verificationCode = Helpers.generateVerificationCode(secretKey);
-        const updatedUser = await prisma.user.update({
-          where: { id: (request as RequestWithUser).existingUser.id },
-          data: { loggedIn: false, verificationCode },
-        });
-
-        // ↓↓↓ Emailing user a code to verify the authenticity of their login attempt. ↓↓↓
-        const extractedCode = Helpers.extractVerificationCode(
+        const verificationCode = Helpers.generateVerificationCode(
+          verificationSecretKey
+        );
+        const userId = await _assignNewVerificationCodeToUser(
+          request,
+          verificationCode
+        );
+        _emailNewVerificationCodeToUser(
+          request,
           verificationCode,
-          secretKey
+          verificationSecretKey
         );
-        Helpers.emailUser(
-          (request as RequestWithUser).existingUser.email,
-          "Kujira Login",
-          [
-            "Welcome back! This email is in response to your login request.",
-            `Please copy and paste the following verification code into the app to verify your login: ${extractedCode}`,
-          ]
-        );
-
-        // ↓↓↓ Response ↓↓↓
         return response.status(HttpStatusCodes.OK).json({
-          userId: updatedUser.id,
+          userId,
           success: "Please check your email for a verification code.",
         });
       } else {
@@ -269,11 +306,48 @@ export async function loginUser(request: Request, response: Response) {
 // [ VERIFIES LOGIN WITH VERIFICATION CODE & PROVIDES CLIENT WITH JWT ON SUCCESS ] ========= //
 // ========================================================================================= //
 
+// ↓↓↓ If the user supplied the correct verification code saved into their account. ↓↓↓
+async function _handleLoginVerification(
+  request: Request,
+  response: Response,
+  verificationCode: string,
+  verificationSecretKey: string,
+  authSecretKey: string,
+  userId: number
+) {
+  const extractedCode = Helpers.extractVerificationCode(
+    verificationCode,
+    verificationSecretKey
+  );
+  if (request.params.verificationCode === extractedCode) {
+    const updatedUser: UserWithRelations = await prisma.user.update({
+      where: { id: userId },
+      data: { loggedIn: true, verificationCode: null },
+      include: { overview: true, logbooks: true, logbookReviews: true },
+    });
+    const accessToken = jwt.sign({ _id: userId.toString() }, authSecretKey, {
+      expiresIn: request.body.thirtyDays ? "30 days" : "7 days",
+    });
+    const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
+      "password",
+    ]);
+    return response.status(HttpStatusCodes.OK).json({
+      user: userWithoutPassword,
+      accessToken,
+      success: AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
+    });
+  } else {
+    return response.status(HttpStatusCodes.BAD_REQUEST).json({
+      error: AuthErrors.INCORRECT_VERIFICATION_CODE,
+    });
+  }
+}
+
 export async function verifyLogin(request: Request, response: Response) {
   try {
-    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+    const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
     const authSecretKey = process.env.AUTH_SECRET_KEY;
-    if (!secretKey || !authSecretKey) {
+    if (!verificationSecretKey || !authSecretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
       const user = await prisma.user.findUniqueOrThrow({
@@ -281,62 +355,34 @@ export async function verifyLogin(request: Request, response: Response) {
       });
 
       if (user.verificationCode) {
-        // ↓↓↓ If user's verification code has expired. ↓↓↓
         const verificationCodeExpired = Helpers.checkJWTExpired(
           user.verificationCode,
-          secretKey
+          verificationSecretKey
         );
+
         if (verificationCodeExpired) {
           return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error:
-              "Verification code expired. Please request a new verification code.",
+            error: AuthErrors.VERIFICATION_CODE_EXPIRED,
           });
-        }
-        // ↓↓↓ If user's verification code has not expired. ↓↓↓
-        // ↓↓↓ If the user supplied the correct verification code saved into their account. ↓↓↓
-        const extractedCode = Helpers.extractVerificationCode(
-          user.verificationCode,
-          secretKey
-        );
-        if (request.params.verificationCode === extractedCode) {
-          const updatedUser: UserWithRelations = await prisma.user.update({
-            where: { id: user.id },
-            data: { loggedIn: true, verificationCode: null },
-            include: { overview: true, logbooks: true, logbookReviews: true },
-          });
-          const accessToken = jwt.sign(
-            { _id: user.id.toString() },
+        } else {
+          return _handleLoginVerification(
+            request,
+            response,
+            user.verificationCode,
+            verificationSecretKey,
             authSecretKey,
-            {
-              expiresIn: request.body.thirtyDays ? "30 days" : "7 days",
-            }
+            user.id
           );
-          const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
-            "password",
-          ]);
-          return response.status(HttpStatusCodes.OK).json({
-            user: userWithoutPassword,
-            accessToken,
-            success: "Account verification successful!",
-          });
-        }
-        // ↓↓↓ If the user supplied an incorrect verification code. ↓↓↓
-        else {
-          return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error:
-              "You've supplied an incorrect verification code. Please enter the correct code and try again or request a new code.",
-          });
         }
       } else {
         return response.status(HttpStatusCodes.BAD_REQUEST).json({
-          error:
-            "Account does not have a verification code. Either register or try logging in again.",
+          error: AuthErrors.ACCOUNT_HAS_NO_VERIFICATION_CODE,
         });
       }
     }
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error: "Account not found. Please register to create a new account.",
+      error: AuthErrors.ACCOUNT_NOT_FOUND,
     });
   }
 }
@@ -356,7 +402,7 @@ export async function logout(request: Request, response: Response) {
       .json({ success: "Log out successful." });
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error: "Account not found. Please refresh the page and try again.",
+      error: AuthErrors.ACCOUNT_NOT_FOUND,
     });
   }
 }
@@ -370,11 +416,13 @@ export async function requestNewVerificationCode(
   response: Response
 ) {
   try {
-    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
-    if (!secretKey) {
+    const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+    if (!verificationSecretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
-      const newVerificationCode = Helpers.generateVerificationCode(secretKey);
+      const newVerificationCode = Helpers.generateVerificationCode(
+        verificationSecretKey
+      );
       const user = await prisma.user.update({
         where: { email: request.params.email },
         data: {
@@ -385,7 +433,7 @@ export async function requestNewVerificationCode(
 
       const newCode = Helpers.extractVerificationCode(
         newVerificationCode,
-        secretKey
+        verificationSecretKey
       );
       Helpers.emailUser(user.email, "Your New Verification Code", [
         "We've received your request for a new verification code.",
@@ -399,6 +447,6 @@ export async function requestNewVerificationCode(
   } catch (error) {
     return response
       .status(HttpStatusCodes.BAD_REQUEST)
-      .json({ error: "Account not found. Please try again." });
+      .json({ error: AuthErrors.ACCOUNT_NOT_FOUND });
   }
 }

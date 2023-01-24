@@ -1,12 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import {
-  extractVerificationCode,
-  returnServerErrorOnUndefinedSecretKey,
-} from "../helpers/auth.helpers";
 
 import { RequestWithUser } from "../types/auth.types";
+import { returnServerErrorOnUndefinedSecretKey } from "../helpers/auth.helpers";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
