@@ -187,24 +187,22 @@ export async function verifyRegistration(request: Request, response: Response) {
           .json({ error: "Account already verified. Please log in." });
 
       default:
-        if (user.verificationCode) {
-          const verificationSecretKey =
-            process.env.VERIFICATION_CODE_SECRET_KEY;
-          if (!verificationSecretKey) {
-            return Helpers.returnServerErrorOnUndefinedSecretKey(response);
-          } else {
-            // ↓↓↓ If user's verification code has expired. ↓↓↓
+        const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+
+        if (!verificationSecretKey) {
+          return Helpers.returnServerErrorOnUndefinedSecretKey(response);
+        } else {
+          if (user.verificationCode) {
             const verificationCodeExpired = Helpers.checkJWTExpired(
               user.verificationCode,
               verificationSecretKey
             );
+
             if (verificationCodeExpired) {
               return response.status(HttpStatusCodes.BAD_REQUEST).json({
                 error: AuthErrors.VERIFICATION_CODE_EXPIRED,
               });
-            }
-            // ↓↓↓ If user's verification code hasn't expired. ↓↓↓
-            else {
+            } else {
               return _handleRegistrationVerification(
                 request,
                 response,
@@ -213,11 +211,11 @@ export async function verifyRegistration(request: Request, response: Response) {
                 user.id
               );
             }
+          } else {
+            return response.status(HttpStatusCodes.BAD_REQUEST).json({
+              error: AuthErrors.ACCOUNT_HAS_NO_VERIFICATION_CODE,
+            });
           }
-        } else {
-          return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error: AuthErrors.ACCOUNT_HAS_NO_VERIFICATION_CODE,
-          });
         }
     }
   } catch (error) {
@@ -345,21 +343,22 @@ async function _handleLoginVerification(
 
 export async function verifyLogin(request: Request, response: Response) {
   try {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: Number(request.params.userId) },
+    });
+
     const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
     const authSecretKey = process.env.AUTH_SECRET_KEY;
+
     if (!verificationSecretKey || !authSecretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
-      const user = await prisma.user.findUniqueOrThrow({
-        where: { id: Number(request.params.userId) },
-      });
-
       if (user.verificationCode) {
         const verificationCodeExpired = Helpers.checkJWTExpired(
           user.verificationCode,
           verificationSecretKey
         );
-
+        
         if (verificationCodeExpired) {
           return response.status(HttpStatusCodes.BAD_REQUEST).json({
             error: AuthErrors.VERIFICATION_CODE_EXPIRED,
