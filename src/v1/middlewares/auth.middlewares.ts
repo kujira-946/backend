@@ -1,15 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { returnServerErrorOnUndefinedSecretKey } from "../helpers/auth.helpers";
 
 import { RequestWithUser } from "../types/auth.types";
-import { handleJWTSecretKeyFetch } from "../helpers/auth.helpers";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
 
 // ========================================================================================= //
-// [ LOGIN : CHECKS IF USERNAME PROVIDED BY CLIENT ALREADY EXISTS ] ======================== //
+// [ CHECKS IF USERNAME IS ALREADY IN DATABASE ON LOGIN ] ================================== //
 // ========================================================================================= //
 
 export async function checkUsernameExistsOnLogin(
@@ -31,7 +31,7 @@ export async function checkUsernameExistsOnLogin(
 }
 
 // ========================================================================================= //
-// [ LOGIN : CHECKS IF USER HAS VERIFIED THEIR ACCOUNT ] =================================== //
+// [ CHECKS IF USER HAS VERIFIED THEIR ACCOUNT ] =========================================== //
 // ========================================================================================= //
 
 export async function checkAccountVerifiedOnLogin(
@@ -40,13 +40,13 @@ export async function checkAccountVerifiedOnLogin(
   next: NextFunction
 ) {
   const { existingUser } = request as RequestWithUser;
-  if (existingUser.accountStatus === "PENDING") {
+  if (existingUser.emailVerified) {
+    return next();
+  } else {
     return response.status(HttpStatusCodes.UNAUTHORIZED).json({
       error:
-        "Account is still pending email verification. Please check your email and confirm your registration.",
+        "Account is still pending email verification. Please check your email and verify your registration. If your verification code has expired, please request a new one and try again.",
     });
-  } else {
-    return next();
   }
 }
 
@@ -67,18 +67,17 @@ export async function verifyAccessToken(
 ) {
   try {
     const accessToken = request.header("Authorization")?.replace("Bearer ", "");
-    const accessTokenSecretKey = handleJWTSecretKeyFetch(response);
+    const secretKey = process.env.JWT_SECRET_KEY;
 
-    if (!accessToken) {
+    if (!secretKey) {
+      return returnServerErrorOnUndefinedSecretKey(response);
+    } else if (!accessToken) {
       return response.status(HttpStatusCodes.UNAUTHORIZED).json({
         error:
           "No access token. Either the token has expired or there was an error in locating it. Please try again.",
       });
     } else {
-      const decodedAccessToken = jwt.verify(
-        accessToken,
-        accessTokenSecretKey as string
-      );
+      const decodedAccessToken = jwt.verify(accessToken, secretKey);
       // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
       // ↓↓↓ in the action the user wanted to perform. ↓↓↓
       (request as RequestWithAccessToken).accessToken = decodedAccessToken;

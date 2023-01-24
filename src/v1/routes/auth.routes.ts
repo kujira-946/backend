@@ -28,8 +28,8 @@ authRouter_v1.post(
 );
 
 authRouter_v1.patch(
-  "/register/:userId/confirm/:confirmationCode",
-  Controllers.finalizeRegistrationWithConfirmationCode
+  "/register/:userId/verify/:verificationCode",
+  Controllers.verifyRegistration
 );
 
 authRouter_v1.get(
@@ -49,16 +49,18 @@ authRouter_v1.patch(
   checkUsernameExistsOnLogin,
   checkAccountVerifiedOnLogin,
   checkValidityOfClientData(["username", "password"]),
-  Controllers.initializeLoginWithUsernameAndPassword
+  Controllers.loginUser
 );
 
 authRouter_v1.patch(
-  "/login/:userId/confirm/:confirmationCode",
+  "/login/:userId/verify/:verificationCode",
   checkValidityOfClientData(["thirtyDays"]),
-  Controllers.finalizeLoginWithConfirmationCode
+  Controllers.verifyLogin
 );
 
+authRouter_v1.patch("/logout/:userId", Controllers.logout);
+
 authRouter_v1.post(
-  "/:userId/regenerate-email-confirmation-code",
-  Controllers.regenerateEmailConfirmationCode
+  "/:userId/request-new-verification-code",
+  Controllers.requestNewVerificationCode
 );

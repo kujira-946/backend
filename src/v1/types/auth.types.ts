@@ -13,7 +13,7 @@ const userRegistrationData = Prisma.validator<Prisma.UserArgs>()({
     lastName: true,
     birthday: true,
     currency: true,
-    confirmationCode: true,
+    verificationCode: true,
   },
 });
 export type UserRegistrationData = Prisma.UserGetPayload<

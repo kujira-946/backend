@@ -1,17 +1,42 @@
-import { Response } from "express";
 import nodemailer from "nodemailer";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { Response } from "express";
 
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
-export async function sendUserConfirmationEmail(
-  email: string,
+export function returnServerErrorOnUndefinedSecretKey(response: Response) {
+  return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
+    error: "Something went wrong.",
+  });
+}
+
+export function generateVerificationCode(secretKey: string): string {
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    code += Math.floor(Math.random() * 10);
+  }
+  const verificationCode = jwt.sign({ code }, secretKey, {
+    expiresIn: "5m",
+  });
+  return verificationCode;
+}
+
+export function extractVerificationCode(
+  verificationCode: string,
+  secretKey: string
+) {
+  const { code } = jwt.verify(verificationCode, secretKey) as {
+    code: string;
+  } & JwtPayload;
+  return code;
+}
+
+export async function emailUser(
+  userEmail: string,
   subject: string,
-  text: string,
-  confirmationCode: string
+  body: string[]
 ) {
   let testAccount = await nodemailer.createTestAccount();
-
   const SMTPtransporter = nodemailer.createTransport({
     host: "smtp.ethereal.email",
     port: 587,
@@ -22,39 +47,15 @@ export async function sendUserConfirmationEmail(
     },
   });
 
-  const confirmationMessage = {
+  const html = body.map((text: string) => `<p>${text}</p>`).join();
+  const message = {
     from: `"Kujira" <foo@example.com>`,
-    to: email,
+    to: userEmail,
     subject,
-    html: `
-      <p>${text}</p>
-      <p>Please copy and paste the following confirmation code into the app: ${confirmationCode}</p>
-    `,
+    html,
   };
-  const info = await SMTPtransporter.sendMail(confirmationMessage);
+  const info = await SMTPtransporter.sendMail(message);
 
   console.log("Message sent: %s", info.messageId);
   console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
-}
-
-export function generateEmailConfirmationCode(secretKey: string): string {
-  let code = "";
-  for (let i = 0; i < 8; i++) {
-    code += Math.floor(Math.random() * 10);
-  }
-  const confirmationCode = jwt.sign({ code }, secretKey, {
-    expiresIn: "5m",
-  });
-  return confirmationCode;
-}
-
-export function handleJWTSecretKeyFetch(response: Response) {
-  const tokenSecretKey = process.env.TOKEN_SECRET_KEY;
-  if (!tokenSecretKey) {
-    return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: "Something went wrong.",
-    });
-  } else {
-    return tokenSecretKey;
-  }
 }
