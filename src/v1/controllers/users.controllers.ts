@@ -58,7 +58,7 @@ export async function fetchUser(request: Request, response: Response) {
 
 export async function updateUser(request: Request, response: Response) {
   try {
-    const userUpdateData: Partial<Types.UserUpdateData> = {
+    const userUpdateData: Types.UserUpdateData = {
       email: request.body.email,
       username: request.body.username,
       firstName: request.body.firstName,

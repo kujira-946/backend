@@ -22,11 +22,11 @@ model User {
   birthday              DateTime
   currency              String
   theme                 Theme           @default(light)
+  mobileNumber          String?
+  totalMoneySavedToDate Float           @default(0)
   emailVerified         Boolean         @default(false)
   loggedIn              Boolean         @default(false)
   verificationCode      String?
-  mobileNumber          String?
-  totalMoneySavedToDate Float           @default(0)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   // One To One

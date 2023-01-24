@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { returnServerErrorOnUndefinedSecretKey } from "../helpers/auth.helpers";
+import {
+  extractVerificationCode,
+  returnServerErrorOnUndefinedSecretKey,
+} from "../helpers/auth.helpers";
 
 import { RequestWithUser } from "../types/auth.types";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
@@ -25,7 +28,8 @@ export async function checkUsernameExistsOnLogin(
     return next();
   } catch (error) {
     return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error: "An account with that username does not exist. Please try again.",
+      error:
+        "An account with that username does not exist. Please register to create a new account.",
     });
   }
 }

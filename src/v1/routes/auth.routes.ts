@@ -21,17 +21,6 @@ const requiredRegistrationFields: RequiredRegistrationFields = [
   "currency",
 ];
 
-authRouter_v1.post(
-  "/register",
-  checkValidityOfClientData(requiredRegistrationFields),
-  Controllers.registerUser
-);
-
-authRouter_v1.patch(
-  "/register/:userId/verify/:verificationCode",
-  Controllers.verifyRegistration
-);
-
 authRouter_v1.get(
   "/register/check-email-availability",
   checkValidityOfClientData(["email"]),
@@ -42,6 +31,17 @@ authRouter_v1.get(
   "/register/check-username-availability",
   checkValidityOfClientData(["username"]),
   Controllers.checkUsernameAvailability
+);
+
+authRouter_v1.post(
+  "/register",
+  checkValidityOfClientData(requiredRegistrationFields),
+  Controllers.registerUser
+);
+
+authRouter_v1.patch(
+  "/register/:userId/verify/:verificationCode",
+  Controllers.verifyRegistration
 );
 
 authRouter_v1.patch(
@@ -61,6 +61,6 @@ authRouter_v1.patch(
 authRouter_v1.patch("/logout/:userId", Controllers.logout);
 
 authRouter_v1.post(
-  "/:userId/request-new-verification-code",
+  "/:email/request-new-verification-code",
   Controllers.requestNewVerificationCode
 );
