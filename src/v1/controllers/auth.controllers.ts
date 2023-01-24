@@ -65,7 +65,7 @@ export async function registerUser(
   response: Response
 ) {
   try {
-    const secretKey = process.env.JWT_SECRET_KEY;
+    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
     if (!secretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
@@ -89,13 +89,16 @@ export async function registerUser(
       const user = await prisma.user.create({ data: userRegistrationData });
 
       // ↓↓↓ Emailing user a code to verify the authenticity of their account. ↓↓↓
-      const code = Helpers.extractVerificationCode(verificationCode, secretKey);
+      const extractedCode = Helpers.extractVerificationCode(
+        verificationCode,
+        secretKey
+      );
       Helpers.emailUser(
         request.body.email,
         "Thank you for registering with Kujira.",
         [
           "We're glad to have you on board :)",
-          `Please copy and paste the following verification code into the app to verify your registration: ${code}`,
+          `Please copy and paste the following verification code into the app to verify your registration: ${extractedCode}`,
         ]
       );
 
@@ -140,22 +143,23 @@ export async function verifyRegistration(request: Request, response: Response) {
     }
     // ↓↓↓ If the user's account is NOT yet verified and received a verification code. ↓↓↓
     else if (user.verificationCode) {
-      const secretKey = process.env.JWT_SECRET_KEY;
+      const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
       if (!secretKey) {
         return Helpers.returnServerErrorOnUndefinedSecretKey(response);
       } else {
+        // ↓↓↓ If user's verification code has expired. ↓↓↓
         const verificationCodeExpired = Helpers.checkJWTExpired(
           user.verificationCode,
           secretKey
         );
-        // ↓↓↓ If user's verification code has expired. ↓↓↓
         if (verificationCodeExpired) {
           return response.status(HttpStatusCodes.BAD_REQUEST).json({
             error:
               "Verification code expired. Please request a new verification code.",
           });
         }
-        // ↓↓↓ If user's verification code hasn't expired & checking DB verification code against the one supplied by the user through the client. ↓↓↓
+        // ↓↓↓ If user's verification code hasn't expired. ↓↓↓
+        // ↓↓↓ Checking database verification code against the one supplied by the user through the client. ↓↓↓
         else {
           const userVerificationCode = Helpers.extractVerificationCode(
             user.verificationCode,
@@ -204,7 +208,7 @@ export async function verifyRegistration(request: Request, response: Response) {
 
 export async function loginUser(request: Request, response: Response) {
   try {
-    const secretKey = process.env.JWT_SECRET_KEY;
+    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
     if (!secretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
@@ -222,7 +226,7 @@ export async function loginUser(request: Request, response: Response) {
         });
 
         // ↓↓↓ Emailing user a code to verify the authenticity of their login attempt. ↓↓↓
-        const code = Helpers.extractVerificationCode(
+        const extractedCode = Helpers.extractVerificationCode(
           verificationCode,
           secretKey
         );
@@ -231,7 +235,7 @@ export async function loginUser(request: Request, response: Response) {
           "Kujira Login",
           [
             "Welcome back! This email is in response to your login request.",
-            `Please copy and paste the following verification code into the app to verify your login: ${code}`,
+            `Please copy and paste the following verification code into the app to verify your login: ${extractedCode}`,
           ]
         );
 
@@ -261,8 +265,9 @@ export async function loginUser(request: Request, response: Response) {
 
 export async function verifyLogin(request: Request, response: Response) {
   try {
-    const secretKey = process.env.JWT_SECRET_KEY;
-    if (!secretKey) {
+    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+    const authSecretKey = process.env.AUTH_SECRET_KEY;
+    if (!secretKey || !authSecretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
       const user = await prisma.user.findUniqueOrThrow({
@@ -270,21 +275,36 @@ export async function verifyLogin(request: Request, response: Response) {
       });
 
       if (user.verificationCode) {
-        const code = Helpers.extractVerificationCode(
+        // ↓↓↓ If user's verification code has expired. ↓↓↓
+        const verificationCodeExpired = Helpers.checkJWTExpired(
           user.verificationCode,
           secretKey
         );
-
+        if (verificationCodeExpired) {
+          return response.status(HttpStatusCodes.BAD_REQUEST).json({
+            error:
+              "Verification code expired. Please request a new verification code.",
+          });
+        }
+        // ↓↓↓ If user's verification code has not expired. ↓↓↓
         // ↓↓↓ If the user supplied the correct verification code saved into their account. ↓↓↓
-        if (request.params.verificationCode === code) {
+        const extractedCode = Helpers.extractVerificationCode(
+          user.verificationCode,
+          secretKey
+        );
+        if (request.params.verificationCode === extractedCode) {
           const updatedUser: UserWithRelations = await prisma.user.update({
             where: { id: user.id },
             data: { loggedIn: true, verificationCode: null },
             include: { overview: true, logbooks: true, logbookReviews: true },
           });
-          const accessToken = jwt.sign({ _id: user.id.toString() }, secretKey, {
-            expiresIn: request.body.thirtyDays ? "30 days" : "7 days",
-          });
+          const accessToken = jwt.sign(
+            { _id: user.id.toString() },
+            authSecretKey,
+            {
+              expiresIn: request.body.thirtyDays ? "30 days" : "7 days",
+            }
+          );
           const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
             "password",
           ]);
@@ -344,7 +364,7 @@ export async function requestNewVerificationCode(
   response: Response
 ) {
   try {
-    const secretKey = process.env.JWT_SECRET_KEY;
+    const secretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
     if (!secretKey) {
       return Helpers.returnServerErrorOnUndefinedSecretKey(response);
     } else {
