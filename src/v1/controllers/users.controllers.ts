@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 // [ FETCH ALL USERS ] ===================================================================== //
 // ========================================================================================= //
 
-export async function fetchUsers(request: Request, response: Response) {
+export async function fetchUsers(_: Request, response: Response) {
   try {
     const users: Types.UserWithRelations[] = await prisma.user.findMany({
       orderBy: { id: "asc" },
@@ -35,17 +35,15 @@ export async function fetchUsers(request: Request, response: Response) {
 // ========================================================================================= //
 
 export async function fetchUser(
-  request: Request<{ username: string }>,
+  request: Request<{ userId: string }>,
   response: Response
 ) {
   try {
     const user: Types.UserWithRelations = await prisma.user.findUniqueOrThrow({
-      where: { username: request.params.username },
+      where: { id: Number(request.params.userId) },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-      "password",
-    ]);
+    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
@@ -60,7 +58,7 @@ export async function fetchUser(
 // ========================================================================================= //
 
 export async function updateUser(
-  request: Request<{ username: string }, {}, Types.UserUpdateData>,
+  request: Request<{ userId: string }, {}, Types.UserUpdateData>,
   response: Response
 ) {
   try {
@@ -76,13 +74,11 @@ export async function updateUser(
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { username: request.params.username },
+      where: { id: Number(request.params.userId) },
       data: userUpdateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-      "password",
-    ]);
+    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -96,11 +92,7 @@ export async function updateUser(
 // ========================================================================================= //
 
 export async function updateUserPassword(
-  request: Request<
-    { username: string },
-    {},
-    { newPassword: string } & Types.UserUpdatePasswordData
-  >,
+  request: Types.RequestWithUserPasswords,
   response: Response
 ) {
   try {
@@ -115,13 +107,11 @@ export async function updateUserPassword(
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { username: request.params.username },
+      where: { id: Number(request.params.userId) },
       data: userUpdatePasswordData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-      "password",
-    ]);
+    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -135,7 +125,7 @@ export async function updateUserPassword(
 // ========================================================================================= //
 
 export async function updateUserTotalMoneySavedToDate(
-  request: Request<{ username: string }, {}, Types.UserTotalMoneySavedToDate>,
+  request: Request<{ userId: string }, {}, Types.UserTotalMoneySavedToDate>,
   response: Response
 ) {
   // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
@@ -146,13 +136,11 @@ export async function updateUserTotalMoneySavedToDate(
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { username: request.params.username },
+      where: { id: Number(request.params.userId) },
       data: totalMoneySavedToDateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
-      "password",
-    ]);
+    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -166,12 +154,12 @@ export async function updateUserTotalMoneySavedToDate(
 // ========================================================================================= //
 
 export async function deleteUser(
-  request: Request<{ username: string }>,
+  request: Request<{ userId: string }>,
   response: Response
 ) {
   try {
     await prisma.user.delete({
-      where: { username: request.params.username },
+      where: { id: Number(request.params.userId) },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Account successfully deleted.",

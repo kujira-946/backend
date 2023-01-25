@@ -11,7 +11,7 @@ export const userRouter_v1 = express.Router();
 userRouter_v1.get("/", Controllers.fetchUsers);
 
 // ↓↓↓ Fetch one user. ↓↓↓
-userRouter_v1.get("/:username", Controllers.fetchUser);
+userRouter_v1.get("/:userId", Controllers.fetchUser);
 
 // ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
 type UserUpdateDataFields = (keyof Types.UserUpdateData)[];
@@ -26,7 +26,7 @@ const userUpdateData: UserUpdateDataFields = [
   "mobileNumber",
 ];
 userRouter_v1.patch(
-  "/:username",
+  "/:userId",
   HelperMiddlewares.checkValidityOfUserInput(userUpdateData, {
     requireAllData: false,
   }),
@@ -35,7 +35,7 @@ userRouter_v1.patch(
 
 // ↓↓↓ Update a user's password. ↓↓↓
 userRouter_v1.patch(
-  "/:username/update-password",
+  "/:userId/update-password",
   HelperMiddlewares.checkValidityOfUserInput(["oldPassword", "newPassword"]),
   Middlewares.checkOldPasswordMatch,
   Controllers.updateUserPassword
@@ -43,10 +43,10 @@ userRouter_v1.patch(
 
 // ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓
 userRouter_v1.patch(
-  "/:username/total-money-saved-to-date",
+  "/:userId/update-total-money-saved-to-date",
   HelperMiddlewares.checkValidityOfUserInput(["totalMoneySavedToDate"]),
   Controllers.updateUserTotalMoneySavedToDate
 );
 
 // ↓↓↓ Delete a user. ↓↓↓
-userRouter_v1.delete("/:username", Controllers.deleteUser);
+userRouter_v1.delete("/:userId", Controllers.deleteUser);

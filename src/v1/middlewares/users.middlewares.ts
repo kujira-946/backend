@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import bcrypt from "bcrypt";
 
 import * as HttpHelpers from "../helpers/http.helpers";
+import { RequestWithUserPasswords } from "../types/users.types";
 
 const prisma = new PrismaClient();
 
@@ -11,7 +12,7 @@ const prisma = new PrismaClient();
 // ========================================================================================= //
 
 export async function checkOldPasswordMatch(
-  request: Request,
+  request: RequestWithUserPasswords,
   response: Response,
   next: NextFunction
 ) {

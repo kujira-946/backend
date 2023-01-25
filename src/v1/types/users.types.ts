@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { Request } from "express";
 
 const user = Prisma.validator<Prisma.UserArgs>()({});
 export type User = Prisma.UserGetPayload<typeof user>;
@@ -42,4 +43,10 @@ const userTotalMoneySavedToDate = Prisma.validator<Prisma.UserArgs>()({
 });
 export type UserTotalMoneySavedToDate = Prisma.UserGetPayload<
   typeof userTotalMoneySavedToDate
+>;
+
+export type RequestWithUserPasswords = Request<
+  { userId: string },
+  {},
+  { oldPassword: string; newPassword: string }
 >;
