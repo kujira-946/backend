@@ -2,31 +2,33 @@ import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-import { RequestWithUser } from "../types/auth.types";
-import { returnServerErrorOnUndefinedSecretKey } from "../helpers/auth.helpers";
-import { HttpStatusCodes } from "./../../utils/http-status-codes";
+import * as Helpers from "../helpers/auth.helpers";
+import * as ResponseHelpers from "../helpers/http.helpers";
+import { RequestWithFoundUser } from "../types/auth.types";
 
 const prisma = new PrismaClient();
 
 // ========================================================================================= //
-// [ CHECKS IF USERNAME IS ALREADY IN DATABASE ON LOGIN ] ================================== //
+// [ CHECKS IF USERNAME IS IN DATABASE & PASSES IT TO THE NEXT MIDDLEWARE ] ================ //
 // ========================================================================================= //
 
-export async function checkUsernameExistsOnLogin(
-  request: Request,
+type RequestWithUsernameInParams = Request<{ username: string } & {} & {}>;
+
+export async function checkUsernameExists(
+  request: RequestWithUsernameInParams,
   response: Response,
   next: NextFunction
 ) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { username: request.body.username },
+      where: { username: request.params.username },
     });
-    (request as RequestWithUser).existingUser = user;
+    (request as RequestWithFoundUser & RequestWithUsernameInParams).foundUser =
+      user;
     return next();
   } catch (error) {
-    return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "An account with that username does not exist. Please register to create a new account.",
+    return ResponseHelpers.respondWithClientError(response, "bad request", {
+      body: `An account with username ${request.params.username} does not exist. Please register to create a new account.`,
     });
   }
 }
@@ -35,18 +37,19 @@ export async function checkUsernameExistsOnLogin(
 // [ CHECKS IF USER HAS VERIFIED THEIR ACCOUNT ] =========================================== //
 // ========================================================================================= //
 
-export async function checkAccountVerifiedOnLogin(
-  request: Request,
+export async function checkAccountVerifiedOnLoginAttempt(
+  request: RequestWithUsernameInParams,
   response: Response,
   next: NextFunction
 ) {
-  const { existingUser } = request as RequestWithUser;
-  if (existingUser.emailVerified) {
+  const { foundUser } = request as RequestWithFoundUser &
+    RequestWithUsernameInParams;
+
+  if (foundUser.emailVerified) {
     return next();
   } else {
-    return response.status(HttpStatusCodes.UNAUTHORIZED).json({
-      error:
-        "Account is still pending email verification. Please check your email and verify your registration. If your verification code has expired, please request a new one and try again.",
+    return ResponseHelpers.respondWithClientError(response, "unauthorized", {
+      body: "Account is still pending email verification. Please check your email and verify your registration. If your verification code has expired, please request a new one and try again.",
     });
   }
 }
@@ -61,32 +64,40 @@ export async function checkAccountVerifiedOnLogin(
 //
 // ↓↓↓ This middleware is performed before hitting any endpoint that requires validation credentials. ↓↓↓
 type RequestWithAccessToken = { accessToken: string | JwtPayload } & Request;
+
 export async function verifyAccessToken(
   request: Request,
   response: Response,
   next: NextFunction
 ) {
   try {
-    const accessToken = request.header("Authorization")?.replace("Bearer ", "");
-    const secretKey = process.env.JWT_SECRET_KEY;
+    return Helpers.handleSecretKeysExist(
+      response,
+      function (_: string, authSecretKey: string) {
+        const accessToken = request
+          .header("Authorization")
+          ?.replace("Bearer ", "");
 
-    if (!secretKey) {
-      return returnServerErrorOnUndefinedSecretKey(response);
-    } else if (!accessToken) {
-      return response.status(HttpStatusCodes.UNAUTHORIZED).json({
-        error:
-          "No access token. Either the token has expired or there was an error in locating it. Please try again.",
-      });
-    } else {
-      const decodedAccessToken = jwt.verify(accessToken, secretKey);
-      // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
-      // ↓↓↓ in the action the user wanted to perform. ↓↓↓
-      (request as RequestWithAccessToken).accessToken = decodedAccessToken;
-      return next();
-    }
+        if (!accessToken) {
+          return ResponseHelpers.respondWithClientError(
+            response,
+            "unauthorized",
+            {
+              body: "No access token. Either the token has expired or there was an error in locating it. Please try again.",
+            }
+          );
+        } else {
+          const decodedAccessToken = jwt.verify(accessToken, authSecretKey);
+          // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
+          // ↓↓↓ in the action the user wanted to perform. ↓↓↓
+          (request as RequestWithAccessToken).accessToken = decodedAccessToken;
+          return next();
+        }
+      }
+    );
   } catch (error) {
-    return response
-      .status(HttpStatusCodes.UNAUTHORIZED)
-      .json({ message: "Unauthorized access." });
+    return ResponseHelpers.respondWithClientError(response, "unauthorized", {
+      body: "Unauthorized access.",
+    });
   }
 }

@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 
-import { HttpStatusCodes } from "../../utils/http-status-codes";
+import * as HttpHelpers from "../helpers/http.helpers";
 
 const prisma = new PrismaClient();
 
@@ -28,13 +28,13 @@ export async function checkOldPasswordMatch(
     if (oldPasswordsMatch) {
       return next();
     } else {
-      return response
-        .status(HttpStatusCodes.BAD_REQUEST)
-        .json({ error: "Incorrect old password. Please try again." });
+      return HttpHelpers.respondWithClientError(response, "bad request", {
+        body: "Incorrect old password. Please try again.",
+      });
     }
   } catch (error) {
-    return response
-      .status(HttpStatusCodes.BAD_REQUEST)
-      .json({ error: "Failed to find account. Please try again." });
+    return HttpHelpers.respondWithClientError(response, "bad request", {
+      body: "Failed to find account. Please try again.",
+    });
   }
 }

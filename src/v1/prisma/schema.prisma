@@ -13,27 +13,27 @@ enum Theme {
 }
 
 model User {
-  id                    Int             @id @default(autoincrement())
-  email                 String          @unique
-  username              String          @unique @db.VarChar(16)
-  password              String
-  firstName             String
-  lastName              String
-  birthday              DateTime
-  currency              String
-  theme                 Theme           @default(light)
-  mobileNumber          String?
-  totalMoneySavedToDate Float           @default(0)
-  emailVerified         Boolean         @default(false)
-  loggedIn              Boolean         @default(false)
-  verificationCode      String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  id                     Int             @id @default(autoincrement())
+  email                  String          @unique
+  username               String          @unique @db.VarChar(16)
+  password               String
+  firstName              String
+  lastName               String
+  birthday               DateTime
+  currency               String
+  theme                  Theme           @default(light)
+  mobileNumber           String?
+  totalMoneySavedToDate  Float           @default(0)
+  emailVerified          Boolean         @default(false)
+  loggedIn               Boolean         @default(false)
+  signedVerificationCode String?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
   // One To One
-  overview              Overview?
+  overview               Overview?
   // Has Many
-  logbooks              Logbook[]
-  logbookReviews        LogbookReview[]
+  logbooks               Logbook[]
+  logbookReviews         LogbookReview[]
 }
 
 model Overview {

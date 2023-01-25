@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
 import * as Helpers from "../helpers/users.helpers";
+import * as HttpHelpers from "../helpers/http.helpers";
 import * as Types from "../types/users.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
@@ -23,8 +24,8 @@ export async function fetchUsers(request: Request, response: Response) {
     ]);
     return response.status(HttpStatusCodes.OK).json(usersWithoutPassword);
   } catch (error) {
-    return response.status(HttpStatusCodes.NOT_FOUND).json({
-      error: "Failed to retrieve accounts. Please refresh the page.",
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: "Failed to retrieve accounts. Please refresh the page.",
     });
   }
 }
@@ -33,10 +34,13 @@ export async function fetchUsers(request: Request, response: Response) {
 // [ FETCH ONE USER ] ====================================================================== //
 // ========================================================================================= //
 
-export async function fetchUser(request: Request, response: Response) {
+export async function fetchUser(
+  request: Request<{ username: string }>,
+  response: Response
+) {
   try {
     const user: Types.UserWithRelations = await prisma.user.findUniqueOrThrow({
-      where: { id: Number(request.params.userId) },
+      where: { username: request.params.username },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     const userWithoutPassword = Helpers.excludeFieldFromUserObject(user, [
@@ -44,9 +48,8 @@ export async function fetchUser(request: Request, response: Response) {
     ]);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
-    return response.status(HttpStatusCodes.NOT_FOUND).json({
-      error:
-        "Failed to find account. Please make sure you've entered the correct information and try again.",
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: "Failed to find account. Please make sure you've entered the correct information and try again.",
     });
   }
 }
@@ -56,7 +59,10 @@ export async function fetchUser(request: Request, response: Response) {
 // [ `password` & `totalMoneySavedToDate` UPDATE IS HANDLED BY ANOTHER CONTROLLER ] ======== //
 // ========================================================================================= //
 
-export async function updateUser(request: Request, response: Response) {
+export async function updateUser(
+  request: Request<{ username: string }, {}, Types.UserUpdateData>,
+  response: Response
+) {
   try {
     const userUpdateData: Types.UserUpdateData = {
       email: request.body.email,
@@ -70,7 +76,7 @@ export async function updateUser(request: Request, response: Response) {
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { id: Number(request.params.userId) },
+      where: { username: request.params.username },
       data: userUpdateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
@@ -79,9 +85,8 @@ export async function updateUser(request: Request, response: Response) {
     ]);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
-    return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
+    return HttpHelpers.respondWithClientError(response, "bad request", {
+      body: "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
     });
   }
 }
@@ -90,7 +95,14 @@ export async function updateUser(request: Request, response: Response) {
 // [ UPDATE A USER'S PASSWORD ] ============================================================ //
 // ========================================================================================= //
 
-export async function updateUserPassword(request: Request, response: Response) {
+export async function updateUserPassword(
+  request: Request<
+    { username: string },
+    {},
+    { newPassword: string } & Types.UserUpdatePasswordData
+  >,
+  response: Response
+) {
   try {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(
@@ -103,7 +115,7 @@ export async function updateUserPassword(request: Request, response: Response) {
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { id: Number(request.params.userId) },
+      where: { username: request.params.username },
       data: userUpdatePasswordData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
@@ -112,9 +124,8 @@ export async function updateUserPassword(request: Request, response: Response) {
     ]);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
-    return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
+    return HttpHelpers.respondWithClientError(response, "bad request", {
+      body: "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
     });
   }
 }
@@ -124,7 +135,7 @@ export async function updateUserPassword(request: Request, response: Response) {
 // ========================================================================================= //
 
 export async function updateUserTotalMoneySavedToDate(
-  request: Request,
+  request: Request<{ username: string }, {}, Types.UserTotalMoneySavedToDate>,
   response: Response
 ) {
   // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
@@ -135,7 +146,7 @@ export async function updateUserTotalMoneySavedToDate(
     };
 
     const user: Types.UserWithRelations = await prisma.user.update({
-      where: { id: Number(request.params.userId) },
+      where: { username: request.params.username },
       data: totalMoneySavedToDateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
@@ -144,9 +155,8 @@ export async function updateUserTotalMoneySavedToDate(
     ]);
     return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
   } catch (error) {
-    return response.status(HttpStatusCodes.BAD_REQUEST).json({
-      error:
-        "Failed to update your total money saved to date. Please refresh the page.",
+    return HttpHelpers.respondWithClientError(response, "bad request", {
+      body: "Failed to update your total money saved to date. Please refresh the page.",
     });
   }
 }
@@ -155,17 +165,20 @@ export async function updateUserTotalMoneySavedToDate(
 // [ DELETE A USER ] ======================================================================== //
 // ========================================================================================= //
 
-export async function deleteUser(request: Request, response: Response) {
+export async function deleteUser(
+  request: Request<{ username: string }>,
+  response: Response
+) {
   try {
     await prisma.user.delete({
-      where: { id: Number(request.params.userId) },
+      where: { username: request.params.username },
     });
-    return response
-      .status(HttpStatusCodes.OK)
-      .json({ message: "Account successfully deleted." });
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: "Account successfully deleted.",
+    });
   } catch (error) {
-    return response.status(HttpStatusCodes.NOT_FOUND).json({
-      error: "Failed to delete account. Please refresh the page and try again.",
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: "Failed to delete account. Please refresh the page and try again.",
     });
   }
 }

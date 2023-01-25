@@ -2,18 +2,38 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { Response } from "express";
 
-import { HttpStatusCodes } from "../../utils/http-status-codes";
+import * as HttpHelpers from "../helpers/http.helpers";
+import { User } from "../types/users.types";
+import { AuthErrors } from "../utils/auth.utils";
 
-export function returnServerErrorOnUndefinedSecretKey(response: Response) {
-  console.log(
-    "VERIFICATION_CODE_SECRET_KEY and/or AUTH_SECRET_KEY was not found in environment variables. Double check to make sure they're there."
-  );
-  return response.status(HttpStatusCodes.INTERNAL_SERVER_ERROR).json({
-    error: "Something went wrong.",
-  });
+// ========================================================================================= //
+// [ JWT HELPERS ] ========================================================================= //
+// ========================================================================================= //
+
+export function handleSecretKeysExist<Callback>(
+  response: Response,
+  callback: (verificationSecretKey: string, authSecretKey: string) => Callback
+) {
+  const verificationSecretKey = process.env.VERIFICATION_CODE_SECRET_KEY;
+  const authSecretKey = process.env.AUTH_SECRET_KEY;
+
+  if (verificationSecretKey && authSecretKey) {
+    return callback(verificationSecretKey, authSecretKey);
+  } else {
+    console.log(
+      "VERIFICATION_CODE_SECRET_KEY and/or AUTH_SECRET_KEY were not found in environment variables."
+    );
+    return HttpHelpers.respondWithServerError(
+      response,
+      "internal server error",
+      {
+        body: "Something went wrong.",
+      }
+    );
+  }
 }
 
-export function generateVerificationCode(secretKey: string): string {
+export function generateSignedVerificationCode(secretKey: string): string {
   let code = "";
   for (let i = 0; i < 8; i++) {
     code += Math.floor(Math.random() * 10);
@@ -45,6 +65,50 @@ export function checkJWTExpired(
   }
 }
 
+// ========================================================================================= //
+// [ ACCOUNT VERIFICATION HELPERS ] ======================================================== //
+// ========================================================================================= //
+
+export function handleAccountVerification<VerificationHandler>(
+  response: Response,
+  foundUser: User,
+  verificationHandler: (verificationCode: string, authSecretKey: string) => VerificationHandler
+) {
+  return handleSecretKeysExist(
+    response,
+    function (verificationSecretKey: string, authSecretKey: string) {
+      if (foundUser.signedVerificationCode) {
+        const verificationCodeExpired = checkJWTExpired(
+          foundUser.signedVerificationCode,
+          verificationSecretKey
+        );
+        // ↓↓↓ If the user's verification code expired. ↓↓↓
+        if (verificationCodeExpired) {
+          return HttpHelpers.respondWithClientError(response, "bad request", {
+            body: AuthErrors.VERIFICATION_CODE_EXPIRED,
+          });
+        }
+        // ↓↓↓ If the user's verification code is still active. ↓↓↓
+        else {
+          const verificationCode = extractVerificationCode(
+            foundUser.signedVerificationCode,
+            verificationSecretKey
+          );
+          return verificationHandler(verificationCode, authSecretKey);
+        }
+      } else {
+        return HttpHelpers.respondWithClientError(response, "bad request", {
+          body: AuthErrors.ACCOUNT_HAS_NO_VERIFICATION_CODE,
+        });
+      }
+    }
+  );
+}
+
+// ========================================================================================= //
+// [ EMAIL HELPERS ] ======================================================================= //
+// ========================================================================================= //
+
 export async function emailUser(
   userEmail: string,
   subject: string,
@@ -61,7 +125,7 @@ export async function emailUser(
     },
   });
 
-  const html = body.map((text: string) => `<p>${text}</p>`).join();
+  const html = body.map((text: string) => `<p>${text}</p>`).join("");
   const message = {
     from: `"Kujira" <foo@example.com>`,
     to: userEmail,

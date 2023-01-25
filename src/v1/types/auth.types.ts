@@ -13,11 +13,25 @@ const userRegistrationData = Prisma.validator<Prisma.UserArgs>()({
     lastName: true,
     birthday: true,
     currency: true,
-    verificationCode: true,
+    signedVerificationCode: true,
   },
 });
 export type UserRegistrationData = Prisma.UserGetPayload<
   typeof userRegistrationData
 >;
 
-export type RequestWithUser = { existingUser: User } & Request;
+const userLoginData = Prisma.validator<Prisma.UserArgs>()({
+  select: {
+    username: true,
+    password: true,
+  },
+});
+export type UserLoginData = Prisma.UserGetPayload<typeof userLoginData>;
+
+export type RequestWithFoundUser<
+  ExtendedParams = void,
+  ExtendedResponse = void,
+  ExtendedRequest = void
+> = {
+  foundUser: User;
+} & Request<ExtendedParams, ExtendedResponse, ExtendedRequest>;

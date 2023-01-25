@@ -1,16 +1,25 @@
 import express from "express";
 
+import * as Types from "../types/auth.types";
+import * as Middlewares from "../middlewares/auth.middlewares";
+import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 import * as Controllers from "../controllers/auth.controllers";
-import {
-  checkAccountVerifiedOnLogin,
-  checkUsernameExistsOnLogin,
-} from "../middlewares/auth.middlewares";
-import { checkValidityOfClientData } from "../middlewares/helpers.middlewares";
-import { UserRegistrationData } from "../types/auth.types";
 
 export const authRouter_v1 = express.Router();
 
-type RequiredRegistrationFields = (keyof UserRegistrationData)[];
+authRouter_v1.get(
+  "/register/check-email-availability",
+  HelperMiddlewares.checkValidityOfUserInput(["email"]),
+  Controllers.checkEmailAvailability
+);
+
+authRouter_v1.get(
+  "/register/check-username-availability",
+  HelperMiddlewares.checkValidityOfUserInput(["username"]),
+  Controllers.checkUsernameAvailability
+);
+
+type RequiredRegistrationFields = (keyof Types.UserRegistrationData)[];
 const requiredRegistrationFields: RequiredRegistrationFields = [
   "email",
   "username",
@@ -20,46 +29,38 @@ const requiredRegistrationFields: RequiredRegistrationFields = [
   "birthday",
   "currency",
 ];
-
-authRouter_v1.get(
-  "/register/check-email-availability",
-  checkValidityOfClientData(["email"]),
-  Controllers.checkEmailAvailability
-);
-
-authRouter_v1.get(
-  "/register/check-username-availability",
-  checkValidityOfClientData(["username"]),
-  Controllers.checkUsernameAvailability
-);
-
 authRouter_v1.post(
   "/register",
-  checkValidityOfClientData(requiredRegistrationFields),
+  HelperMiddlewares.checkValidityOfUserInput(requiredRegistrationFields),
   Controllers.registerUser
 );
 
 authRouter_v1.patch(
-  "/register/:userId/verify/:verificationCode",
+  "/register/:username/verify",
+  HelperMiddlewares.checkValidityOfUserInput(["verificationCode"]),
+  Middlewares.checkUsernameExists,
   Controllers.verifyRegistration
 );
 
 authRouter_v1.patch(
   "/login",
-  checkUsernameExistsOnLogin,
-  checkAccountVerifiedOnLogin,
-  checkValidityOfClientData(["username", "password"]),
+  HelperMiddlewares.checkValidityOfUserInput(["username", "password"]),
+  Middlewares.checkUsernameExists,
+  Middlewares.checkAccountVerifiedOnLoginAttempt,
   Controllers.loginUser
 );
 
 authRouter_v1.patch(
-  "/login/:userId/verify/:verificationCode",
-
-  checkValidityOfClientData(["thirtyDays"]),
+  "/login/:username/verify",
+  HelperMiddlewares.checkValidityOfUserInput([
+    "verificationCode",
+    "thirtyDays",
+  ]),
+  Middlewares.checkUsernameExists,
   Controllers.verifyLogin
 );
 
-authRouter_v1.patch("/logout/:userId", Controllers.logout);
+authRouter_v1.patch("/logout/:username", Controllers.logout);
 
 authRouter_v1.post(
   "/:email/request-new-verification-code",

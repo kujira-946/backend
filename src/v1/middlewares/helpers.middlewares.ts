@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-import { HttpStatusCodes } from "./../../utils/http-status-codes";
+import * as HttpHelpers from "../helpers/http.helpers";
 
 // ========================================================================================= //
 // [ MAKES SURE THE CLIENT HAS INPUTTED ALL FIELDS REQUIRED BY ENDPOINT ] ================== //
@@ -36,7 +36,7 @@ function _checkAtLeastOneRequiredData(
 }
 
 type RequireAllData = { requireAllData: boolean };
-export function checkValidityOfClientData(
+export function checkValidityOfUserInput(
   requiredData: string[],
   { requireAllData }: RequireAllData = { requireAllData: true }
 ) {
@@ -47,8 +47,8 @@ export function checkValidityOfClientData(
     // ↓↓↓ If the client's request contains any invalid inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
     const invalidData = _generateInvalidData(requiredData, providedData);
     if (invalidData.length > 0) {
-      return response.status(HttpStatusCodes.BAD_REQUEST).json({
-        error: `Invalid data: ${invalidData.join(", ")}.`,
+      return HttpHelpers.respondWithClientError(response, "bad request", {
+        body: `Invalid data: ${invalidData.join(", ")}.`,
       });
     }
     // ↓↓↓ If the client's request contains only valid inputs, we move onto checking if all required inputs were provided. ↓↓↓
@@ -57,8 +57,8 @@ export function checkValidityOfClientData(
         const missingData = _generateMissingData(requiredData, providedData);
         // ↓↓↓ If the client's request doesn't contain all required inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
         if (missingData.length > 0) {
-          return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error: `Missing data: ${missingData.join(", ")}.`,
+          return HttpHelpers.respondWithClientError(response, "bad request", {
+            body: `Missing data: ${missingData.join(", ")}.`,
           });
         } else {
           // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
@@ -73,9 +73,8 @@ export function checkValidityOfClientData(
           // ↓↓↓ If we've reached this point, there are no issues, so we're good to go. ↓↓↓
           return next();
         } else {
-          return response.status(HttpStatusCodes.BAD_REQUEST).json({
-            error:
-              "Missing at least one required field. Please provide the missing field and try again.",
+          return HttpHelpers.respondWithClientError(response, "bad request", {
+            body: "Missing at least one required field. Please provide the missing field and try again.",
           });
         }
       }

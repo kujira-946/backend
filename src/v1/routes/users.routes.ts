@@ -1,13 +1,20 @@
 import express from "express";
 
+import * as Types from "../types/users.types";
 import * as Middlewares from "../middlewares/users.middlewares";
+import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 import * as Controllers from "../controllers/users.controllers";
-import { checkValidityOfClientData } from "../middlewares/helpers.middlewares";
-import { UserUpdateData } from "./../types/users.types";
 
 export const userRouter_v1 = express.Router();
 
-type UserUpdateDataFields = (keyof UserUpdateData)[];
+// ↓↓↓ Fetch all users. ↓↓↓
+userRouter_v1.get("/", Controllers.fetchUsers);
+
+// ↓↓↓ Fetch one user. ↓↓↓
+userRouter_v1.get("/:username", Controllers.fetchUser);
+
+// ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
+type UserUpdateDataFields = (keyof Types.UserUpdateData)[];
 const userUpdateData: UserUpdateDataFields = [
   "email",
   "username",
@@ -18,34 +25,28 @@ const userUpdateData: UserUpdateDataFields = [
   "theme",
   "mobileNumber",
 ];
-
-// ↓↓↓ Fetch all users. ↓↓↓
-userRouter_v1.get("/", Controllers.fetchUsers);
-
-// ↓↓↓ Fetch one user. ↓↓↓
-userRouter_v1.get("/:userId", Controllers.fetchUser);
-
-// ↓↓↓ Update a user. ↓↓↓
 userRouter_v1.patch(
-  "/:userId",
-  checkValidityOfClientData(userUpdateData, { requireAllData: false }),
+  "/:username",
+  HelperMiddlewares.checkValidityOfUserInput(userUpdateData, {
+    requireAllData: false,
+  }),
   Controllers.updateUser
 );
 
 // ↓↓↓ Update a user's password. ↓↓↓
 userRouter_v1.patch(
-  "/:userId/update-password",
-  checkValidityOfClientData(["oldPassword", "newPassword"]),
+  "/:username/update-password",
+  HelperMiddlewares.checkValidityOfUserInput(["oldPassword", "newPassword"]),
   Middlewares.checkOldPasswordMatch,
   Controllers.updateUserPassword
 );
 
 // ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓
 userRouter_v1.patch(
-  "/:userId/total-money-saved-to-date",
-  checkValidityOfClientData(["totalMoneySavedToDate"]),
+  "/:username/total-money-saved-to-date",
+  HelperMiddlewares.checkValidityOfUserInput(["totalMoneySavedToDate"]),
   Controllers.updateUserTotalMoneySavedToDate
 );
 
 // ↓↓↓ Delete a user. ↓↓↓
-userRouter_v1.delete("/:userId", Controllers.deleteUser);
+userRouter_v1.delete("/:username", Controllers.deleteUser);
