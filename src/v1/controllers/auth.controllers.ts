@@ -184,7 +184,7 @@ async function _registrationVerificationHandler(
 }
 
 type RegistrationVerificationRequest = Request<
-  { username: string },
+  { userId: string },
   {},
   { verificationCode: string }
 >;
@@ -193,7 +193,7 @@ export function verifyRegistration(
   request: RegistrationVerificationRequest,
   response: Response
 ) {
-  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:username/verify` route. ↓↓↓
+  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:userId/verify` route. ↓↓↓
   const { foundUser } = request as RegistrationVerificationRequest &
     Types.RequestWithFoundUser;
 
@@ -328,7 +328,7 @@ async function _loginVerificationHandler(
 }
 
 type LoginVerificationRequest = Request<
-  { username: string },
+  { userId: string },
   {},
   { verificationCode: string; thirtyDays: boolean }
 >;
@@ -337,7 +337,7 @@ export async function verifyLogin(
   request: LoginVerificationRequest,
   response: Response
 ) {
-  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login/:username/verify` route. ↓↓↓
+  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login/:userId/verify` route. ↓↓↓
   const { foundUser } = request as LoginVerificationRequest &
     Types.RequestWithFoundUser;
 
@@ -368,12 +368,12 @@ export async function verifyLogin(
 // ========================================================================================= //
 
 export async function logout(
-  request: Request<{ username: string }>,
+  request: Request<{ userId: string }>,
   response: Response
 ) {
   try {
     await prisma.user.update({
-      where: { username: request.params.username },
+      where: { id: Number(request.params.userId) },
       data: { loggedIn: false, signedVerificationCode: null },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
@@ -391,7 +391,7 @@ export async function logout(
 // ========================================================================================= //
 
 export async function requestNewVerificationCode(
-  request: Request<{ email: string }>,
+  request: Request<{ userId: string }>,
   response: Response
 ) {
   try {
@@ -402,7 +402,7 @@ export async function requestNewVerificationCode(
           verificationSecretKey
         );
         const user = await prisma.user.update({
-          where: { email: request.params.email },
+          where: { id: Number(request.params.userId) },
           data: { loggedIn: false, signedVerificationCode },
         });
 

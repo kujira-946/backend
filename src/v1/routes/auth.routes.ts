@@ -36,7 +36,7 @@ authRouter_v1.post(
 );
 
 authRouter_v1.patch(
-  "/register/:username/verify",
+  "/register/:userId/verify",
   HelperMiddlewares.checkValidityOfUserInput(["verificationCode"]),
   Middlewares.checkUsernameExists,
   Controllers.verifyRegistration
@@ -51,7 +51,7 @@ authRouter_v1.patch(
 );
 
 authRouter_v1.patch(
-  "/login/:username/verify",
+  "/login/:userId/verify",
   HelperMiddlewares.checkValidityOfUserInput([
     "verificationCode",
     "thirtyDays",
@@ -60,9 +60,9 @@ authRouter_v1.patch(
   Controllers.verifyLogin
 );
 
-authRouter_v1.patch("/logout/:username", Controllers.logout);
+authRouter_v1.patch("/logout/:userId", Controllers.logout);
 
 authRouter_v1.post(
-  "/:email/request-new-verification-code",
+  "request-new-verification-code/:userId",
   Controllers.requestNewVerificationCode
 );
