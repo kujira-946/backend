@@ -434,4 +434,11 @@ export async function requestNewVerificationCode(
 // [ CRON JOB THAT DELETES AN ACCOUNT WITH AN UNVERIFIED EMAIL 7 DAYS AFTER CREATION ] ===== //
 // ========================================================================================= //
 
-export function deleteUnverifiedNewAccount() {}
+export function deleteUnverifiedNewAccount() {
+  const currentDate = new Date().getDate();
+
+  if (currentDate === 1) {
+  }
+
+  // This is a test.
+}

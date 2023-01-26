@@ -71,7 +71,7 @@ authRouter_v1.patch(
   Controllers.requestNewVerificationCode
 );
 
-// authRouter_v1.delete(
-//   "/delete-unverified-account",
-//   Controllers.deleteUnverifiedNewAccount
-// );
+authRouter_v1.delete(
+  "/delete-unverified-account",
+  Controllers.deleteUnverifiedNewAccount
+);
