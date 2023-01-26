@@ -70,8 +70,3 @@ authRouter_v1.patch(
   "/request-new-verification-code/:userId",
   Controllers.requestNewVerificationCode
 );
-
-authRouter_v1.delete(
-  "/delete-unverified-account",
-  Controllers.deleteUnverifiedNewAccount
-);
