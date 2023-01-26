@@ -53,16 +53,12 @@ export function extractVerificationCode(
   return code;
 }
 
-export function checkJWTExpired(
-  jsonWebToken: string,
-  secretKey: string
-): boolean {
-  const { exp } = jwt.verify(jsonWebToken, secretKey) as jwt.JwtPayload;
-  if (exp && Date.now() >= exp * 1000) {
-    return true;
-  } else {
-    return false;
-  }
+function checkJWTExpired(jsonWebToken: string, secretKey: string): boolean {
+  let isExpired = false;
+  jwt.verify(jsonWebToken, secretKey, function <Error>(error: Error) {
+    if (error) isExpired = true;
+  });
+  return isExpired;
 }
 
 // ========================================================================================= //
@@ -72,7 +68,10 @@ export function checkJWTExpired(
 export function handleAccountVerification<VerificationHandler>(
   response: Response,
   foundUser: User,
-  verificationHandler: (verificationCode: string, authSecretKey: string) => VerificationHandler
+  verificationHandler: (
+    verificationCode: string,
+    authSecretKey: string
+  ) => VerificationHandler
 ) {
   return handleSecretKeysExist(
     response,
@@ -82,6 +81,7 @@ export function handleAccountVerification<VerificationHandler>(
           foundUser.signedVerificationCode,
           verificationSecretKey
         );
+
         // ↓↓↓ If the user's verification code expired. ↓↓↓
         if (verificationCodeExpired) {
           return HttpHelpers.respondWithClientError(response, "bad request", {

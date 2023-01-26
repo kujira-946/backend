@@ -2,9 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
+import * as Types from "../types/users.types";
 import * as Helpers from "../helpers/users.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
-import * as Types from "../types/users.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
@@ -64,7 +64,7 @@ export async function updateUser(
   try {
     const userUpdateData: Types.UserUpdateData = {
       email: request.body.email,
-      username: request.body.username,
+      username: request.body.username?.toLowerCase(),
       firstName: request.body.firstName,
       lastName: request.body.lastName,
       birthday: request.body.birthday,
@@ -101,18 +101,18 @@ export async function updateUserPassword(
       request.body.newPassword,
       saltRounds
     );
-
     const userUpdatePasswordData: Types.UserUpdatePasswordData = {
       password: hashedPassword,
     };
 
-    const user: Types.UserWithRelations = await prisma.user.update({
+    await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdatePasswordData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
-    return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: "Password successfully updated.",
+    });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
@@ -140,11 +140,15 @@ export async function updateUserTotalMoneySavedToDate(
       data: totalMoneySavedToDateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
-    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
-    return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+    const { totalMoneySavedToDate } =
+      Helpers.removePasswordFromUserObject(user);
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: "Your total money saved to date has been updated.",
+      totalMoneySavedToDate,
+    });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Failed to update your total money saved to date. Please refresh the page.",
+      body: "Failed to update your total money saved to date. Please refresh the page and try again.",
     });
   }
 }

@@ -28,6 +28,8 @@ const userLoginData = Prisma.validator<Prisma.UserArgs>()({
 });
 export type UserLoginData = Prisma.UserGetPayload<typeof userLoginData>;
 
+export type LoginUserRequest = Request<{}, {}, UserLoginData>;
+
 export type RequestWithFoundUser<
   ExtendedParams = void,
   ExtendedResponse = void,

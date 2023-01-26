@@ -38,15 +38,15 @@ authRouter_v1.post(
 authRouter_v1.patch(
   "/register/:userId/verify",
   HelperMiddlewares.checkValidityOfUserInput(["verificationCode"]),
-  Middlewares.checkUsernameExists,
+  Middlewares.checkUserExistsWithId,
   Controllers.verifyRegistration
 );
 
 authRouter_v1.patch(
   "/login",
   HelperMiddlewares.checkValidityOfUserInput(["username", "password"]),
-  Middlewares.checkUsernameExists,
-  Middlewares.checkAccountVerifiedOnLoginAttempt,
+  Middlewares.checkUserExistsOnLoginAttempt,
+  Middlewares.checkUserVerifiedOnLoginAttempt,
   Controllers.loginUser
 );
 
@@ -56,13 +56,22 @@ authRouter_v1.patch(
     "verificationCode",
     "thirtyDays",
   ]),
-  Middlewares.checkUsernameExists,
+  Middlewares.checkUserExistsWithId,
   Controllers.verifyLogin
 );
 
-authRouter_v1.patch("/logout/:userId", Controllers.logout);
+authRouter_v1.patch(
+  "/logout/:userId",
+  Middlewares.checkUserAlreadyLoggedOut,
+  Controllers.logout
+);
 
-authRouter_v1.post(
-  "request-new-verification-code/:userId",
+authRouter_v1.patch(
+  "/request-new-verification-code/:userId",
   Controllers.requestNewVerificationCode
 );
+
+// authRouter_v1.delete(
+//   "/delete-unverified-account",
+//   Controllers.deleteUnverifiedNewAccount
+// );

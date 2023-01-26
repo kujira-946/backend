@@ -4,11 +4,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import * as Types from "../types/auth.types";
+import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { UserWithRelations } from "../types/users.types";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
-import { AuthErrors, AuthSuccesses } from "../utils/auth.utils";
 
 const prisma = new PrismaClient();
 
@@ -80,6 +80,7 @@ async function _addUserToDatabase(
   const newUser = await prisma.user.create({ data: userRegistrationData });
   return newUser;
 }
+
 // ↓↓↓ Emailing user a code to verify the authenticity of their account. ↓↓↓
 async function _emailVerificationCodeToNewUser(
   request: Request,
@@ -127,7 +128,7 @@ export async function registerUser(
           body: "We've sent a verification code to your email. Please enter it below to gain access to the app.",
           footnote:
             "Please note that we will automatically terminate your account if it hasn't been verified within 7 days.",
-          username: newUser.username,
+          userId: newUser.id,
         });
       }
     );
@@ -166,19 +167,19 @@ async function _registrationVerificationHandler(
         "password",
       ]);
       return HttpHelpers.respondWithSuccess(response, "ok", {
-        body: AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
+        body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
         user: userWithoutPassword,
       });
     }
     // ↓↓↓ If the user entered an incorrect verification code. ↓↓↓
     else {
       return HttpHelpers.respondWithClientError(response, "bad request", {
-        body: AuthErrors.INCORRECT_VERIFICATION_CODE,
+        body: Utils.AuthErrors.INCORRECT_VERIFICATION_CODE,
       });
     }
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: AuthErrors.ACCOUNT_NOT_FOUND,
+      body: Utils.AuthErrors.ACCOUNT_NOT_FOUND,
     });
   }
 }
@@ -221,8 +222,6 @@ export function verifyRegistration(
 // [ VERIFIES USERNAME/PASSWORD ON LOGIN & EMAILS CODE TO VERIFY LOGIN ATTEMPT ] =========== //
 // ========================================================================================= //
 
-type LoginUserRequest = Request<{}, {}, Types.UserLoginData>;
-
 async function _assignNewVerificationCodeToUser(
   foundUserId: number,
   signedVerificationCode: string
@@ -249,12 +248,15 @@ function _emailNewVerificationCodeToUser(
   ]);
 }
 
-export async function loginUser(request: LoginUserRequest, response: Response) {
+export async function loginUser(
+  request: Types.LoginUserRequest,
+  response: Response
+) {
   return Helpers.handleSecretKeysExist(
     response,
     async function (verificationSecretKey: string) {
       // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login` route. ↓↓↓
-      const { foundUser } = request as LoginUserRequest &
+      const { foundUser } = request as Types.LoginUserRequest &
         Types.RequestWithFoundUser;
 
       const passwordsMatch = bcrypt.compareSync(
@@ -316,13 +318,13 @@ async function _loginVerificationHandler(
       "password",
     ]);
     return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
+      body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
       user: userWithoutPassword,
       accessToken,
     });
   } else {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: AuthErrors.INCORRECT_VERIFICATION_CODE,
+      body: Utils.AuthErrors.INCORRECT_VERIFICATION_CODE,
     });
   }
 }
@@ -381,7 +383,7 @@ export async function logout(
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: AuthErrors.ACCOUNT_NOT_FOUND,
+      body: Utils.AuthErrors.ACCOUNT_NOT_FOUND,
     });
   }
 }
@@ -394,13 +396,14 @@ export async function requestNewVerificationCode(
   request: Request<{ userId: string }>,
   response: Response
 ) {
-  try {
-    return Helpers.handleSecretKeysExist(
-      response,
-      async function (verificationSecretKey: string) {
+  return Helpers.handleSecretKeysExist(
+    response,
+    async function (verificationSecretKey: string) {
+      try {
         const signedVerificationCode = Helpers.generateSignedVerificationCode(
           verificationSecretKey
         );
+
         const user = await prisma.user.update({
           where: { id: Number(request.params.userId) },
           data: { loggedIn: false, signedVerificationCode },
@@ -418,11 +421,17 @@ export async function requestNewVerificationCode(
         return HttpHelpers.respondWithSuccess(response, "ok", {
           body: "New verification code sent! Please check your email.",
         });
+      } catch (error) {
+        return HttpHelpers.respondWithClientError(response, "bad request", {
+          body: Utils.AuthErrors.ACCOUNT_NOT_FOUND,
+        });
       }
-    );
-  } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: AuthErrors.ACCOUNT_NOT_FOUND,
-    });
-  }
+    }
+  );
 }
+
+// ========================================================================================= //
+// [ CRON JOB THAT DELETES AN ACCOUNT WITH AN UNVERIFIED EMAIL 7 DAYS AFTER CREATION ] ===== //
+// ========================================================================================= //
+
+export function deleteUnverifiedNewAccount() {}
