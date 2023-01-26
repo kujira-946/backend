@@ -127,7 +127,7 @@ export async function registerUser(
             "Thank you for registering with Kujira. We're glad to have you on board!",
           body: "We've sent a verification code to your email. Please enter it below to gain access to the app.",
           footnote:
-            "Please note that we will automatically terminate your account if it hasn't been verified within 7 days.",
+            "Please note that your verification code will expire within 5 minutes.",
           userId: newUser.id,
         });
       }
@@ -428,17 +428,4 @@ export async function requestNewVerificationCode(
       }
     }
   );
-}
-
-// ========================================================================================= //
-// [ CRON JOB THAT DELETES AN ACCOUNT WITH AN UNVERIFIED EMAIL 7 DAYS AFTER CREATION ] ===== //
-// ========================================================================================= //
-
-export function deleteUnverifiedNewAccount() {
-  const currentDate = new Date().getDate();
-
-  if (currentDate === 1) {
-  }
-
-  // This is a test.
 }

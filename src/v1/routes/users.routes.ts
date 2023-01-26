@@ -42,6 +42,7 @@ userRouter_v1.patch(
 );
 
 // ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓
+// TODO : SET UP CRON JOB TO HIT THIS ENDPOINT ON HEROKU
 userRouter_v1.patch(
   "/:userId/update-total-money-saved-to-date",
   HelperMiddlewares.checkValidityOfUserInput(["totalMoneySavedToDate"]),

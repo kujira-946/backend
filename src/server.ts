@@ -11,12 +11,17 @@ import * as Routes from "./v1/routes";
 dotenv.config();
 const app = express();
 
+enum RouteBases {
+  AUTH = "/api/v1/auth",
+  USERS = "/api/v1/users",
+}
+
 // ↓↓↓ Allows API to parse client payload. ↓↓↓
 app.use(express.json());
 
-// Routes
-app.use("/api/v1/auth", Routes.authRouter_v1);
-app.use("/api/v1/users", Routes.userRouter_v1);
+// ↓↓↓ Routes ↓↓↓
+app.use(RouteBases.AUTH, Routes.authRouter_v1);
+app.use(RouteBases.USERS, Routes.userRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (

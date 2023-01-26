@@ -1,5 +1,9 @@
 import { User } from "../types/users.types";
 
+// ========================================================================================= //
+// [ EXCLUDING FIELDS FROM RETRIEVED USER OBJECT(S) ] ====================================== //
+// ========================================================================================= //
+
 export function excludeFieldFromUsersObject<User, Key extends keyof User>(
   users: User[],
   keys: Key[]

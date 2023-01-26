@@ -54,7 +54,7 @@ export async function fetchUser(
 
 // ========================================================================================= //
 // [ UPDATE A USER ] ======================================================================= //
-// [ `password` & `totalMoneySavedToDate` UPDATE IS HANDLED BY ANOTHER CONTROLLER ] ======== //
+// [ `password` & `totalMoneySavedToDate` UPDATE IS HANDLED BY OTHER CONTROLLERS ] ========= //
 // ========================================================================================= //
 
 export async function updateUser(
@@ -128,8 +128,6 @@ export async function updateUserTotalMoneySavedToDate(
   request: Request<{ userId: string }, {}, Types.UserTotalMoneySavedToDate>,
   response: Response
 ) {
-  // TODO : NEED TO FIX THE LOGIC FOR AUTOMATICALLY HANDLING THE MANUAL UPDATING OF TOTALMONEYSAVEDTODATE AT THE END OF EVERY MONTH.
-  // TODO : SET UP A CRON JOB TO HANDLE THIS LOGIC.
   try {
     const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
       totalMoneySavedToDate: request.body.totalMoneySavedToDate,
