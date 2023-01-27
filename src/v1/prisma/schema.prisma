@@ -46,11 +46,11 @@ model Overview {
   owner          User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId        Int                @unique
   // Has Many
-  recurringCosts OverviewCostItem[] @relation(name: "RecurringCosts")
-  incomingCosts  OverviewCostItem[] @relation(name: "IncomingCosts")
+  recurringCosts OverviewPuchaseItem[] @relation(name: "RecurringCosts")
+  incomingCosts  OverviewPuchaseItem[] @relation(name: "IncomingCosts")
 }
 
-model OverviewCostItem {
+model OverviewPuchaseItem {
   id                      Int       @id @default(autoincrement())
   description             String
   cost                    Float
