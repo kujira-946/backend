@@ -2,6 +2,10 @@ import { Response } from "express";
 
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
+// ========================================================================================= //
+// [ RESPONSES ] =========================================================================== //
+// ========================================================================================= //
+
 type Message<WildcardMessageContent> = {
   title?: string;
   body: string;
@@ -9,10 +13,10 @@ type Message<WildcardMessageContent> = {
 } & WildcardMessageContent;
 
 type Success = "ok" | "created" | "no content";
-export function respondWithSuccess<WildcardMessageContent>(
+export function respondWithSuccess<WildcardMessageContent, Data>(
   response: Response,
   httpStatusCode: Success,
-  message: Message<WildcardMessageContent>
+  message: Message<WildcardMessageContent> & { data: Data }
 ) {
   switch (httpStatusCode) {
     case "ok":
@@ -87,5 +91,32 @@ export function respondWithServerError<WildcardMessageContent>(
         .json(message);
     default:
       return response.status(HttpStatusCodes.SERVICE_UNAVAILABLE).json(message);
+  }
+}
+
+// ========================================================================================= //
+// [ CRUD MESSAGES ] ======================================================================= //
+// ========================================================================================= //
+
+export function generateFetchError(
+  noun: string,
+  plural: boolean = true
+): string {
+  return `Failed to retrieve ${noun}.` + plural
+    ? "Please refresh the page."
+    : "Please make sure you've entered the correct information and try again.";
+}
+
+export function generateCudMessage(
+  type: "create" | "update" | "delete",
+  noun: string,
+  error = false
+): string {
+  if (error) {
+    return `Failed to ${type} ${noun}.` + noun === "delete"
+      ? "Please refresh the page and try again."
+      : "Please fill all required fields and try again.";
+  } else {
+    return `Successfully ${type}d ${noun}.`;
   }
 }

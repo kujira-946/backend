@@ -22,7 +22,9 @@ export async function fetchUsers(_: Request, response: Response) {
     const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
       "password",
     ]);
-    return response.status(HttpStatusCodes.OK).json(usersWithoutPassword);
+    return response
+      .status(HttpStatusCodes.OK)
+      .json({ data: usersWithoutPassword });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
       body: "Failed to retrieve accounts. Please refresh the page.",
@@ -44,10 +46,12 @@ export async function fetchUser(
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
-    return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+    return response
+      .status(HttpStatusCodes.OK)
+      .json({ data: userWithoutPassword });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
-      body: "Failed to find account. Please make sure you've entered the correct information and try again.",
+      body: HttpHelpers.generateFetchError("account", false),
     });
   }
 }
@@ -79,7 +83,10 @@ export async function updateUser(
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
-    return response.status(HttpStatusCodes.OK).json(userWithoutPassword);
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: HttpHelpers.generateCudMessage("update", "account"),
+      data: userWithoutPassword,
+    });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
@@ -111,11 +118,12 @@ export async function updateUserPassword(
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: "Password successfully updated.",
+      body: HttpHelpers.generateCudMessage("update", "password"),
+      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Failed to update password. Please make sure all required fields are correctly filled in and try again.",
+      body: HttpHelpers.generateCudMessage("update", "password", true),
     });
   }
 }
@@ -138,11 +146,16 @@ export async function updateUserTotalMoneySavedToDate(
       data: totalMoneySavedToDateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
+
     const { totalMoneySavedToDate } =
       Helpers.removePasswordFromUserObject(user);
+
     return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: "Your total money saved to date has been updated.",
-      totalMoneySavedToDate,
+      body: HttpHelpers.generateCudMessage(
+        "update",
+        "total money saved to date"
+      ),
+      data: totalMoneySavedToDate,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -164,11 +177,12 @@ export async function deleteUser(
       where: { id: Number(request.params.userId) },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: "Account successfully deleted.",
+      body: HttpHelpers.generateCudMessage("delete", "account"),
+      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
-      body: "Failed to delete account. Please refresh the page and try again.",
+      body: HttpHelpers.generateCudMessage("delete", "account", false),
     });
   }
 }

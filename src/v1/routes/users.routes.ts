@@ -7,15 +7,13 @@ import * as Controllers from "../controllers/users.controllers";
 
 export const userRouter_v1 = express.Router();
 
-// ↓↓↓ Fetch all users. ↓↓↓
 userRouter_v1.get("/", Controllers.fetchUsers);
 
-// ↓↓↓ Fetch one user. ↓↓↓
 userRouter_v1.get("/:userId", Controllers.fetchUser);
 
 // ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
-type UserUpdateDataFields = (keyof Types.UserUpdateData)[];
-const userUpdateData: UserUpdateDataFields = [
+type UserDataFields = (keyof Types.UserUpdateData)[];
+const userDataFields: UserDataFields = [
   "email",
   "username",
   "firstName",
@@ -25,9 +23,10 @@ const userUpdateData: UserUpdateDataFields = [
   "theme",
   "mobileNumber",
 ];
+
 userRouter_v1.patch(
   "/:userId",
-  HelperMiddlewares.checkValidityOfUserInput(userUpdateData, {
+  HelperMiddlewares.checkValidityOfUserInput(userDataFields, {
     requireAllData: false,
   }),
   Controllers.updateUser
@@ -49,5 +48,4 @@ userRouter_v1.patch(
   Controllers.updateUserTotalMoneySavedToDate
 );
 
-// ↓↓↓ Delete a user. ↓↓↓
 userRouter_v1.delete("/:userId", Controllers.deleteUser);
