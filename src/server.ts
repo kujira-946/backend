@@ -17,8 +17,8 @@ enum RouteBases {
   OVERVIEW = "/api/v1/overviews",
   OVERVIEW_PURCHASE_ITEMS = "/api/v1/overview-purchase-items",
   LOGBOOKS = "/api/v1/log-books",
-  LOG_GROUPS = "/api/v1/log-groups",
-  LOG_GROUP_PURCHASE_ITEMS = "/api/v1/log-group-purchase-items",
+  LOGBOOK_GROUPS = "/api/v1/logbook-groups",
+  LOGBOOK_GROUP_PURCHASE_ITEMS = "/api/v1/logbook-group-purchase-items",
   LOGBOOK_REVIEWS = "/api/v1/logbook-reviews",
 }
 
@@ -33,6 +33,13 @@ app.use(
   RouteBases.OVERVIEW_PURCHASE_ITEMS,
   Routes.overviewPurchaseItemsRouter_v1
 );
+app.use(RouteBases.LOGBOOKS, Routes.logbookRouter_v1);
+app.use(RouteBases.LOGBOOK_GROUPS, Routes.logbookGroupRouter_v1);
+app.use(
+  RouteBases.LOGBOOK_GROUP_PURCHASE_ITEMS,
+  Routes.overviewPurchaseItemsRouter_v1
+);
+app.use(RouteBases.LOGBOOK_REVIEWS, Routes.logbookReviewRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
