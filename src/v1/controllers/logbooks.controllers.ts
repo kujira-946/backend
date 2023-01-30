@@ -16,7 +16,7 @@ export async function fetchLogbooks(_: Request, response: Response) {
     const logbooks: Types.LogbookWithRelations[] =
       await prisma.logbook.findMany({
         orderBy: { id: "asc" },
-        include: { logGroups: true, owner: true },
+        include: { groups: true, owner: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbooks });
@@ -41,7 +41,7 @@ export async function fetchLogbook(
     const logbook: Types.LogbookWithRelations =
       await prisma.logbook.findUniqueOrThrow({
         where: { id: Number(request.params.logbookId) },
-        include: { logGroups: true, owner: true },
+        include: { groups: true, owner: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbook });
@@ -68,7 +68,7 @@ export async function createLogbook(
 
     const newLogbook: Types.LogbookWithRelations = await prisma.logbook.create({
       data: createData,
-      include: { logGroups: true, owner: true },
+      include: { groups: true, owner: true },
     });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
@@ -97,7 +97,7 @@ export async function updateLogbook(
       await prisma.logbook.update({
         where: { id: Number(request.params.logbookId) },
         data: updateData,
-        include: { logGroups: true, owner: true },
+        include: { groups: true, owner: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

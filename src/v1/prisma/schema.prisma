@@ -37,14 +37,14 @@ model User {
 }
 
 model Overview {
-  id             Int                @id @default(autoincrement())
+  id             Int                    @id @default(autoincrement())
   income         Float?
-  savings        Float              @default(0)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  savings        Float                  @default(0)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
   // One To One
-  owner          User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId        Int                @unique
+  owner          User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId        Int                    @unique
   // Has Many
   recurringCosts OverviewPurchaseItem[] @relation(name: "RecurringCosts")
   incomingCosts  OverviewPurchaseItem[] @relation(name: "IncomingCosts")
@@ -68,27 +68,27 @@ model OverviewPurchaseItem {
 // The intent to include the `name` field here is so that users can update it in a future UI redesign that makes
 //   the app more customizable beyond the MVP designs.
 model Logbook {
-  id        Int        @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   name      String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
   // Has Many
-  logGroups LogGroup[]
+  groups    LogbookGroup[]
   // Belongs to
-  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
 }
 
-model LogGroup {
-  id        Int                    @id @default(autoincrement())
+model LogbookGroup {
+  id        Int                        @id @default(autoincrement())
   date      DateTime
-  totalCost Float                  @default(0)
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
+  totalCost Float                      @default(0)
+  createdAt DateTime                   @default(now())
+  updatedAt DateTime                   @updatedAt
   // Has Many
-  items     LogGroupPurchaseItem[]
+  items     LogbookGroupPurchaseItem[]
   // Belongs To
-  logbook   Logbook                @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+  logbook   Logbook                    @relation(fields: [logbookId], references: [id], onDelete: Cascade)
   logbookId Int
 }
 
@@ -97,7 +97,7 @@ enum Category {
   want
 }
 
-model LogGroupPurchaseItem {
+model LogbookGroupPurchaseItem {
   id                            Int            @id @default(autoincrement())
   placement                     Int
   cost                          Float
@@ -106,8 +106,8 @@ model LogGroupPurchaseItem {
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
   // Belongs To
-  logGroup                      LogGroup       @relation(fields: [logGroupId], references: [id], onDelete: Cascade)
-  logGroupId                    Int
+  logbookGroup                  LogbookGroup   @relation(fields: [logbookGroupId], references: [id], onDelete: Cascade)
+  logbookGroupId                Int
   LogbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id], onDelete: Cascade)
   logbookReviewNeedsId          Int?
   logbookReviewPlannedWants     LogbookReview? @relation(name: "ReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id], onDelete: Cascade)
@@ -119,16 +119,16 @@ model LogGroupPurchaseItem {
 }
 
 model LogbookReview {
-  id             Int                    @id @default(autoincrement())
+  id             Int                        @id @default(autoincrement())
   reflection     String?
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
   // Has Many
-  needs          LogGroupPurchaseItem[] @relation(name: "ReviewNeeds")
-  plannedWants   LogGroupPurchaseItem[] @relation(name: "ReviewPlannedWants")
-  impulsiveWants LogGroupPurchaseItem[] @relation(name: "ReviewImpulsiveWants")
-  regrets        LogGroupPurchaseItem[] @relation(name: "ReviewRegrets")
+  needs          LogbookGroupPurchaseItem[] @relation(name: "ReviewNeeds")
+  plannedWants   LogbookGroupPurchaseItem[] @relation(name: "ReviewPlannedWants")
+  impulsiveWants LogbookGroupPurchaseItem[] @relation(name: "ReviewImpulsiveWants")
+  regrets        LogbookGroupPurchaseItem[] @relation(name: "ReviewRegrets")
   // Belongs to
-  owner          User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner          User                       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId        Int
 }

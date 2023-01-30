@@ -14,13 +14,13 @@ type LogbookDataFields = (keyof Types.LogbookCreateData)[];
 const logbookDataFields: LogbookDataFields = ["name"];
 
 logbookRouter_v1.post(
-  "/",
+  "/:ownerId",
   HelperMiddlewares.checkValidityOfUserInput(logbookDataFields),
   Controllers.createLogbook
 );
 
 logbookRouter_v1.patch(
-  "/:logbookId",
+  "/:logbookId/:ownerId",
   HelperMiddlewares.checkValidityOfUserInput(logbookDataFields, {
     requireAllData: false,
   }),
