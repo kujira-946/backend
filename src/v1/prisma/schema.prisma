@@ -108,7 +108,7 @@ model LogbookGroupPurchaseItem {
   // Belongs To
   logbookGroup                  LogbookGroup   @relation(fields: [logbookGroupId], references: [id], onDelete: Cascade)
   logbookGroupId                Int
-  LogbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id], onDelete: Cascade)
+  logbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id], onDelete: Cascade)
   logbookReviewNeedsId          Int?
   logbookReviewPlannedWants     LogbookReview? @relation(name: "ReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id], onDelete: Cascade)
   logbookReviewPlannedWantsId   Int?
