@@ -15,6 +15,11 @@ enum RouteBases {
   AUTH = "/api/v1/auth",
   USERS = "/api/v1/users",
   OVERVIEW = "/api/v1/overviews",
+  OVERVIEW_PURCHASE_ITEMS = "/api/v1/overview-purchase-items",
+  LOGBOOKS = "/api/v1/log-books",
+  LOG_GROUPS = "/api/v1/log-groups",
+  LOG_GROUP_PURCHASE_ITEMS = "/api/v1/log-group-purchase-items",
+  LOGBOOK_REVIEWS = "/api/v1/logbook-reviews",
 }
 
 // ↓↓↓ Allows API to parse client payload. ↓↓↓
@@ -24,6 +29,10 @@ app.use(express.json());
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, Routes.userRouter_v1);
 app.use(RouteBases.OVERVIEW, Routes.overviewRouter_v1);
+app.use(
+  RouteBases.OVERVIEW_PURCHASE_ITEMS,
+  Routes.overviewPurchaseItemsRouter_v1
+);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (

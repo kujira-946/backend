@@ -27,7 +27,7 @@ export async function fetchUsers(_: Request, response: Response) {
       .json({ data: usersWithoutPassword });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
-      body: "Failed to retrieve accounts. Please refresh the page.",
+      body: HttpHelpers.generateFetchError("accounts"),
     });
   }
 }
@@ -89,7 +89,7 @@ export async function updateUser(
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Failed to update account. Please make sure all required fields are correctly filled in and try again.",
+      body: HttpHelpers.generateCudMessage("update", "account", true),
     });
   }
 }
@@ -182,7 +182,7 @@ export async function deleteUser(
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
-      body: HttpHelpers.generateCudMessage("delete", "account", false),
+      body: HttpHelpers.generateCudMessage("delete", "account", true),
     });
   }
 }

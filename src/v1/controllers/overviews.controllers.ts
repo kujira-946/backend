@@ -18,7 +18,8 @@ export async function fetchOverviews(_: Request, response: Response) {
         orderBy: { id: "asc" },
         include: { recurringCosts: true, incomingCosts: true },
       });
-    return response.status(HttpStatusCodes.OK).json(overviews);
+
+    return response.status(HttpStatusCodes.OK).json({ data: overviews });
   } catch (error) {
     return HttpHelpers.respondWithServerError(
       response,
@@ -42,7 +43,8 @@ export async function fetchOverview(
         where: { id: Number(request.params.overviewId) },
         include: { recurringCosts: true, incomingCosts: true },
       });
-    return response.status(HttpStatusCodes.OK).json(overview);
+
+    return response.status(HttpStatusCodes.OK).json({ data: overview });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: HttpHelpers.generateFetchError("overview", false),
@@ -68,17 +70,18 @@ export async function createOverview(
   response: Response
 ) {
   try {
-    const overviewCreateData: Types.OverviewCreateData = {
+    const createData: Types.OverviewCreateData = {
       savings: request.body.savings,
       ownerId: Number(request.params.ownerId),
     };
-    if (request.body.income) overviewCreateData["income"] = request.body.income;
+    if (request.body.income) createData["income"] = request.body.income;
 
     const newOverview: Types.OverviewWithRelations =
       await prisma.overview.create({
-        data: overviewCreateData,
+        data: createData,
         include: { recurringCosts: true, incomingCosts: true },
       });
+
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("create", "overview"),
       data: newOverview,
@@ -140,6 +143,7 @@ export async function deleteOverview(
     await prisma.overview.delete({
       where: { id: Number(request.params.overviewId) },
     });
+    
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "overview"),
       data: null,

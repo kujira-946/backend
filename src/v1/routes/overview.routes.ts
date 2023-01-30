@@ -10,18 +10,22 @@ overviewRouter_v1.get("/", Controllers.fetchOverviews);
 
 overviewRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
+type OverviewCreateDataFields = (keyof Types.OverviewUpdateData)[];
+const overviewCreateDataFields: OverviewCreateDataFields = ["savings"];
 overviewRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserInput(["savings"]),
+  HelperMiddlewares.checkValidityOfUserInput(overviewCreateDataFields),
   Controllers.createOverview
 );
 
-type OverviewDataFields = (keyof Types.OverviewUpdateData)[];
-const overviewDataFields: OverviewDataFields = ["income", "savings"];
-
+type OverviewUpdateDataFields = (keyof Types.OverviewUpdateData)[];
+const overviewUpdateDataFields: OverviewUpdateDataFields = [
+  "income",
+  "savings",
+];
 overviewRouter_v1.patch(
   "/:overviewId",
-  HelperMiddlewares.checkValidityOfUserInput(overviewDataFields, {
+  HelperMiddlewares.checkValidityOfUserInput(overviewUpdateDataFields, {
     requireAllData: false,
   })
 );
