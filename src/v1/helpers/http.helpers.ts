@@ -102,9 +102,16 @@ export function generateFetchError(
   noun: string,
   plural: boolean = true
 ): string {
-  return `Failed to retrieve ${noun}.` + plural
-    ? "Please refresh the page."
-    : "Please make sure you've entered the correct information and try again.";
+  let baseMessage = `Failed to retrieve ${noun}.`;
+
+  if (plural) {
+    return baseMessage + " Please refresh the page.";
+  } else {
+    return (
+      baseMessage +
+      " Please make sure you've entered the correct information and try again."
+    );
+  }
 }
 
 export function generateCudMessage(
@@ -113,9 +120,13 @@ export function generateCudMessage(
   error = false
 ): string {
   if (error) {
-    return `Failed to ${type} ${noun}.` + noun === "delete"
-      ? "Please refresh the page and try again."
-      : "Please fill all required fields and try again.";
+    let baseMessage = `Failed to ${type} ${noun}.`;
+
+    if (type === "delete") {
+      return baseMessage + " Please refresh the page and try again.";
+    } else {
+      return baseMessage + " Please fill all required fields and try again.";
+    }
   } else {
     return `Successfully ${type}d ${noun}.`;
   }
