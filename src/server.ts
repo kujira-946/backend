@@ -27,6 +27,7 @@ app.use(express.json());
 // ↓↓↓ Routes ↓↓↓
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, Routes.usersRouter_v1);
+app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
 app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
 app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
 

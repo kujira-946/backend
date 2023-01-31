@@ -4,7 +4,7 @@ import * as Validators from "../validators/purchases.validators";
 import * as Controllers from "../controllers/purchases.controllers";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
-const purchasesRouter_v1 = express.Router();
+export const purchasesRouter_v1 = express.Router();
 
 purchasesRouter_v1.get("/", Controllers.fetchPurchases);
 
