@@ -4,21 +4,21 @@ import { User } from "@prisma/client";
 // [ EXCLUDING FIELDS FROM RETRIEVED USER OBJECT(S) ] ====================================== //
 // ========================================================================================= //
 
-export function excludeFieldFromUsersObject<User, Key extends keyof User>(
+export function excludeFieldFromUsersObject<User, Field extends keyof User>(
   users: User[],
-  keys: Key[]
-): Omit<User[], Key> {
+  fields: Field[]
+): Omit<User[], Field> {
   users.forEach((user: User) => {
-    for (let key of keys) delete user[key];
+    for (let field of fields) delete user[field];
   });
   return users;
 }
 
-export function excludeFieldFromUserObject<User, Key extends keyof User>(
+export function excludeFieldFromUserObject<User, Field extends keyof User>(
   user: User,
-  keys: Key[]
-): Omit<User, Key> {
-  for (let key of keys) delete user[key];
+  fields: Field[]
+): Omit<User, Field> {
+  for (let field of fields) delete user[field];
   return user;
 }
 

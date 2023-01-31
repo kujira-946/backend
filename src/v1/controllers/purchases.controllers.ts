@@ -13,19 +13,9 @@ const prisma = new PrismaClient();
 
 export async function fetchPurchases(_: Request, response: Response) {
   try {
-    const purchases: Validators.PurchaseRelationsValidator[] =
-      await prisma.purchase.findMany({
-        orderBy: { id: "asc" },
-        include: {
-          overviewRecurringPurchases: true,
-          overviewIncomingPurchases: true,
-          logbookDay: true,
-          logbookReviewNeeds: true,
-          logbookReviewPlannedWants: true,
-          logbookReviewImpulsiveWants: true,
-          logbookReviewRegrets: true,
-        },
-      });
+    const purchases = await prisma.purchase.findMany({
+      orderBy: { id: "asc" },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: purchases });
   } catch (error) {
@@ -46,19 +36,9 @@ export async function fetchPurchase(
   response: Response
 ) {
   try {
-    const purchase: Validators.PurchaseRelationsValidator =
-      await prisma.purchase.findUniqueOrThrow({
-        where: { id: Number(request.params.purchaseId) },
-        include: {
-          overviewRecurringPurchases: true,
-          overviewIncomingPurchases: true,
-          logbookDay: true,
-          logbookReviewNeeds: true,
-          logbookReviewPlannedWants: true,
-          logbookReviewImpulsiveWants: true,
-          logbookReviewRegrets: true,
-        },
-      });
+    const purchase = await prisma.purchase.findUniqueOrThrow({
+      where: { id: Number(request.params.purchaseId) },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: purchase });
   } catch (error) {
@@ -84,19 +64,9 @@ export async function createPurchase(
       description: request.body.description,
     };
 
-    const newPurchase: Validators.PurchaseRelationsValidator =
-      await prisma.purchase.create({
-        data: createData,
-        include: {
-          overviewRecurringPurchases: true,
-          overviewIncomingPurchases: true,
-          logbookDay: true,
-          logbookReviewNeeds: true,
-          logbookReviewPlannedWants: true,
-          logbookReviewImpulsiveWants: true,
-          logbookReviewRegrets: true,
-        },
-      });
+    const newPurchase = await prisma.purchase.create({
+      data: createData,
+    });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("create", "purchase"),
@@ -129,20 +99,10 @@ export async function updatePurchase(
       category: request.body.category,
     };
 
-    const updatedPurchase: Validators.PurchaseRelationsValidator =
-      await prisma.purchase.update({
-        where: { id: Number(request.params.purchaseId) },
-        data: updateData,
-        include: {
-          overviewRecurringPurchases: true,
-          overviewIncomingPurchases: true,
-          logbookDay: true,
-          logbookReviewNeeds: true,
-          logbookReviewPlannedWants: true,
-          logbookReviewImpulsiveWants: true,
-          logbookReviewRegrets: true,
-        },
-      });
+    const updatedPurchase = await prisma.purchase.update({
+      where: { id: Number(request.params.purchaseId) },
+      data: updateData,
+    });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("update", "purchase"),
