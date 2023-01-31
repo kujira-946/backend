@@ -36,37 +36,55 @@ model User {
   logbookReviews         LogbookReview[]
 }
 
-model Overview {
-  id             Int                    @id @default(autoincrement())
-  income         Float?
-  savings        Float                  @default(0)
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  // One To One
-  owner          User                   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId        Int                    @unique
-  // Has Many
-  recurringCosts OverviewPurchaseItem[] @relation(name: "RecurringCosts")
-  incomingCosts  OverviewPurchaseItem[] @relation(name: "IncomingCosts")
+enum Category {
+  need
+  want
 }
 
-model OverviewPurchaseItem {
-  id                      Int       @id @default(autoincrement())
-  description             String
-  cost                    Float
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+model Purchase {
+  id                            Int            @id @default(autoincrement())
+  placement                     Int
+  cost                          Float
+  category                      Category?
+  description                   String
+  createdAt                     DateTime       @default(now())
+  updatedAt                     DateTime       @updatedAt
   // Belongs To
-  overviewRecurringCost   Overview? @relation(name: "RecurringCosts", fields: [overviewRecurringCostId], references: [id], onDelete: Cascade)
-  overviewRecurringCostId Int?
-  overviewIncomingCost    Overview? @relation(name: "IncomingCosts", fields: [overviewIncomingCostId], references: [id], onDelete: Cascade)
-  overviewIncomingCostId  Int?
+  overviewRecurringPurchases    Overview?      @relation(name: "RecurringPurchases", fields: [overviewRecurringPurchasesId], references: [id], onDelete: Cascade)
+  overviewRecurringPurchasesId  Int?
+  overviewIncomingPurchases     Overview?      @relation(name: "IncomingPurchases", fields: [overviewIncomingPurchasesId], references: [id], onDelete: Cascade)
+  overviewIncomingPurchasesId   Int?
+  // 
+  logbookGroup                  LogbookGroup?  @relation(fields: [logbookGroupId], references: [id])
+  logbookGroupId                Int?
+  // 
+  logbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id])
+  logbookReviewNeedsId          Int?
+  logbookReviewPlannedWants     LogbookReview? @relation(name: "ReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id])
+  logbookReviewPlannedWantsId   Int?
+  logbookReviewImpulsiveWants   LogbookReview? @relation(name: "ReviewImpulsiveWants", fields: [logbookReviewImpulsiveWantsId], references: [id])
+  logbookReviewImpulsiveWantsId Int?
+  logbookReviewRegrets          LogbookReview? @relation(name: "ReviewRegrets", fields: [logbookReviewRegretsId], references: [id])
+  logbookReviewRegretsId        Int?
 }
 
-// A new Logbook is created on the first day of a new month by the client, formatting the `new Date()` value to 
-//   something like "Jan. 2023" and setting that as the value for the `name` field on instantiation.
-// The intent to include the `name` field here is so that users can update it in a future UI redesign that makes
-//   the app more customizable beyond the MVP designs.
+model Overview {
+  id                 Int        @id @default(autoincrement())
+  income             Float?
+  savings            Float      @default(0)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  // One To One
+  owner              User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId            Int        @unique
+  // Has Many
+  recurringPurchases Purchase[] @relation(name: "RecurringPurchases")
+  incomingPurchases  Purchase[] @relation(name: "IncomingPurchases")
+}
+
+// Automatically created at the beginning of a new month.
+// `name` field default to month and year in which the logbook was created (e.g. "Jan. 2023").
+// `name` field MAY be edited later down the line for potentially better UX.
 model Logbook {
   id        Int            @id @default(autoincrement())
   name      String
@@ -80,55 +98,29 @@ model Logbook {
 }
 
 model LogbookGroup {
-  id        Int                        @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   date      DateTime
-  totalCost Float                      @default(0)
-  createdAt DateTime                   @default(now())
-  updatedAt DateTime                   @updatedAt
+  totalCost Float      @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   // Has Many
-  items     LogbookGroupPurchaseItem[]
+  purchases Purchase[]
   // Belongs To
-  logbook   Logbook                    @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+  logbook   Logbook    @relation(fields: [logbookId], references: [id], onDelete: Cascade)
   logbookId Int
 }
 
-enum Category {
-  need
-  want
-}
-
-model LogbookGroupPurchaseItem {
-  id                            Int            @id @default(autoincrement())
-  placement                     Int
-  cost                          Float
-  category                      Category
-  description                   String
-  createdAt                     DateTime       @default(now())
-  updatedAt                     DateTime       @updatedAt
-  // Belongs To
-  logbookGroup                  LogbookGroup   @relation(fields: [logbookGroupId], references: [id], onDelete: Cascade)
-  logbookGroupId                Int
-  logbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id], onDelete: Cascade)
-  logbookReviewNeedsId          Int?
-  logbookReviewPlannedWants     LogbookReview? @relation(name: "ReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id], onDelete: Cascade)
-  logbookReviewPlannedWantsId   Int?
-  logbookReviewImpulsiveWants   LogbookReview? @relation(name: "ReviewImpulsiveWants", fields: [logbookReviewImpulsiveWantsId], references: [id], onDelete: Cascade)
-  logbookReviewImpulsiveWantsId Int?
-  logbookReviewRegrets          LogbookReview? @relation(name: "ReviewRegrets", fields: [logbookReviewRegretsId], references: [id], onDelete: Cascade)
-  logbookReviewRegretsId        Int?
-}
-
 model LogbookReview {
-  id             Int                        @id @default(autoincrement())
-  reflection     String?                    @default("")
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
+  id             Int        @id @default(autoincrement())
+  reflection     String?    @default("")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
   // Has Many
-  needs          LogbookGroupPurchaseItem[] @relation(name: "ReviewNeeds")
-  plannedWants   LogbookGroupPurchaseItem[] @relation(name: "ReviewPlannedWants")
-  impulsiveWants LogbookGroupPurchaseItem[] @relation(name: "ReviewImpulsiveWants")
-  regrets        LogbookGroupPurchaseItem[] @relation(name: "ReviewRegrets")
+  needs          Purchase[] @relation(name: "ReviewNeeds")
+  plannedWants   Purchase[] @relation(name: "ReviewPlannedWants")
+  impulsiveWants Purchase[] @relation(name: "ReviewImpulsiveWants")
+  regrets        Purchase[] @relation(name: "ReviewRegrets")
   // Belongs to
-  owner          User                       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner          User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId        Int
 }
