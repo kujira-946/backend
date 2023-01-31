@@ -1,9 +1,9 @@
 import express from "express";
 
 import * as Types from "../validators/auth.validators";
+import * as Controllers from "../controllers/auth.controllers";
 import * as Middlewares from "../middlewares/auth.middlewares";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
-import * as Controllers from "../controllers/auth.controllers";
 
 export const authRouter_v1 = express.Router();
 

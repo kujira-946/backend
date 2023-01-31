@@ -16,7 +16,7 @@ export async function fetchOverviews(_: Request, response: Response) {
     const overviews: Validators.OverviewRelationsValidator[] =
       await prisma.overview.findMany({
         orderBy: { id: "asc" },
-        include: { recurringCosts: true, incomingCosts: true },
+        include: { recurringPurchases: true, incomingPurchases: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: overviews });
@@ -41,7 +41,7 @@ export async function fetchOverview(
     const overview: Validators.OverviewRelationsValidator =
       await prisma.overview.findUniqueOrThrow({
         where: { id: Number(request.params.overviewId) },
-        include: { recurringCosts: true, incomingCosts: true },
+        include: { recurringPurchases: true, incomingPurchases: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: overview });
@@ -56,30 +56,28 @@ export async function fetchOverview(
 // [ CREATE AN OVERVIEW ] ================================================================== //
 // ========================================================================================= //
 
-type CreateRequest = Request<
-  { ownerId: string },
-  {},
-  {
-    income?: number;
-    savings: number;
-  }
->;
-
 export async function createOverview(
-  request: CreateRequest,
+  request: Request<
+    { ownerId: string },
+    {},
+    {
+      income?: number;
+      savings: number;
+    }
+  >,
   response: Response
 ) {
   try {
     const createData: Validators.OverviewCreateValidator = {
+      income: request.body.income,
       savings: request.body.savings,
       ownerId: Number(request.params.ownerId),
     };
-    if (request.body.income) createData["income"] = request.body.income;
 
     const newOverview: Validators.OverviewRelationsValidator =
       await prisma.overview.create({
         data: createData,
-        include: { recurringCosts: true, incomingCosts: true },
+        include: { recurringPurchases: true, incomingPurchases: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
@@ -97,14 +95,12 @@ export async function createOverview(
 // [ UPDATE AN OVERVIEW ] ================================================================== //
 // ========================================================================================= //
 
-type UpdateRequest = Request<
-  { overviewId: string },
-  {},
-  { income?: number; savings: number }
->;
-
 export async function updateOverview(
-  request: UpdateRequest,
+  request: Request<
+    { overviewId: string },
+    {},
+    Validators.OverviewUpdateValidator
+  >,
   response: Response
 ) {
   try {
@@ -117,7 +113,7 @@ export async function updateOverview(
       await prisma.overview.update({
         where: { id: Number(request.params.overviewId) },
         data: updateData,
-        include: { recurringCosts: true, incomingCosts: true },
+        include: { recurringPurchases: true, incomingPurchases: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

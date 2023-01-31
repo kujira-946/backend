@@ -1,8 +1,8 @@
 import express from "express";
 
 import * as Validators from "../validators/logbooks.validators";
-import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 import * as Controllers from "../controllers/logbooks.controllers";
+import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const logbooksRouter_v1 = express.Router();
 
@@ -10,18 +10,18 @@ logbooksRouter_v1.get("/", Controllers.fetchLogbooks);
 
 logbooksRouter_v1.get("/:logbookId", Controllers.fetchLogbook);
 
-type LogbookDataFields = (keyof Validators.LogbookCreateValidator)[];
-const logbookDataFields: LogbookDataFields = ["name"];
+type LogbookInputs = (keyof Validators.LogbookCreateValidator)[];
+const logbookInputs: LogbookInputs = ["name"];
 
 logbooksRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserInput(logbookDataFields),
+  HelperMiddlewares.checkValidityOfUserInput(logbookInputs),
   Controllers.createLogbook
 );
 
 logbooksRouter_v1.patch(
   "/:logbookId/:ownerId",
-  HelperMiddlewares.checkValidityOfUserInput(logbookDataFields, {
+  HelperMiddlewares.checkValidityOfUserInput(logbookInputs, {
     requireAllData: false,
   }),
   Controllers.updateLogbook
