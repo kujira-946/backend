@@ -3,11 +3,11 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import * as Types from "../validators/auth.validators";
+import * as Validators from "../validators/auth.validators";
 import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
-import { UserWithRelations } from "../types/users.types";
+import { UserWithRelations } from "../validators/users.validators";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 
 const prisma = new PrismaClient();
@@ -30,6 +30,7 @@ export async function checkEmailAvailability(
   } catch (error) {
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Email available.",
+      data: null,
     });
   }
 }
@@ -52,6 +53,7 @@ export async function checkUsernameAvailability(
   } catch (error) {
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Username available.",
+      data: null,
     });
   }
 }
@@ -62,12 +64,12 @@ export async function checkUsernameAvailability(
 
 // ↓↓↓ Adds new user to database and returns new user object. ↓↓↓
 async function _addUserToDatabase(
-  request: Request<{}, {}, Types.UserRegistrationData>,
+  request: Request<{}, {}, Validators.UserRegistrationData>,
   signedVerificationCode: string
 ) {
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
-  const userRegistrationData: Types.UserRegistrationData = {
+  const userRegistrationData: Validators.UserRegistrationData = {
     email: request.body.email,
     username: request.body.username.toLowerCase(),
     password: hashedPassword,
@@ -102,7 +104,7 @@ async function _emailVerificationCodeToNewUser(
 }
 
 export async function registerUser(
-  request: Request<{}, {}, Types.UserRegistrationData>,
+  request: Request<{}, {}, Validators.UserRegistrationData>,
   response: Response
 ) {
   try {
@@ -128,7 +130,7 @@ export async function registerUser(
           body: "We've sent a verification code to your email. Please enter it below to gain access to the app.",
           footnote:
             "Please note that your verification code will expire within 5 minutes.",
-          userId: newUser.id,
+          data: newUser.id,
         });
       }
     );
@@ -168,7 +170,7 @@ async function _registrationVerificationHandler(
       ]);
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
-        user: userWithoutPassword,
+        data: userWithoutPassword,
       });
     }
     // ↓↓↓ If the user entered an incorrect verification code. ↓↓↓
@@ -196,7 +198,7 @@ export function verifyRegistration(
 ) {
   // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:userId/verify` route. ↓↓↓
   const { foundUser } = request as RegistrationVerificationRequest &
-    Types.RequestWithFoundUser;
+    Validators.RequestWithFoundUser;
 
   if (foundUser.emailVerified) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -249,15 +251,15 @@ function _emailNewVerificationCodeToUser(
 }
 
 export async function loginUser(
-  request: Types.LoginUserRequest,
+  request: Validators.LoginUserRequest,
   response: Response
 ) {
   return Helpers.handleSecretKeysExist(
     response,
     async function (verificationSecretKey: string) {
       // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login` route. ↓↓↓
-      const { foundUser } = request as Types.LoginUserRequest &
-        Types.RequestWithFoundUser;
+      const { foundUser } = request as Validators.LoginUserRequest &
+        Validators.RequestWithFoundUser;
 
       const passwordsMatch = bcrypt.compareSync(
         request.body.password,
@@ -279,7 +281,7 @@ export async function loginUser(
         );
         return HttpHelpers.respondWithSuccess(response, "ok", {
           body: "Please check your email for a verification code.",
-          userId,
+          data: userId,
         });
       } else {
         return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -319,7 +321,7 @@ async function _loginVerificationHandler(
     ]);
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
-      user: userWithoutPassword,
+      data: userWithoutPassword,
       accessToken,
     });
   } else {
@@ -341,7 +343,7 @@ export async function verifyLogin(
 ) {
   // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login/:userId/verify` route. ↓↓↓
   const { foundUser } = request as LoginVerificationRequest &
-    Types.RequestWithFoundUser;
+    Validators.RequestWithFoundUser;
 
   if (!foundUser.emailVerified) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -380,6 +382,7 @@ export async function logout(
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Log out successful.",
+      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -420,6 +423,7 @@ export async function requestNewVerificationCode(
 
         return HttpHelpers.respondWithSuccess(response, "ok", {
           body: "New verification code sent! Please check your email.",
+          data: null,
         });
       } catch (error) {
         return HttpHelpers.respondWithClientError(response, "bad request", {

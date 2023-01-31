@@ -14,11 +14,10 @@ const app = express();
 enum RouteBases {
   AUTH = "/api/v1/auth",
   USERS = "/api/v1/users",
-  OVERVIEW = "/api/v1/overviews",
-  OVERVIEW_PURCHASE_ITEMS = "/api/v1/overview-purchase-items",
-  LOGBOOKS = "/api/v1/log-books",
-  LOGBOOK_GROUPS = "/api/v1/logbook-groups",
-  LOGBOOK_GROUP_PURCHASE_ITEMS = "/api/v1/logbook-group-purchase-items",
+  PURCHASES = "/api/v1/purchases",
+  OVERVIEWS = "/api/v1/overviews",
+  LOGBOOKS = "/api/v1/logbooks",
+  LOGBOOK_DAYS = "/api/v1/logbook-days",
   LOGBOOK_REVIEWS = "/api/v1/logbook-reviews",
 }
 
@@ -27,9 +26,9 @@ app.use(express.json());
 
 // ↓↓↓ Routes ↓↓↓
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
-app.use(RouteBases.USERS, Routes.userRouter_v1);
-app.use(RouteBases.OVERVIEW, Routes.overviewRouter_v1);
-app.use(RouteBases.LOGBOOKS, Routes.logbookRouter_v1);
+app.use(RouteBases.USERS, Routes.usersRouter_v1);
+app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
+app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (

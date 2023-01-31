@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 
-import * as Types from "../types/users.types";
+import * as Validators from "../validators/users.validators";
 import * as Helpers from "../helpers/users.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
@@ -15,7 +15,7 @@ const prisma = new PrismaClient();
 
 export async function fetchUsers(_: Request, response: Response) {
   try {
-    const users: Types.UserWithRelations[] = await prisma.user.findMany({
+    const users: Validators.UserWithRelations[] = await prisma.user.findMany({
       orderBy: { id: "asc" },
       include: { overview: true, logbooks: true, logbookReviews: true },
     });
@@ -41,10 +41,11 @@ export async function fetchUser(
   response: Response
 ) {
   try {
-    const user: Types.UserWithRelations = await prisma.user.findUniqueOrThrow({
-      where: { id: Number(request.params.userId) },
-      include: { overview: true, logbooks: true, logbookReviews: true },
-    });
+    const user: Validators.UserWithRelations =
+      await prisma.user.findUniqueOrThrow({
+        where: { id: Number(request.params.userId) },
+        include: { overview: true, logbooks: true, logbookReviews: true },
+      });
     const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return response
       .status(HttpStatusCodes.OK)
@@ -62,11 +63,11 @@ export async function fetchUser(
 // ========================================================================================= //
 
 export async function updateUser(
-  request: Request<{ userId: string }, {}, Types.UserUpdateData>,
+  request: Request<{ userId: string }, {}, Validators.UserUpdateData>,
   response: Response
 ) {
   try {
-    const userUpdateData: Types.UserUpdateData = {
+    const userUpdateData: Validators.UserUpdateData = {
       email: request.body.email,
       username: request.body.username?.toLowerCase(),
       firstName: request.body.firstName,
@@ -77,7 +78,7 @@ export async function updateUser(
       mobileNumber: request.body.mobileNumber,
     };
 
-    const user: Types.UserWithRelations = await prisma.user.update({
+    const user: Validators.UserWithRelations = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
@@ -99,7 +100,7 @@ export async function updateUser(
 // ========================================================================================= //
 
 export async function updateUserPassword(
-  request: Types.RequestWithUserPasswords,
+  request: Validators.RequestWithUserPasswords,
   response: Response
 ) {
   try {
@@ -108,7 +109,7 @@ export async function updateUserPassword(
       request.body.newPassword,
       saltRounds
     );
-    const userUpdatePasswordData: Types.UserUpdatePasswordData = {
+    const userUpdatePasswordData: Validators.UserUpdatePasswordData = {
       password: hashedPassword,
     };
 
@@ -133,15 +134,19 @@ export async function updateUserPassword(
 // ========================================================================================= //
 
 export async function updateUserTotalMoneySavedToDate(
-  request: Request<{ userId: string }, {}, Types.UserTotalMoneySavedToDate>,
+  request: Request<
+    { userId: string },
+    {},
+    Validators.UserTotalMoneySavedToDate
+  >,
   response: Response
 ) {
   try {
-    const totalMoneySavedToDateData: Types.UserTotalMoneySavedToDate = {
+    const totalMoneySavedToDateData: Validators.UserTotalMoneySavedToDate = {
       totalMoneySavedToDate: request.body.totalMoneySavedToDate,
     };
 
-    const user: Types.UserWithRelations = await prisma.user.update({
+    const user: Validators.UserWithRelations = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: totalMoneySavedToDateData,
       include: { overview: true, logbooks: true, logbookReviews: true },

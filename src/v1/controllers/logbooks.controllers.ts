@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
-import * as Types from "../types/logbooks.types";
+import * as Validators from "../validators/logbooks.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 export async function fetchLogbooks(_: Request, response: Response) {
   try {
-    const logbooks: Types.LogbookWithRelations[] =
+    const logbooks: Validators.LogbookWithRelations[] =
       await prisma.logbook.findMany({
         orderBy: { id: "asc" },
         include: { groups: true, owner: true },
@@ -38,7 +38,7 @@ export async function fetchLogbook(
   response: Response
 ) {
   try {
-    const logbook: Types.LogbookWithRelations =
+    const logbook: Validators.LogbookWithRelations =
       await prisma.logbook.findUniqueOrThrow({
         where: { id: Number(request.params.logbookId) },
         include: { groups: true, owner: true },
@@ -61,15 +61,16 @@ export async function createLogbook(
   response: Response
 ) {
   try {
-    const createData: Types.LogbookCreateData = {
+    const createData: Validators.LogbookCreateData = {
       name: request.body.name,
       ownerId: Number(request.params.ownerId),
     };
 
-    const newLogbook: Types.LogbookWithRelations = await prisma.logbook.create({
-      data: createData,
-      include: { groups: true, owner: true },
-    });
+    const newLogbook: Validators.LogbookWithRelations =
+      await prisma.logbook.create({
+        data: createData,
+        include: { groups: true, owner: true },
+      });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("create", "logbook"),
@@ -91,9 +92,11 @@ export async function updateLogbook(
   response: Response
 ) {
   try {
-    const updateData: Types.LogbookUpdateData = { name: request.body.name };
+    const updateData: Validators.LogbookUpdateData = {
+      name: request.body.name,
+    };
 
-    const updatedLogbook: Types.LogbookWithRelations =
+    const updatedLogbook: Validators.LogbookWithRelations =
       await prisma.logbook.update({
         where: { id: Number(request.params.logbookId) },
         data: updateData,

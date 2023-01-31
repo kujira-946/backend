@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
-import * as Types from "../types/overviews.types";
+import * as Validators from "../validators/overviews.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { HttpStatusCodes } from "./../../utils/http-status-codes";
 
@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 export async function fetchOverviews(_: Request, response: Response) {
   try {
-    const overviews: Types.OverviewWithRelations[] =
+    const overviews: Validators.OverviewWithRelations[] =
       await prisma.overview.findMany({
         orderBy: { id: "asc" },
         include: { recurringCosts: true, incomingCosts: true },
@@ -38,7 +38,7 @@ export async function fetchOverview(
   response: Response
 ) {
   try {
-    const overview: Types.OverviewWithRelations =
+    const overview: Validators.OverviewWithRelations =
       await prisma.overview.findUniqueOrThrow({
         where: { id: Number(request.params.overviewId) },
         include: { recurringCosts: true, incomingCosts: true },
@@ -70,13 +70,13 @@ export async function createOverview(
   response: Response
 ) {
   try {
-    const createData: Types.OverviewCreateData = {
+    const createData: Validators.OverviewCreateData = {
       savings: request.body.savings,
       ownerId: Number(request.params.ownerId),
     };
     if (request.body.income) createData["income"] = request.body.income;
 
-    const newOverview: Types.OverviewWithRelations =
+    const newOverview: Validators.OverviewWithRelations =
       await prisma.overview.create({
         data: createData,
         include: { recurringCosts: true, incomingCosts: true },
@@ -108,12 +108,12 @@ export async function updateOverview(
   response: Response
 ) {
   try {
-    const updateData: Types.OverviewUpdateData = {
+    const updateData: Validators.OverviewUpdateData = {
       income: request.body.income,
       savings: request.body.savings,
     };
 
-    const updatedOverview: Types.OverviewWithRelations =
+    const updatedOverview: Validators.OverviewWithRelations =
       await prisma.overview.update({
         where: { id: Number(request.params.overviewId) },
         data: updateData,
@@ -143,7 +143,7 @@ export async function deleteOverview(
     await prisma.overview.delete({
       where: { id: Number(request.params.overviewId) },
     });
-    
+
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "overview"),
       data: null,

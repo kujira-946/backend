@@ -1,18 +1,18 @@
 import express from "express";
 
-import * as Types from "../types/users.types";
+import * as Validators from "../validators/users.validators";
 import * as Middlewares from "../middlewares/users.middlewares";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 import * as Controllers from "../controllers/users.controllers";
 
-export const userRouter_v1 = express.Router();
+export const usersRouter_v1 = express.Router();
 
-userRouter_v1.get("/", Controllers.fetchUsers);
+usersRouter_v1.get("/", Controllers.fetchUsers);
 
-userRouter_v1.get("/:userId", Controllers.fetchUser);
+usersRouter_v1.get("/:userId", Controllers.fetchUser);
 
 // ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
-type UserDataFields = (keyof Types.UserUpdateData)[];
+type UserDataFields = (keyof Validators.UserUpdateData)[];
 const userDataFields: UserDataFields = [
   "email",
   "username",
@@ -24,7 +24,7 @@ const userDataFields: UserDataFields = [
   "mobileNumber",
 ];
 
-userRouter_v1.patch(
+usersRouter_v1.patch(
   "/:userId",
   HelperMiddlewares.checkValidityOfUserInput(userDataFields, {
     requireAllData: false,
@@ -33,7 +33,7 @@ userRouter_v1.patch(
 );
 
 // ↓↓↓ Update a user's password. ↓↓↓
-userRouter_v1.patch(
+usersRouter_v1.patch(
   "/:userId/update-password",
   HelperMiddlewares.checkValidityOfUserInput(["oldPassword", "newPassword"]),
   Middlewares.checkOldPasswordMatch,
@@ -42,10 +42,10 @@ userRouter_v1.patch(
 
 // ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓
 // TODO : SET UP CRON JOB TO HIT THIS ENDPOINT ON HEROKU
-userRouter_v1.patch(
+usersRouter_v1.patch(
   "/:userId/update-total-money-saved-to-date",
   HelperMiddlewares.checkValidityOfUserInput(["totalMoneySavedToDate"]),
   Controllers.updateUserTotalMoneySavedToDate
 );
 
-userRouter_v1.delete("/:userId", Controllers.deleteUser);
+usersRouter_v1.delete("/:userId", Controllers.deleteUser);
