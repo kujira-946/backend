@@ -29,17 +29,7 @@ app.use(express.json());
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, Routes.userRouter_v1);
 app.use(RouteBases.OVERVIEW, Routes.overviewRouter_v1);
-app.use(
-  RouteBases.OVERVIEW_PURCHASE_ITEMS,
-  Routes.overviewPurchaseItemsRouter_v1
-);
 app.use(RouteBases.LOGBOOKS, Routes.logbookRouter_v1);
-app.use(RouteBases.LOGBOOK_GROUPS, Routes.logbookGroupRouter_v1);
-app.use(
-  RouteBases.LOGBOOK_GROUP_PURCHASE_ITEMS,
-  Routes.overviewPurchaseItemsRouter_v1
-);
-app.use(RouteBases.LOGBOOK_REVIEWS, Routes.logbookReviewRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (

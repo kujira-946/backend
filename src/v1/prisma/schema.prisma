@@ -50,21 +50,21 @@ model Purchase {
   createdAt                     DateTime       @default(now())
   updatedAt                     DateTime       @updatedAt
   // Belongs To
-  overviewRecurringPurchases    Overview?      @relation(name: "RecurringPurchases", fields: [overviewRecurringPurchasesId], references: [id], onDelete: Cascade)
+  overviewRecurringPurchases    Overview?      @relation(name: "OverviewRecurringPurchases", fields: [overviewRecurringPurchasesId], references: [id], onDelete: Cascade)
   overviewRecurringPurchasesId  Int?
-  overviewIncomingPurchases     Overview?      @relation(name: "IncomingPurchases", fields: [overviewIncomingPurchasesId], references: [id], onDelete: Cascade)
+  overviewIncomingPurchases     Overview?      @relation(name: "OverviewIncomingPurchases", fields: [overviewIncomingPurchasesId], references: [id], onDelete: Cascade)
   overviewIncomingPurchasesId   Int?
   // 
-  logbookGroup                  LogbookGroup?  @relation(fields: [logbookGroupId], references: [id])
-  logbookGroupId                Int?
+  logbookDay                    LogbookDay?    @relation(fields: [logbookDayId], references: [id])
+  logbookDayId                  Int?
   // 
-  logbookReviewNeeds            LogbookReview? @relation(name: "ReviewNeeds", fields: [logbookReviewNeedsId], references: [id])
+  logbookReviewNeeds            LogbookReview? @relation(name: "LogbookReviewNeeds", fields: [logbookReviewNeedsId], references: [id])
   logbookReviewNeedsId          Int?
-  logbookReviewPlannedWants     LogbookReview? @relation(name: "ReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id])
+  logbookReviewPlannedWants     LogbookReview? @relation(name: "LogbookReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id])
   logbookReviewPlannedWantsId   Int?
-  logbookReviewImpulsiveWants   LogbookReview? @relation(name: "ReviewImpulsiveWants", fields: [logbookReviewImpulsiveWantsId], references: [id])
+  logbookReviewImpulsiveWants   LogbookReview? @relation(name: "LogbookReviewImpulsiveWants", fields: [logbookReviewImpulsiveWantsId], references: [id])
   logbookReviewImpulsiveWantsId Int?
-  logbookReviewRegrets          LogbookReview? @relation(name: "ReviewRegrets", fields: [logbookReviewRegretsId], references: [id])
+  logbookReviewRegrets          LogbookReview? @relation(name: "LogbookReviewRegrets", fields: [logbookReviewRegretsId], references: [id])
   logbookReviewRegretsId        Int?
 }
 
@@ -78,26 +78,26 @@ model Overview {
   owner              User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId            Int        @unique
   // Has Many
-  recurringPurchases Purchase[] @relation(name: "RecurringPurchases")
-  incomingPurchases  Purchase[] @relation(name: "IncomingPurchases")
+  recurringPurchases Purchase[] @relation(name: "OverviewRecurringPurchases")
+  incomingPurchases  Purchase[] @relation(name: "OverviewIncomingPurchases")
 }
 
 // Automatically created at the beginning of a new month.
 // `name` field default to month and year in which the logbook was created (e.g. "Jan. 2023").
 // `name` field MAY be edited later down the line for potentially better UX.
 model Logbook {
-  id        Int            @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   name      String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   // Has Many
-  groups    LogbookGroup[]
+  days      LogbookDay[]
   // Belongs to
-  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
 }
 
-model LogbookGroup {
+model LogbookDay {
   id        Int        @id @default(autoincrement())
   date      DateTime
   totalCost Float      @default(0)
@@ -116,10 +116,10 @@ model LogbookReview {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   // Has Many
-  needs          Purchase[] @relation(name: "ReviewNeeds")
-  plannedWants   Purchase[] @relation(name: "ReviewPlannedWants")
-  impulsiveWants Purchase[] @relation(name: "ReviewImpulsiveWants")
-  regrets        Purchase[] @relation(name: "ReviewRegrets")
+  needs          Purchase[] @relation(name: "LogbookReviewNeeds")
+  plannedWants   Purchase[] @relation(name: "LogbookReviewPlannedWants")
+  impulsiveWants Purchase[] @relation(name: "LogbookReviewImpulsiveWants")
+  regrets        Purchase[] @relation(name: "LogbookReviewRegrets")
   // Belongs to
   owner          User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId        Int
