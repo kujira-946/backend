@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import * as Validators from "../validators/users.validators";
 import * as Helpers from "../helpers/users.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
+import { RequestWithUserPasswords } from "../types/users.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
@@ -15,10 +16,11 @@ const prisma = new PrismaClient();
 
 export async function fetchUsers(_: Request, response: Response) {
   try {
-    const users: Validators.UserWithRelations[] = await prisma.user.findMany({
-      orderBy: { id: "asc" },
-      include: { overview: true, logbooks: true, logbookReviews: true },
-    });
+    const users: Validators.UserRelationsValidator[] =
+      await prisma.user.findMany({
+        orderBy: { id: "asc" },
+        include: { overview: true, logbooks: true, logbookReviews: true },
+      });
     const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
       "password",
     ]);
@@ -41,7 +43,7 @@ export async function fetchUser(
   response: Response
 ) {
   try {
-    const user: Validators.UserWithRelations =
+    const user: Validators.UserRelationsValidator =
       await prisma.user.findUniqueOrThrow({
         where: { id: Number(request.params.userId) },
         include: { overview: true, logbooks: true, logbookReviews: true },
@@ -63,11 +65,11 @@ export async function fetchUser(
 // ========================================================================================= //
 
 export async function updateUser(
-  request: Request<{ userId: string }, {}, Validators.UserUpdateData>,
+  request: Request<{ userId: string }, {}, Validators.UserUpdateValidator>,
   response: Response
 ) {
   try {
-    const userUpdateData: Validators.UserUpdateData = {
+    const userUpdateData: Validators.UserUpdateValidator = {
       email: request.body.email,
       username: request.body.username?.toLowerCase(),
       firstName: request.body.firstName,
@@ -78,7 +80,7 @@ export async function updateUser(
       mobileNumber: request.body.mobileNumber,
     };
 
-    const user: Validators.UserWithRelations = await prisma.user.update({
+    const user: Validators.UserRelationsValidator = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdateData,
       include: { overview: true, logbooks: true, logbookReviews: true },
@@ -100,7 +102,7 @@ export async function updateUser(
 // ========================================================================================= //
 
 export async function updateUserPassword(
-  request: Validators.RequestWithUserPasswords,
+  request: RequestWithUserPasswords,
   response: Response
 ) {
   try {
@@ -109,7 +111,7 @@ export async function updateUserPassword(
       request.body.newPassword,
       saltRounds
     );
-    const userUpdatePasswordData: Validators.UserUpdatePasswordData = {
+    const userUpdatePasswordData: Validators.UserUpdatePasswordValidator = {
       password: hashedPassword,
     };
 
@@ -137,16 +139,17 @@ export async function updateUserTotalMoneySavedToDate(
   request: Request<
     { userId: string },
     {},
-    Validators.UserTotalMoneySavedToDate
+    Validators.UserTotalMoneySavedToDateValidator
   >,
   response: Response
 ) {
   try {
-    const totalMoneySavedToDateData: Validators.UserTotalMoneySavedToDate = {
-      totalMoneySavedToDate: request.body.totalMoneySavedToDate,
-    };
+    const totalMoneySavedToDateData: Validators.UserTotalMoneySavedToDateValidator =
+      {
+        totalMoneySavedToDate: request.body.totalMoneySavedToDate,
+      };
 
-    const user: Validators.UserWithRelations = await prisma.user.update({
+    const user: Validators.UserRelationsValidator = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: totalMoneySavedToDateData,
       include: { overview: true, logbooks: true, logbookReviews: true },

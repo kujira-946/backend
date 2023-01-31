@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 export async function fetchLogbooks(_: Request, response: Response) {
   try {
-    const logbooks: Validators.LogbookWithRelations[] =
+    const logbooks: Validators.LogbookRelationsValidator[] =
       await prisma.logbook.findMany({
         orderBy: { id: "asc" },
         include: { groups: true, owner: true },
@@ -38,7 +38,7 @@ export async function fetchLogbook(
   response: Response
 ) {
   try {
-    const logbook: Validators.LogbookWithRelations =
+    const logbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.findUniqueOrThrow({
         where: { id: Number(request.params.logbookId) },
         include: { groups: true, owner: true },
@@ -61,12 +61,12 @@ export async function createLogbook(
   response: Response
 ) {
   try {
-    const createData: Validators.LogbookCreateData = {
+    const createData: Validators.LogbookCreateValidator = {
       name: request.body.name,
       ownerId: Number(request.params.ownerId),
     };
 
-    const newLogbook: Validators.LogbookWithRelations =
+    const newLogbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.create({
         data: createData,
         include: { groups: true, owner: true },
@@ -92,11 +92,11 @@ export async function updateLogbook(
   response: Response
 ) {
   try {
-    const updateData: Validators.LogbookUpdateData = {
+    const updateData: Validators.LogbookUpdateValidator = {
       name: request.body.name,
     };
 
-    const updatedLogbook: Validators.LogbookWithRelations =
+    const updatedLogbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.update({
         where: { id: Number(request.params.logbookId) },
         data: updateData,

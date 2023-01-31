@@ -19,7 +19,7 @@ authRouter_v1.get(
   Controllers.checkUsernameAvailability
 );
 
-type RequiredRegistrationFields = (keyof Types.UserRegistrationData)[];
+type RequiredRegistrationFields = (keyof Types.UserRegistrationValidator)[];
 const requiredRegistrationFields: RequiredRegistrationFields = [
   "email",
   "username",

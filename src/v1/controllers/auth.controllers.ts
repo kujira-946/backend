@@ -3,11 +3,12 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+import * as Types from "../types/auth.types";
 import * as Validators from "../validators/auth.validators";
 import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
-import { UserWithRelations } from "../validators/users.validators";
+import { UserRelationsValidator } from "../validators/users.validators";
 import { excludeFieldFromUserObject } from "../helpers/users.helpers";
 
 const prisma = new PrismaClient();
@@ -64,12 +65,12 @@ export async function checkUsernameAvailability(
 
 // ↓↓↓ Adds new user to database and returns new user object. ↓↓↓
 async function _addUserToDatabase(
-  request: Request<{}, {}, Validators.UserRegistrationData>,
+  request: Request<{}, {}, Validators.UserRegistrationValidator>,
   signedVerificationCode: string
 ) {
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
-  const userRegistrationData: Validators.UserRegistrationData = {
+  const UserRegistrationValidator: Validators.UserRegistrationValidator = {
     email: request.body.email,
     username: request.body.username.toLowerCase(),
     password: hashedPassword,
@@ -79,7 +80,7 @@ async function _addUserToDatabase(
     currency: request.body.currency,
     signedVerificationCode,
   };
-  const newUser = await prisma.user.create({ data: userRegistrationData });
+  const newUser = await prisma.user.create({ data: UserRegistrationValidator });
   return newUser;
 }
 
@@ -104,7 +105,7 @@ async function _emailVerificationCodeToNewUser(
 }
 
 export async function registerUser(
-  request: Request<{}, {}, Validators.UserRegistrationData>,
+  request: Request<{}, {}, Validators.UserRegistrationValidator>,
   response: Response
 ) {
   try {
@@ -156,7 +157,7 @@ async function _registrationVerificationHandler(
   try {
     // ↓↓↓ If the user entered the correct verification code. ↓↓↓
     if (clientVerificationCode === databaseVerificationCode) {
-      const updatedUser: UserWithRelations = await prisma.user.update({
+      const updatedUser: UserRelationsValidator = await prisma.user.update({
         where: { id: foundUserId },
         data: { emailVerified: true, signedVerificationCode: null },
         include: {
@@ -198,7 +199,7 @@ export function verifyRegistration(
 ) {
   // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:userId/verify` route. ↓↓↓
   const { foundUser } = request as RegistrationVerificationRequest &
-    Validators.RequestWithFoundUser;
+    Types.RequestWithFoundUser;
 
   if (foundUser.emailVerified) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -251,15 +252,15 @@ function _emailNewVerificationCodeToUser(
 }
 
 export async function loginUser(
-  request: Validators.LoginUserRequest,
+  request: Types.LoginUserRequest,
   response: Response
 ) {
   return Helpers.handleSecretKeysExist(
     response,
     async function (verificationSecretKey: string) {
       // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login` route. ↓↓↓
-      const { foundUser } = request as Validators.LoginUserRequest &
-        Validators.RequestWithFoundUser;
+      const { foundUser } = request as Types.LoginUserRequest &
+        Types.RequestWithFoundUser;
 
       const passwordsMatch = bcrypt.compareSync(
         request.body.password,
@@ -306,7 +307,7 @@ async function _loginVerificationHandler(
   thirtyDays: boolean
 ) {
   if (clientVerificationCode === databaseVerificationCode) {
-    const updatedUser: UserWithRelations = await prisma.user.update({
+    const updatedUser: UserRelationsValidator = await prisma.user.update({
       where: { id: foundUserId },
       data: { loggedIn: true, signedVerificationCode: null },
       include: { overview: true, logbooks: true, logbookReviews: true },
@@ -343,7 +344,7 @@ export async function verifyLogin(
 ) {
   // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login/:userId/verify` route. ↓↓↓
   const { foundUser } = request as LoginVerificationRequest &
-    Validators.RequestWithFoundUser;
+    Types.RequestWithFoundUser;
 
   if (!foundUser.emailVerified) {
     return HttpHelpers.respondWithClientError(response, "bad request", {

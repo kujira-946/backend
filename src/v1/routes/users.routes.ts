@@ -12,7 +12,7 @@ usersRouter_v1.get("/", Controllers.fetchUsers);
 usersRouter_v1.get("/:userId", Controllers.fetchUser);
 
 // ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
-type UserDataFields = (keyof Validators.UserUpdateData)[];
+type UserDataFields = (keyof Validators.UserUpdateValidator)[];
 const userDataFields: UserDataFields = [
   "email",
   "username",

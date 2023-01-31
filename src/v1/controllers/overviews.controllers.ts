@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 export async function fetchOverviews(_: Request, response: Response) {
   try {
-    const overviews: Validators.OverviewWithRelations[] =
+    const overviews: Validators.OverviewRelationsValidator[] =
       await prisma.overview.findMany({
         orderBy: { id: "asc" },
         include: { recurringCosts: true, incomingCosts: true },
@@ -38,7 +38,7 @@ export async function fetchOverview(
   response: Response
 ) {
   try {
-    const overview: Validators.OverviewWithRelations =
+    const overview: Validators.OverviewRelationsValidator =
       await prisma.overview.findUniqueOrThrow({
         where: { id: Number(request.params.overviewId) },
         include: { recurringCosts: true, incomingCosts: true },
@@ -70,13 +70,13 @@ export async function createOverview(
   response: Response
 ) {
   try {
-    const createData: Validators.OverviewCreateData = {
+    const createData: Validators.OverviewCreateValidator = {
       savings: request.body.savings,
       ownerId: Number(request.params.ownerId),
     };
     if (request.body.income) createData["income"] = request.body.income;
 
-    const newOverview: Validators.OverviewWithRelations =
+    const newOverview: Validators.OverviewRelationsValidator =
       await prisma.overview.create({
         data: createData,
         include: { recurringCosts: true, incomingCosts: true },
@@ -108,12 +108,12 @@ export async function updateOverview(
   response: Response
 ) {
   try {
-    const updateData: Validators.OverviewUpdateData = {
+    const updateData: Validators.OverviewUpdateValidator = {
       income: request.body.income,
       savings: request.body.savings,
     };
 
-    const updatedOverview: Validators.OverviewWithRelations =
+    const updatedOverview: Validators.OverviewRelationsValidator =
       await prisma.overview.update({
         where: { id: Number(request.params.overviewId) },
         data: updateData,

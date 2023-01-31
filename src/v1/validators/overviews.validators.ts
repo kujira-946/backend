@@ -1,28 +1,28 @@
 import { Prisma } from "@prisma/client";
 
-const overviewWithRelations = Prisma.validator<Prisma.OverviewArgs>()({
-  include: { recurringCosts: true, incomingCosts: true },
+const overviewRelationsValidator = Prisma.validator<Prisma.OverviewArgs>()({
+  include: { recurringPurchases: true, incomingPurchases: true },
 });
-export type OverviewWithRelations = Prisma.OverviewGetPayload<
-  typeof overviewWithRelations
+export type OverviewRelationsValidator = Prisma.OverviewGetPayload<
+  typeof overviewRelationsValidator
 >;
 
-const overviewCreateData = Prisma.validator<Prisma.OverviewArgs>()({
+const overviewCreateValidator = Prisma.validator<Prisma.OverviewArgs>()({
   select: {
     savings: true,
     ownerId: true,
   },
 });
-export type OverviewCreateData = Prisma.OverviewGetPayload<
-  typeof overviewCreateData
-> & { income?: number};
+export type OverviewCreateValidator = Prisma.OverviewGetPayload<
+  typeof overviewCreateValidator
+> & { income?: number };
 
-const overviewUpdateData = Prisma.validator<Prisma.OverviewArgs>()({
+const overviewUpdateValidator = Prisma.validator<Prisma.OverviewArgs>()({
   select: {
     income: true,
     savings: true,
   },
 });
-export type OverviewUpdateData = Partial<
-  Prisma.OverviewGetPayload<typeof overviewUpdateData>
+export type OverviewUpdateValidator = Partial<
+  Prisma.OverviewGetPayload<typeof overviewUpdateValidator>
 >;

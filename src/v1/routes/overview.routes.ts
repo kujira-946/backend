@@ -10,7 +10,7 @@ overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
 overviewsRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
-type OverviewCreateDataFields = (keyof Validators.OverviewUpdateData)[];
+type OverviewCreateDataFields = (keyof Validators.OverviewUpdateValidator)[];
 const overviewCreateDataFields: OverviewCreateDataFields = ["savings"];
 overviewsRouter_v1.post(
   "/:ownerId",
@@ -18,7 +18,7 @@ overviewsRouter_v1.post(
   Controllers.createOverview
 );
 
-type OverviewUpdateDataFields = (keyof Validators.OverviewUpdateData)[];
+type OverviewUpdateDataFields = (keyof Validators.OverviewUpdateValidator)[];
 const overviewUpdateDataFields: OverviewUpdateDataFields = [
   "income",
   "savings",

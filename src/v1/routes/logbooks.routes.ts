@@ -10,7 +10,7 @@ logbooksRouter_v1.get("/", Controllers.fetchLogbooks);
 
 logbooksRouter_v1.get("/:logbookId", Controllers.fetchLogbook);
 
-type LogbookDataFields = (keyof Validators.LogbookCreateData)[];
+type LogbookDataFields = (keyof Validators.LogbookCreateValidator)[];
 const logbookDataFields: LogbookDataFields = ["name"];
 
 logbooksRouter_v1.post(
