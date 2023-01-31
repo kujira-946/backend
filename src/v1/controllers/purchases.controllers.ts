@@ -97,6 +97,13 @@ export async function updatePurchase(
       cost: request.body.cost,
       description: request.body.description,
       category: request.body.category,
+      overviewRecurringPurchasesId: request.body.overviewRecurringPurchasesId,
+      overviewIncomingPurchasesId: request.body.overviewIncomingPurchasesId,
+      logbookDayId: request.body.logbookDayId,
+      logbookReviewNeedsId: request.body.logbookReviewNeedsId,
+      logbookReviewPlannedWantsId: request.body.logbookReviewPlannedWantsId,
+      logbookReviewImpulsiveWantsId: request.body.logbookReviewImpulsiveWantsId,
+      logbookReviewRegretsId: request.body.logbookReviewRegretsId,
     };
 
     const updatedPurchase = await prisma.purchase.update({

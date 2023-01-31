@@ -15,14 +15,14 @@ const logbookInputs: LogbookInputs = ["name"];
 
 logbooksRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserInput(logbookInputs),
+  HelperMiddlewares.checkValidityOfUserData(logbookInputs),
   Controllers.createLogbook
 );
 
 logbooksRouter_v1.patch(
   "/:logbookId/:ownerId",
-  HelperMiddlewares.checkValidityOfUserInput(logbookInputs, {
-    requireAllData: false,
+  HelperMiddlewares.checkValidityOfUserData(logbookInputs, {
+    isHttpPost: false,
   }),
   Controllers.updateLogbook
 );

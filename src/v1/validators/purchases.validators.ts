@@ -13,4 +13,19 @@ export type PurchaseCreateValidator = Prisma.PurchaseGetPayload<
   typeof purchaseCreateValidator
 > & { category?: Category };
 
-export type PurchaseUpdateValidator = Partial<PurchaseCreateValidator>;
+const purchaseUpdateValidator = Prisma.validator<Prisma.PurchaseArgs>()({
+  select: {
+    overviewRecurringPurchasesId: true,
+    overviewIncomingPurchasesId: true,
+    logbookDayId: true,
+    logbookReviewNeedsId: true,
+    logbookReviewPlannedWantsId: true,
+    logbookReviewImpulsiveWantsId: true,
+    logbookReviewRegretsId: true,
+  },
+});
+
+export type PurchaseUpdateValidator = Partial<
+  PurchaseCreateValidator &
+    Prisma.PurchaseGetPayload<typeof purchaseUpdateValidator>
+>;

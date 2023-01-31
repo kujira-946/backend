@@ -9,13 +9,13 @@ export const authRouter_v1 = express.Router();
 
 authRouter_v1.get(
   "/register/check-email-availability",
-  HelperMiddlewares.checkValidityOfUserInput(["email"]),
+  HelperMiddlewares.checkValidityOfUserData(["email"]),
   Controllers.checkEmailAvailability
 );
 
 authRouter_v1.get(
   "/register/check-username-availability",
-  HelperMiddlewares.checkValidityOfUserInput(["username"]),
+  HelperMiddlewares.checkValidityOfUserData(["username"]),
   Controllers.checkUsernameAvailability
 );
 
@@ -31,20 +31,20 @@ const requiredRegistrationFields: RequiredRegistrationFields = [
 ];
 authRouter_v1.post(
   "/register",
-  HelperMiddlewares.checkValidityOfUserInput(requiredRegistrationFields),
+  HelperMiddlewares.checkValidityOfUserData(requiredRegistrationFields),
   Controllers.registerUser
 );
 
 authRouter_v1.patch(
   "/register/:userId/verify",
-  HelperMiddlewares.checkValidityOfUserInput(["verificationCode"]),
+  HelperMiddlewares.checkValidityOfUserData(["verificationCode"]),
   Middlewares.checkUserExistsWithId,
   Controllers.verifyRegistration
 );
 
 authRouter_v1.patch(
   "/login",
-  HelperMiddlewares.checkValidityOfUserInput(["username", "password"]),
+  HelperMiddlewares.checkValidityOfUserData(["username", "password"]),
   Middlewares.checkUserExistsOnLoginAttempt,
   Middlewares.checkUserVerifiedOnLoginAttempt,
   Controllers.loginUser
@@ -52,7 +52,7 @@ authRouter_v1.patch(
 
 authRouter_v1.patch(
   "/login/:userId/verify",
-  HelperMiddlewares.checkValidityOfUserInput([
+  HelperMiddlewares.checkValidityOfUserData([
     "verificationCode",
     "thirtyDays",
   ]),

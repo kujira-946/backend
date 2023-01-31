@@ -25,8 +25,8 @@ const userInputs: UserInputs = [
 ];
 usersRouter_v1.patch(
   "/:userId",
-  HelperMiddlewares.checkValidityOfUserInput(userInputs, {
-    requireAllData: false,
+  HelperMiddlewares.checkValidityOfUserData(userInputs, {
+    isHttpPost: false,
   }),
   Controllers.updateUser
 );
@@ -34,7 +34,7 @@ usersRouter_v1.patch(
 // ↓↓↓ Update a user's password. ↓↓↓
 usersRouter_v1.patch(
   "/:userId/update-password",
-  HelperMiddlewares.checkValidityOfUserInput(["oldPassword", "newPassword"]),
+  HelperMiddlewares.checkValidityOfUserData(["oldPassword", "newPassword"]),
   Middlewares.checkOldPasswordMatch,
   Controllers.updateUserPassword
 );
@@ -43,7 +43,7 @@ usersRouter_v1.patch(
 // TODO : SET UP CRON JOB TO HIT THIS ENDPOINT ON HEROKU
 usersRouter_v1.patch(
   "/:userId/update-total-money-saved-to-date",
-  HelperMiddlewares.checkValidityOfUserInput(["totalMoneySavedToDate"]),
+  HelperMiddlewares.checkValidityOfUserData(["totalMoneySavedToDate"]),
   Controllers.updateUserTotalMoneySavedToDate
 );
 

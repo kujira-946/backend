@@ -10,21 +10,27 @@ overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
 overviewsRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
-type OverviewCreateInputs = (keyof Validators.OverviewCreateValidator)[];
-const overviewCreateInputs: OverviewCreateInputs = ["savings"];
+type OverviewCreateData = (keyof Validators.OverviewCreateValidator)[];
+const overviewCreateData: OverviewCreateData = ["income"];
+const overviewOptionalCreateData: OverviewCreateData = ["savings"];
 overviewsRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserInput(overviewCreateInputs),
+  HelperMiddlewares.checkValidityOfUserData(
+    overviewCreateData,
+    { isHttpPost: true },
+    overviewOptionalCreateData
+  ),
   Controllers.createOverview
 );
 
-type OverviewUpdateInputs = (keyof Validators.OverviewUpdateValidator)[];
-const overviewUpdateInputs: OverviewUpdateInputs = ["income", "savings"];
+type OverviewUpdateData = (keyof Validators.OverviewUpdateValidator)[];
+const overviewUpdateData: OverviewUpdateData = ["income", "savings"];
 overviewsRouter_v1.patch(
   "/:overviewId",
-  HelperMiddlewares.checkValidityOfUserInput(overviewUpdateInputs, {
-    requireAllData: false,
-  })
+  HelperMiddlewares.checkValidityOfUserData(overviewUpdateData, {
+    isHttpPost: false,
+  }),
+  Controllers.updateOverview
 );
 
 overviewsRouter_v1.delete("/:overviewId", Controllers.deleteOverview);

@@ -61,8 +61,8 @@ export async function createOverview(
     { ownerId: string },
     {},
     {
-      income?: number;
-      savings: number;
+      income: number;
+      savings?: number;
     }
   >,
   response: Response

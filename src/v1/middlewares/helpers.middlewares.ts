@@ -7,41 +7,45 @@ import * as HttpHelpers from "../helpers/http.helpers";
 // ========================================================================================= //
 
 function _generateInvalidData(
+  providedData: string[],
   requiredData: string[],
-  providedData: string[]
+  optionalCreateData?: string[]
 ): string[] {
-  return providedData.filter((providedClientInput: string) => {
-    return !requiredData.includes(providedClientInput);
+  return providedData.filter((providedClientData: string) => {
+    return (
+      !requiredData.includes(providedClientData) &&
+      !optionalCreateData?.includes(providedClientData)
+    );
   });
 }
 
-function _generateMissingData(
-  requiredData: string[],
-  providedData: string[]
+function _generateMissingCreateData(
+  providedData: string[],
+  requiredData: string[]
 ): string[] {
-  return requiredData.filter((expectedClientInput: string) => {
-    return !providedData.includes(expectedClientInput);
+  return requiredData.filter((expectedClientData: string) => {
+    return !providedData.includes(expectedClientData);
   });
 }
 
 function _checkAtLeastOneRequiredData(
-  requiredData: string[],
-  providedData: string[]
+  providedData: string[],
+  requiredData: string[]
 ): boolean {
   for (let index = 0; index < providedData.length; index++) {
-    const providedClientInput = providedData[index];
-    return requiredData.includes(providedClientInput);
+    const providedClientData = providedData[index];
+    return requiredData.includes(providedClientData);
   }
   return false;
 }
 
-function _handleRequiredData(
+function _handleCreate(
   response: Response,
   next: NextFunction,
-  requiredData: string[],
-  providedData: string[]
+  providedData: string[],
+  requiredData: string[]
 ) {
-  const missingData = _generateMissingData(requiredData, providedData);
+  const missingData = _generateMissingCreateData(providedData, requiredData);
   // ↓↓↓ If the client's request doesn't contain all required inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
   if (missingData.length === 0) {
     return next();
@@ -52,17 +56,17 @@ function _handleRequiredData(
   }
 }
 
-function _handleOptionalData(
+function _handleUpdate(
   response: Response,
   next: NextFunction,
-  requiredData: string[],
-  providedData: string[]
+  providedData: string[],
+  requiredData: string[]
 ) {
-  const atLeastOneRequiredInputProvided = _checkAtLeastOneRequiredData(
-    requiredData,
-    providedData
+  const atLeastOneRequiredDataProvided = _checkAtLeastOneRequiredData(
+    providedData,
+    requiredData
   );
-  if (atLeastOneRequiredInputProvided) {
+  if (atLeastOneRequiredDataProvided) {
     return next();
   } else {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -71,18 +75,23 @@ function _handleOptionalData(
   }
 }
 
-type Options = { requireAllData: boolean };
-const defaultOptions: Options = { requireAllData: true };
+type Options = { isHttpPost: boolean };
+const defaultOptions: Options = { isHttpPost: true };
 
-export function checkValidityOfUserInput(
+export function checkValidityOfUserData(
   requiredData: string[],
-  options: Options = defaultOptions
+  options: Options = defaultOptions,
+  optionalCreateData?: string[]
 ) {
   return function (request: Request, response: Response, next: NextFunction) {
     const providedData = Object.keys(request.body); // Data provided by the client.
 
     // ↓↓↓ If the client's request contains any invalid inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
-    const invalidData = _generateInvalidData(requiredData, providedData);
+    const invalidData = _generateInvalidData(
+      providedData,
+      requiredData,
+      optionalCreateData
+    );
     if (invalidData.length > 0) {
       return HttpHelpers.respondWithClientError(response, "bad request", {
         body: `Invalid data: ${invalidData.join(", ")}.`,
@@ -91,10 +100,10 @@ export function checkValidityOfUserInput(
 
     // ↓↓↓ If the client's request contains only valid inputs, we move onto checking if all required inputs were provided. ↓↓↓
     else {
-      if (options.requireAllData) {
-        return _handleRequiredData(response, next, requiredData, providedData);
+      if (options.isHttpPost) {
+        return _handleCreate(response, next, providedData, requiredData);
       } else {
-        return _handleOptionalData(response, next, requiredData, providedData);
+        return _handleUpdate(response, next, providedData, requiredData);
       }
     }
   };

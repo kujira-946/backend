@@ -18,7 +18,7 @@ const purchaseCreateInputs: PurchaseCreateInputs = [
 ];
 purchasesRouter_v1.post(
   "/",
-  HelperMiddlewares.checkValidityOfUserInput(purchaseCreateInputs),
+  HelperMiddlewares.checkValidityOfUserData(purchaseCreateInputs),
   Controllers.createPurchase
 );
 
@@ -28,11 +28,18 @@ const purchaseUpdateInputs: PurchaseUpdateInputs = [
   "cost",
   "description",
   "category",
+  "overviewRecurringPurchasesId",
+  "overviewIncomingPurchasesId",
+  "logbookDayId",
+  "logbookReviewNeedsId",
+  "logbookReviewPlannedWantsId",
+  "logbookReviewImpulsiveWantsId",
+  "logbookReviewRegretsId",
 ];
 purchasesRouter_v1.patch(
   "/:purchaseId",
-  HelperMiddlewares.checkValidityOfUserInput(purchaseUpdateInputs, {
-    requireAllData: false,
+  HelperMiddlewares.checkValidityOfUserData(purchaseUpdateInputs, {
+    isHttpPost: false,
   }),
   Controllers.updatePurchase
 );
