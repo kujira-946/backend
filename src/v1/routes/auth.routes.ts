@@ -19,8 +19,8 @@ authRouter_v1.get(
   Controllers.checkUsernameAvailability
 );
 
-type RequiredRegistrationFields = (keyof Types.UserRegistrationValidator)[];
-const requiredRegistrationFields: RequiredRegistrationFields = [
+type RequiredRegistrationData = (keyof Types.UserRegistrationValidator)[];
+const requiredRegistrationData: RequiredRegistrationData = [
   "email",
   "username",
   "password",
@@ -31,7 +31,7 @@ const requiredRegistrationFields: RequiredRegistrationFields = [
 ];
 authRouter_v1.post(
   "/register",
-  HelperMiddlewares.checkValidityOfUserData(requiredRegistrationFields),
+  HelperMiddlewares.checkValidityOfUserData(requiredRegistrationData),
   Controllers.registerUser
 );
 
@@ -52,10 +52,7 @@ authRouter_v1.patch(
 
 authRouter_v1.patch(
   "/login/:userId/verify",
-  HelperMiddlewares.checkValidityOfUserData([
-    "verificationCode",
-    "thirtyDays",
-  ]),
+  HelperMiddlewares.checkValidityOfUserData(["verificationCode", "thirtyDays"]),
   Middlewares.checkUserExistsWithId,
   Controllers.verifyLogin
 );

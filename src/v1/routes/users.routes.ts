@@ -12,8 +12,8 @@ usersRouter_v1.get("/", Controllers.fetchUsers);
 usersRouter_v1.get("/:userId", Controllers.fetchUser);
 
 // ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
-type UserInputs = (keyof Validators.UserUpdateValidator)[];
-const userInputs: UserInputs = [
+type UserData = (keyof Validators.UserUpdateValidator)[];
+const userData: UserData = [
   "email",
   "username",
   "firstName",
@@ -25,7 +25,7 @@ const userInputs: UserInputs = [
 ];
 usersRouter_v1.patch(
   "/:userId",
-  HelperMiddlewares.checkValidityOfUserData(userInputs, {
+  HelperMiddlewares.checkValidityOfUserData(userData, {
     isHttpPost: false,
   }),
   Controllers.updateUser

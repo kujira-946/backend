@@ -10,18 +10,18 @@ logbooksRouter_v1.get("/", Controllers.fetchLogbooks);
 
 logbooksRouter_v1.get("/:logbookId", Controllers.fetchLogbook);
 
-type LogbookInputs = (keyof Validators.LogbookCreateValidator)[];
-const logbookInputs: LogbookInputs = ["name"];
+type LogbookData = (keyof Validators.LogbookCreateValidator)[];
+const logbookData: LogbookData = ["name"];
 
 logbooksRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserData(logbookInputs),
+  HelperMiddlewares.checkValidityOfUserData(logbookData),
   Controllers.createLogbook
 );
 
 logbooksRouter_v1.patch(
   "/:logbookId/:ownerId",
-  HelperMiddlewares.checkValidityOfUserData(logbookInputs, {
+  HelperMiddlewares.checkValidityOfUserData(logbookData, {
     isHttpPost: false,
   }),
   Controllers.updateLogbook

@@ -10,20 +10,33 @@ purchasesRouter_v1.get("/", Controllers.fetchPurchases);
 
 purchasesRouter_v1.get("/:purchaseId", Controllers.fetchPurchase);
 
-type PurchaseCreateInputs = (keyof Validators.PurchaseCreateValidator)[];
-const purchaseCreateInputs: PurchaseCreateInputs = [
+type PurchaseCreateData = (keyof Validators.PurchaseCreateValidator)[];
+const purchaseCreateData: PurchaseCreateData = [
   "placement",
   "cost",
   "description",
 ];
+const purchaseCreateOptionalData: PurchaseCreateData = [
+  "overviewRecurringPurchasesId",
+  "overviewIncomingPurchasesId",
+  "logbookDayId",
+  "logbookReviewNeedsId",
+  "logbookReviewPlannedWantsId",
+  "logbookReviewImpulsiveWantsId",
+  "logbookReviewRegretsId",
+];
 purchasesRouter_v1.post(
   "/",
-  HelperMiddlewares.checkValidityOfUserData(purchaseCreateInputs),
+  HelperMiddlewares.checkValidityOfUserData(
+    purchaseCreateData,
+    { isHttpPost: true },
+    purchaseCreateOptionalData
+  ),
   Controllers.createPurchase
 );
 
-type PurchaseUpdateInputs = (keyof Validators.PurchaseUpdateValidator)[];
-const purchaseUpdateInputs: PurchaseUpdateInputs = [
+type PurchaseUpdateData = (keyof Validators.PurchaseUpdateValidator)[];
+const purchaseUpdateData: PurchaseUpdateData = [
   "placement",
   "cost",
   "description",
@@ -38,7 +51,7 @@ const purchaseUpdateInputs: PurchaseUpdateInputs = [
 ];
 purchasesRouter_v1.patch(
   "/:purchaseId",
-  HelperMiddlewares.checkValidityOfUserData(purchaseUpdateInputs, {
+  HelperMiddlewares.checkValidityOfUserData(purchaseUpdateData, {
     isHttpPost: false,
   }),
   Controllers.updatePurchase

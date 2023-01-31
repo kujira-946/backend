@@ -62,6 +62,13 @@ export async function createPurchase(
       cost: request.body.cost,
       category: request.body.category,
       description: request.body.description,
+      overviewRecurringPurchasesId: request.body.overviewRecurringPurchasesId,
+      overviewIncomingPurchasesId: request.body.overviewIncomingPurchasesId,
+      logbookDayId: request.body.logbookDayId,
+      logbookReviewNeedsId: request.body.logbookReviewNeedsId,
+      logbookReviewPlannedWantsId: request.body.logbookReviewPlannedWantsId,
+      logbookReviewImpulsiveWantsId: request.body.logbookReviewImpulsiveWantsId,
+      logbookReviewRegretsId: request.body.logbookReviewRegretsId,
     };
 
     const newPurchase = await prisma.purchase.create({
