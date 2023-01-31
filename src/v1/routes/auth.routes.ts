@@ -1,6 +1,6 @@
 import express from "express";
 
-import * as Types from "../types/auth.types";
+import * as Types from "../validators/auth.validators";
 import * as Middlewares from "../middlewares/auth.middlewares";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 import * as Controllers from "../controllers/auth.controllers";
