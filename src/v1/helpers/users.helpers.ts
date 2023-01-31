@@ -1,4 +1,4 @@
-import { User } from "../types/users.types";
+import { User } from "@prisma/client";
 
 // ========================================================================================= //
 // [ EXCLUDING FIELDS FROM RETRIEVED USER OBJECT(S) ] ====================================== //

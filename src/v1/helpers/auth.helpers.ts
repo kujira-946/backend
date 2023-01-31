@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import { Response } from "express";
 
 import * as HttpHelpers from "../helpers/http.helpers";
-import { User } from "../types/users.types";
 import { AuthErrors } from "../utils/auth.utils";
+import { User } from "@prisma/client";
 
 // ========================================================================================= //
 // [ JWT HELPERS ] ========================================================================= //

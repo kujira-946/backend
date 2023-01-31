@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
-import * as Types from "../validators/auth.validators";
+import * as Types from "../types/auth.types";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { AuthErrors } from "../utils/auth.utils";
