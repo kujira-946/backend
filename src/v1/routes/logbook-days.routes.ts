@@ -21,7 +21,7 @@ logbookDaysRouter_v1.post(
 type LogbookDayUpdateData = (keyof Validators.LogbookDayUpdateValidator)[];
 const logbookDayUpdateData: LogbookDayUpdateData = ["date", "totalCost"];
 logbookDaysRouter_v1.patch(
-  "/:logbookDayId/:logbookId",
+  "/:logbookDayId/:logbookId?",
   HelperMiddlewares.checkValidityOfUserData(logbookDayUpdateData, {
     isHttpPost: false,
   }),
