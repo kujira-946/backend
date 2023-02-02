@@ -20,7 +20,7 @@ logbooksRouter_v1.post(
 );
 
 logbooksRouter_v1.patch(
-  "/:logbookId/:ownerId",
+  "/:logbookId",
   HelperMiddlewares.checkValidityOfUserData(logbookData, {
     isHttpPost: false,
   }),

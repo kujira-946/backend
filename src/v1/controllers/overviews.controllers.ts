@@ -46,7 +46,7 @@ export async function fetchOverview(
 
     return response.status(HttpStatusCodes.OK).json({ data: overview });
   } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "bad request", {
+    return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateFetchError("overview", false),
     });
   }

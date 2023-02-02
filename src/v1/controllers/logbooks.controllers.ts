@@ -16,7 +16,7 @@ export async function fetchLogbooks(_: Request, response: Response) {
     const logbooks: Validators.LogbookRelationsValidator[] =
       await prisma.logbook.findMany({
         orderBy: { id: "asc" },
-        include: { days: true, owner: true },
+        include: { days: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbooks });
@@ -41,12 +41,12 @@ export async function fetchLogbook(
     const logbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.findUniqueOrThrow({
         where: { id: Number(request.params.logbookId) },
-        include: { days: true, owner: true },
+        include: { days: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbook });
   } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "bad request", {
+    return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateFetchError("logbook", false),
     });
   }
@@ -69,7 +69,7 @@ export async function createLogbook(
     const newLogbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.create({
         data: createData,
-        include: { days: true, owner: true },
+        include: { days: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
@@ -88,7 +88,11 @@ export async function createLogbook(
 // ========================================================================================= //
 
 export async function updateLogbook(
-  request: Request<{ logbookId: string }, {}, { name: string }>,
+  request: Request<
+    { logbookId: string },
+    {},
+    Validators.LogbookUpdateValidator
+  >,
   response: Response
 ) {
   try {
@@ -100,7 +104,7 @@ export async function updateLogbook(
       await prisma.logbook.update({
         where: { id: Number(request.params.logbookId) },
         data: updateData,
-        include: { days: true, owner: true },
+        include: { days: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

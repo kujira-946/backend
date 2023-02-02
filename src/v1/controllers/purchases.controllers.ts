@@ -42,7 +42,7 @@ export async function fetchPurchase(
 
     return response.status(HttpStatusCodes.OK).json({ data: purchase });
   } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "bad request", {
+    return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateFetchError("purchase", false),
     });
   }
@@ -118,7 +118,7 @@ export async function updatePurchase(
       data: updateData,
     });
 
-    return HttpHelpers.respondWithSuccess(response, "created", {
+    return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "purchase"),
       data: updatedPurchase,
     });
@@ -147,7 +147,7 @@ export async function deletePurchase(
       data: null,
     });
   } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "bad request", {
+    return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateCudMessage("delete", "purchase", true),
     });
   }

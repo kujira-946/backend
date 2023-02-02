@@ -30,6 +30,7 @@ app.use(RouteBases.USERS, Routes.usersRouter_v1);
 app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
 app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
 app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
+app.use(RouteBases.LOGBOOK_DAYS, Routes.logbookDaysRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (

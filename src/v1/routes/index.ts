@@ -3,6 +3,7 @@ import { usersRouter_v1 } from "./users.routes";
 import { purchasesRouter_v1 } from "./purchases.routes";
 import { overviewsRouter_v1 } from "./overview.routes";
 import { logbooksRouter_v1 } from "./logbooks.routes";
+import { logbookDaysRouter_v1 } from "./logbook-days.routes";
 
 export {
   authRouter_v1,
@@ -10,4 +11,5 @@ export {
   purchasesRouter_v1,
   overviewsRouter_v1,
   logbooksRouter_v1,
+  logbookDaysRouter_v1,
 };
