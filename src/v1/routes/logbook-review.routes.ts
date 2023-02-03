@@ -15,12 +15,11 @@ logbookReviewsRouter_v1.get(
 
 type LogbookReviewCreateData =
   (keyof Validators.LogbookReviewCreateValidator)[];
-const logbookReviewCreateData: LogbookReviewCreateData = ["ownerId"];
 const logbookReviewOptionalCreateData: LogbookReviewCreateData = ["reflection"];
 logbookReviewsRouter_v1.post(
-  "/",
+  "/:ownerId",
   HelperMiddlewares.checkValidityOfUserData(
-    logbookReviewCreateData,
+    [],
     { isHttpPost: true },
     logbookReviewOptionalCreateData
   ),
