@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
 
 import * as Validators from "../validators/logbook-days.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
-import { PrismaClient } from "@prisma/client";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 // [ FETCH ALL LOGBOOK DAYS ] ============================================================== //
 // ========================================================================================= //
 
-export async function fetchLogbookDays(request: Request, response: Response) {
+export async function fetchLogbookDays(_: Request, response: Response) {
   try {
     const logbookDays: Validators.LogbookDayRelationsValidator[] =
       await prisma.logbookDay.findMany({
@@ -62,8 +62,8 @@ export async function createLogbookDay(
 ) {
   try {
     const createData: Validators.LogbookDayCreateValidator = {
-      date: request.body.date,
       logbookId: Number(request.params.logbookId),
+      date: request.body.date,
     };
 
     const newLogbookDay: Validators.LogbookDayRelationsValidator =
@@ -97,12 +97,10 @@ export async function updateLogbookDay(
 ) {
   try {
     const updateData: Validators.LogbookDayUpdateValidator = {
+      logbookId: Number(request.params.logbookId),
       date: request.body.date,
       totalCost: request.body.totalCost,
     };
-    if (request.params.logbookId) {
-      updateData["logbookId"] = Number(request.params.logbookId);
-    }
 
     const updatedLogbookDay: Validators.LogbookDayUpdateValidator =
       await prisma.logbookDay.update({
