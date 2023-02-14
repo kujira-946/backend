@@ -1,18 +1,18 @@
 import express from "express";
 
-import * as Validators from "../validators/logbook-days.validators";
-import * as Controllers from "../controllers/logbook-days.controllers";
+import * as Validators from "../validators/logbook-entries.validators";
+import * as Controllers from "../controllers/logbook-entries.controllers";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
-export const logbookDaysRouter_v1 = express.Router();
+export const logbookEntriesRouter_v1 = express.Router();
 
-logbookDaysRouter_v1.get("/", Controllers.fetchLogbookDays);
+logbookEntriesRouter_v1.get("/", Controllers.fetchLogbookDays);
 
-logbookDaysRouter_v1.get("/:logbookDayId", Controllers.fetchLogbookDay);
+logbookEntriesRouter_v1.get("/:logbookDayId", Controllers.fetchLogbookDay);
 
 type LogbookDayCreateData = (keyof Validators.LogbookDayCreateValidator)[];
 const logbookDayCreateData: LogbookDayCreateData = ["date"];
-logbookDaysRouter_v1.post(
+logbookEntriesRouter_v1.post(
   "/:logbookId",
   HelperMiddlewares.checkValidityOfUserData(logbookDayCreateData),
   Controllers.createLogbookDay
@@ -20,7 +20,7 @@ logbookDaysRouter_v1.post(
 
 type LogbookDayUpdateData = (keyof Validators.LogbookDayUpdateValidator)[];
 const logbookDayUpdateData: LogbookDayUpdateData = ["date", "totalCost"];
-logbookDaysRouter_v1.patch(
+logbookEntriesRouter_v1.patch(
   "/:logbookDayId/:logbookId?",
   HelperMiddlewares.checkValidityOfUserData(logbookDayUpdateData, {
     isHttpPost: false,
@@ -28,4 +28,4 @@ logbookDaysRouter_v1.patch(
   Controllers.updateLogbookDay
 );
 
-logbookDaysRouter_v1.delete("/:logbookDayId", Controllers.deleteLogbookDay);
+logbookEntriesRouter_v1.delete("/:logbookDayId", Controllers.deleteLogbookDay);

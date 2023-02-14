@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 
-import * as Validators from "../validators/logbook-days.validators";
+import * as Validators from "../validators/logbook-entries.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 

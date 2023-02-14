@@ -16,7 +16,7 @@ export async function fetchLogbooks(_: Request, response: Response) {
     const logbooks: Validators.LogbookRelationsValidator[] =
       await prisma.logbook.findMany({
         orderBy: { id: "asc" },
-        include: { days: true },
+        include: { entries: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbooks });
@@ -41,7 +41,7 @@ export async function fetchLogbook(
     const logbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.findUniqueOrThrow({
         where: { id: Number(request.params.logbookId) },
-        include: { days: true },
+        include: { entries: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbook });
@@ -69,7 +69,7 @@ export async function createLogbook(
     const newLogbook: Validators.LogbookRelationsValidator =
       await prisma.logbook.create({
         data: createData,
-        include: { days: true },
+        include: { entries: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
@@ -104,7 +104,7 @@ export async function updateLogbook(
       await prisma.logbook.update({
         where: { id: Number(request.params.logbookId) },
         data: updateData,
-        include: { days: true },
+        include: { entries: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

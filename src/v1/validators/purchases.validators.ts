@@ -6,11 +6,6 @@ const purchaseRelationalIds = Prisma.validator<Prisma.PurchaseArgs>()({
   select: {
     overviewRecurringPurchasesId: true,
     overviewIncomingPurchasesId: true,
-    logbookDayId: true,
-    logbookReviewNeedsId: true,
-    logbookReviewPlannedWantsId: true,
-    logbookReviewImpulsiveWantsId: true,
-    logbookReviewRegretsId: true,
   },
 });
 type PurchaseRelationalIds = Prisma.PurchaseGetPayload<
