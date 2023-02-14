@@ -10,62 +10,54 @@ datasource db {
 enum Theme {
   light
   dark
+  system
 }
 
 model User {
-  id                     Int             @id @default(autoincrement())
-  email                  String          @unique
-  username               String          @unique @db.VarChar(16)
+  id                     Int       @id @default(autoincrement())
+  email                  String    @unique
+  username               String    @unique @db.VarChar(16)
   password               String
-  firstName              String
-  lastName               String
-  birthday               DateTime
-  currency               String
-  theme                  Theme           @default(light)
+  firstName              String?
+  lastName               String?
+  birthday               DateTime?
+  currency               String    @default("USD")
   mobileNumber           String?
-  totalMoneySavedToDate  Float           @default(0)
-  emailVerified          Boolean         @default(false)
-  loggedIn               Boolean         @default(false)
+  theme                  Theme     @default(light)
+  totalMoneySavedToDate  Float     @default(0)
+  emailVerified          Boolean   @default(false)
+  loggedIn               Boolean   @default(false)
   signedVerificationCode String?
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
   // One To One
   overview               Overview?
   // Has Many
   logbooks               Logbook[]
-  logbookReviews         LogbookReview[]
 }
 
 enum Category {
   need
-  want
+  impulse
+  earned
 }
 
 model Purchase {
-  id                            Int            @id @default(autoincrement())
-  placement                     Int
-  cost                          Float
-  category                      Category?
-  description                   String
-  createdAt                     DateTime       @default(now())
-  updatedAt                     DateTime       @updatedAt
+  id                           Int           @id @default(autoincrement())
+  placement                    Int
+  cost                         Float
+  category                     Category?
+  description                  String
+  createdAt                    DateTime      @default(now())
+  updatedAt                    DateTime      @updatedAt
   // Belongs To
-  overviewRecurringPurchases    Overview?      @relation(name: "OverviewRecurringPurchases", fields: [overviewRecurringPurchasesId], references: [id], onDelete: Cascade)
-  overviewRecurringPurchasesId  Int?
-  overviewIncomingPurchases     Overview?      @relation(name: "OverviewIncomingPurchases", fields: [overviewIncomingPurchasesId], references: [id], onDelete: Cascade)
-  overviewIncomingPurchasesId   Int?
+  overviewRecurringPurchases   Overview?     @relation(name: "OverviewRecurringPurchases", fields: [overviewRecurringPurchasesId], references: [id], onDelete: Cascade)
+  overviewRecurringPurchasesId Int?
+  overviewIncomingPurchases    Overview?     @relation(name: "OverviewIncomingPurchases", fields: [overviewIncomingPurchasesId], references: [id], onDelete: Cascade)
+  overviewIncomingPurchasesId  Int?
   // 
-  logbookDay                    LogbookDay?    @relation(fields: [logbookDayId], references: [id])
-  logbookDayId                  Int?
-  // 
-  logbookReviewNeeds            LogbookReview? @relation(name: "LogbookReviewNeeds", fields: [logbookReviewNeedsId], references: [id])
-  logbookReviewNeedsId          Int?
-  logbookReviewPlannedWants     LogbookReview? @relation(name: "LogbookReviewPlannedWants", fields: [logbookReviewPlannedWantsId], references: [id])
-  logbookReviewPlannedWantsId   Int?
-  logbookReviewImpulsiveWants   LogbookReview? @relation(name: "LogbookReviewImpulsiveWants", fields: [logbookReviewImpulsiveWantsId], references: [id])
-  logbookReviewImpulsiveWantsId Int?
-  logbookReviewRegrets          LogbookReview? @relation(name: "LogbookReviewRegrets", fields: [logbookReviewRegretsId], references: [id])
-  logbookReviewRegretsId        Int?
+  logbookEntry                 LogbookEntry? @relation(fields: [logbookEntryId], references: [id])
+  logbookEntryId               Int?
 }
 
 model Overview {
@@ -87,18 +79,18 @@ model Overview {
 // `name` field default to month and year in which the logbook was created (e.g. "Jan. 2023").
 // `name` field MAY be edited later down the line for potentially better UX.
 model Logbook {
-  id        Int          @id @default(autoincrement())
+  id        Int            @id @default(autoincrement())
   name      String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
   // Has Many
-  days      LogbookDay[]
+  entries   LogbookEntry[]
   // Belongs to
-  owner     User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
 }
 
-model LogbookDay {
+model LogbookEntry {
   id        Int        @id @default(autoincrement())
   date      DateTime
   totalCost Float      @default(0)
@@ -111,17 +103,25 @@ model LogbookDay {
   logbookId Int
 }
 
-model LogbookReview {
-  id             Int        @id @default(autoincrement())
-  reflection     String?    @default("")
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+model Task {
+  id          Int        @id @default(autoincrement())
+  completed   Boolean    @default(false)
+  description String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  // Belongs To
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id])
+  milestoneId Int?
+}
+
+model Milestone {
+  id        Int      @id @default(autoincrement())
+  placement Int
+  achieved  Boolean  @default(false)
+  name      String
+  reward    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   // Has Many
-  needs          Purchase[] @relation(name: "LogbookReviewNeeds")
-  plannedWants   Purchase[] @relation(name: "LogbookReviewPlannedWants")
-  impulsiveWants Purchase[] @relation(name: "LogbookReviewImpulsiveWants")
-  regrets        Purchase[] @relation(name: "LogbookReviewRegrets")
-  // Belongs to
-  owner          User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId        Int
+  tasks     Task[]
 }
