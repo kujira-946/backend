@@ -24,7 +24,7 @@ overviewsRouter_v1.post(
 );
 
 type OverviewUpdateData = (keyof Validators.OverviewUpdateValidator)[];
-const overviewUpdateData: OverviewUpdateData = ["income", "savings"];
+const overviewUpdateData: OverviewUpdateData = ["income", "savings", "earnedBudget"];
 overviewsRouter_v1.patch(
   "/:overviewId",
   HelperMiddlewares.checkValidityOfUserData(overviewUpdateData, {

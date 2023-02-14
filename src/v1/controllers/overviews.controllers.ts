@@ -107,6 +107,7 @@ export async function updateOverview(
     const updateData: Validators.OverviewUpdateValidator = {
       income: request.body.income,
       savings: request.body.savings,
+      earnedBudget: request.body.earnedBudget
     };
 
     const updatedOverview: Validators.OverviewRelationsValidator =
