@@ -105,8 +105,8 @@ model LogbookEntry {
 
 model Task {
   id          Int        @id @default(autoincrement())
-  completed   Boolean    @default(false)
   description String
+  completed   Boolean    @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   // Belongs To
@@ -117,9 +117,9 @@ model Task {
 model Milestone {
   id        Int      @id @default(autoincrement())
   placement Int
-  achieved  Boolean  @default(false)
   name      String
   reward    Float
+  achieved  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   // Has Many

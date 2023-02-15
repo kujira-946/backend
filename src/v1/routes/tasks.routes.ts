@@ -12,13 +12,13 @@ tasksRouter_v1.get("/:taskId", Controllers.fetchTask);
 
 type TaskCreateData = (keyof Validators.TaskCreateValidator)[];
 const taskCreateData: TaskCreateData = ["description"];
-const optionalTaskCreateData: TaskCreateData = ["milestoneId"];
+const taskOptionalCreateData: TaskCreateData = ["milestoneId"];
 tasksRouter_v1.post(
   "/:milestoneId?",
   HelperMiddlewares.checkValidityOfUserData(
     taskCreateData,
     { isHttpPost: true },
-    optionalTaskCreateData
+    taskOptionalCreateData
   ),
   Controllers.createTask
 );

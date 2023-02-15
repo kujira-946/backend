@@ -25,9 +25,9 @@ milestonesRouter_v1.post(
 type MilestoneUpdateData = (keyof Validators.MilestoneUpdateValidator)[];
 const milestoneUpdateData: MilestoneUpdateData = [
   "placement",
-  "achieved",
   "name",
   "reward",
+  "achieved",
 ];
 milestonesRouter_v1.patch(
   "/:milestoneId",

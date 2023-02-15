@@ -67,8 +67,10 @@ export async function createTask(
   try {
     const createData: Validators.TaskCreateValidator = {
       description: request.body.description,
-      milestoneId: Number(request.params.milestoneId),
     };
+    if (request.params.milestoneId) {
+      createData["milestoneId"] = Number(request.params.milestoneId);
+    }
 
     const newTask: Validators.TaskRelationsValidator = await prisma.task.create(
       {

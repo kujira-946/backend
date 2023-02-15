@@ -16,7 +16,7 @@ const purchaseCreateData: PurchaseCreateData = [
   "cost",
   "description",
 ];
-const purchaseCreateOptionalData: PurchaseCreateData = [
+const purchaseOptionalCreateData: PurchaseCreateData = [
   "overviewRecurringPurchasesId",
   "overviewIncomingPurchasesId",
 ];
@@ -25,7 +25,7 @@ purchasesRouter_v1.post(
   HelperMiddlewares.checkValidityOfUserData(
     purchaseCreateData,
     { isHttpPost: true },
-    purchaseCreateOptionalData
+    purchaseOptionalCreateData
   ),
   Controllers.createPurchase
 );
