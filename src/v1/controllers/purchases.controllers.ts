@@ -64,11 +64,6 @@ export async function createPurchase(
       description: request.body.description,
       overviewRecurringPurchasesId: request.body.overviewRecurringPurchasesId,
       overviewIncomingPurchasesId: request.body.overviewIncomingPurchasesId,
-      logbookDayId: request.body.logbookDayId,
-      logbookReviewNeedsId: request.body.logbookReviewNeedsId,
-      logbookReviewPlannedWantsId: request.body.logbookReviewPlannedWantsId,
-      logbookReviewImpulsiveWantsId: request.body.logbookReviewImpulsiveWantsId,
-      logbookReviewRegretsId: request.body.logbookReviewRegretsId,
     };
 
     const newPurchase = await prisma.purchase.create({
@@ -106,11 +101,6 @@ export async function updatePurchase(
       category: request.body.category,
       overviewRecurringPurchasesId: request.body.overviewRecurringPurchasesId,
       overviewIncomingPurchasesId: request.body.overviewIncomingPurchasesId,
-      logbookDayId: request.body.logbookDayId,
-      logbookReviewNeedsId: request.body.logbookReviewNeedsId,
-      logbookReviewPlannedWantsId: request.body.logbookReviewPlannedWantsId,
-      logbookReviewImpulsiveWantsId: request.body.logbookReviewImpulsiveWantsId,
-      logbookReviewRegretsId: request.body.logbookReviewRegretsId,
     };
 
     const updatedPurchase = await prisma.purchase.update({

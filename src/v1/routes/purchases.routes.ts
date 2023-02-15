@@ -19,11 +19,6 @@ const purchaseCreateData: PurchaseCreateData = [
 const purchaseCreateOptionalData: PurchaseCreateData = [
   "overviewRecurringPurchasesId",
   "overviewIncomingPurchasesId",
-  "logbookDayId",
-  "logbookReviewNeedsId",
-  "logbookReviewPlannedWantsId",
-  "logbookReviewImpulsiveWantsId",
-  "logbookReviewRegretsId",
 ];
 purchasesRouter_v1.post(
   "/",
@@ -43,11 +38,6 @@ const purchaseUpdateData: PurchaseUpdateData = [
   "category",
   "overviewRecurringPurchasesId",
   "overviewIncomingPurchasesId",
-  "logbookDayId",
-  "logbookReviewNeedsId",
-  "logbookReviewPlannedWantsId",
-  "logbookReviewImpulsiveWantsId",
-  "logbookReviewRegretsId",
 ];
 purchasesRouter_v1.patch(
   "/:purchaseId",

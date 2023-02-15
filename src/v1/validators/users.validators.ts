@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 // ↓↓↓ Prisma's automated type interfaces generated via the schema models don't include relations. ↓↓↓
 // ↓↓↓ Therefore, we have to manually include them, which is implemented below. ↓↓↓
 const userRelationsValidator = Prisma.validator<Prisma.UserArgs>()({
-  include: { overview: true, logbooks: true, logbookReviews: true },
+  include: { overview: true, logbooks: true },
 });
 export type UserRelationsValidator = Prisma.UserGetPayload<
   typeof userRelationsValidator

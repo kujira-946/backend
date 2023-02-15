@@ -1,29 +1,34 @@
 import { Prisma } from "@prisma/client";
 
-const logbookDayRelationsValidator = Prisma.validator<Prisma.LogbookDayArgs>()({
-  include: { purchases: true },
-});
-export type LogbookDayRelationsValidator = Prisma.LogbookDayGetPayload<
-  typeof logbookDayRelationsValidator
+const logbookEntryRelationsValidator =
+  Prisma.validator<Prisma.LogbookEntryArgs>()({
+    include: { purchases: true },
+  });
+export type LogbookEntryRelationsValidator = Prisma.LogbookEntryGetPayload<
+  typeof logbookEntryRelationsValidator
 >;
 
-const logbookDayCreateValidator = Prisma.validator<Prisma.LogbookDayArgs>()({
-  select: {
-    date: true,
-    logbookId: true,
-  },
-});
-export type LogbookDayCreateValidator = Prisma.LogbookDayGetPayload<
-  typeof logbookDayCreateValidator
+const logbookEntryCreateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
+  {
+    select: {
+      date: true,
+      logbookId: true,
+    },
+  }
+);
+export type LogbookEntryCreateValidator = Prisma.LogbookEntryGetPayload<
+  typeof logbookEntryCreateValidator
 >;
 
-const logbookDayUpdateValidator = Prisma.validator<Prisma.LogbookDayArgs>()({
-  select: {
-    date: true,
-    totalCost: true,
-    logbookId: true,
-  },
-});
-export type LogbookDayUpdateValidator = Partial<
-  Prisma.LogbookDayGetPayload<typeof logbookDayUpdateValidator>
+const logbookEntryUpdateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
+  {
+    select: {
+      date: true,
+      totalCost: true,
+      logbookId: true,
+    },
+  }
+);
+export type LogbookEntryUpdateValidator = Partial<
+  Prisma.LogbookEntryGetPayload<typeof logbookEntryUpdateValidator>
 >;

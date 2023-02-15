@@ -163,7 +163,6 @@ async function _registrationVerificationHandler(
         include: {
           overview: true,
           logbooks: true,
-          logbookReviews: true,
         },
       });
       const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
@@ -310,7 +309,7 @@ async function _loginVerificationHandler(
     const updatedUser: UserRelationsValidator = await prisma.user.update({
       where: { id: foundUserId },
       data: { loggedIn: true, signedVerificationCode: null },
-      include: { overview: true, logbooks: true, logbookReviews: true },
+      include: { overview: true, logbooks: true },
     });
     const accessToken = jwt.sign(
       { _id: foundUserId.toString() },
