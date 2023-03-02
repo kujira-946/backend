@@ -12,19 +12,18 @@ overviewsRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
 type OverviewCreateData = (keyof Validators.OverviewCreateValidator)[];
 const overviewCreateData: OverviewCreateData = ["income"];
-const overviewOptionalCreateData: OverviewCreateData = ["savings"];
 overviewsRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserData(
-    overviewCreateData,
-    { isHttpPost: true },
-    overviewOptionalCreateData
-  ),
+  HelperMiddlewares.checkValidityOfUserData(overviewCreateData),
   Controllers.createOverview
 );
 
 type OverviewUpdateData = (keyof Validators.OverviewUpdateValidator)[];
-const overviewUpdateData: OverviewUpdateData = ["income", "savings", "earnedBudget"];
+const overviewUpdateData: OverviewUpdateData = [
+  "income",
+  "savings",
+  "discretionarySavings",
+];
 overviewsRouter_v1.patch(
   "/:overviewId",
   HelperMiddlewares.checkValidityOfUserData(overviewUpdateData, {
