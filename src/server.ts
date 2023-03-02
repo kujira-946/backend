@@ -18,8 +18,6 @@ enum RouteBases {
   OVERVIEWS = "/api/v1/overviews",
   LOGBOOKS = "/api/v1/logbooks",
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
-  TASKS = "/api/v1/tasks",
-  MILESTONES = "/api/v1/milestones",
 }
 
 // ↓↓↓ Allows API to parse client payload. ↓↓↓
@@ -32,8 +30,6 @@ app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
 app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
 app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
 app.use(RouteBases.LOGBOOK_ENTRIES, Routes.logbookEntriesRouter_v1);
-app.use(RouteBases.TASKS, Routes.tasksRouter_v1);
-app.use(RouteBases.MILESTONES, Routes.milestonesRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
