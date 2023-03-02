@@ -14,7 +14,7 @@ type OverviewCreateData = (keyof Validators.OverviewCreateValidator)[];
 const overviewCreateData: OverviewCreateData = ["income"];
 overviewsRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserData(overviewCreateData),
+  HelperMiddlewares.validateUserData(overviewCreateData),
   Controllers.createOverview
 );
 
@@ -26,7 +26,7 @@ const overviewUpdateData: OverviewUpdateData = [
 ];
 overviewsRouter_v1.patch(
   "/:overviewId",
-  HelperMiddlewares.checkValidityOfUserData(overviewUpdateData, {
+  HelperMiddlewares.validateUserData(overviewUpdateData, {
     isHttpPost: false,
   }),
   Controllers.updateOverview

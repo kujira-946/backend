@@ -15,7 +15,7 @@ const taskCreateData: TaskCreateData = ["description"];
 const taskOptionalCreateData: TaskCreateData = ["milestoneId"];
 tasksRouter_v1.post(
   "/:milestoneId?",
-  HelperMiddlewares.checkValidityOfUserData(
+  HelperMiddlewares.validateUserData(
     taskCreateData,
     { isHttpPost: true },
     taskOptionalCreateData
@@ -27,7 +27,7 @@ type TaskUpdateData = (keyof Validators.TaskUpdateValidator)[];
 const taskUpdateData: TaskUpdateData = ["completed", "description"];
 tasksRouter_v1.patch(
   "/:taskId",
-  HelperMiddlewares.checkValidityOfUserData(taskUpdateData, {
+  HelperMiddlewares.validateUserData(taskUpdateData, {
     isHttpPost: false,
   }),
   Controllers.updateTask

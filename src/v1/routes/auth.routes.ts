@@ -9,13 +9,13 @@ export const authRouter_v1 = express.Router();
 
 authRouter_v1.get(
   "/register/check-email-availability",
-  HelperMiddlewares.checkValidityOfUserData(["email"]),
+  HelperMiddlewares.validateUserData(["email"]),
   Controllers.checkEmailAvailability
 );
 
 authRouter_v1.get(
   "/register/check-username-availability",
-  HelperMiddlewares.checkValidityOfUserData(["username"]),
+  HelperMiddlewares.validateUserData(["username"]),
   Controllers.checkUsernameAvailability
 );
 
@@ -31,20 +31,20 @@ const requiredRegistrationData: RequiredRegistrationData = [
 ];
 authRouter_v1.post(
   "/register",
-  HelperMiddlewares.checkValidityOfUserData(requiredRegistrationData),
+  HelperMiddlewares.validateUserData(requiredRegistrationData),
   Controllers.registerUser
 );
 
 authRouter_v1.patch(
   "/register/:userId/verify",
-  HelperMiddlewares.checkValidityOfUserData(["verificationCode"]),
+  HelperMiddlewares.validateUserData(["verificationCode"]),
   Middlewares.checkUserExistsWithId,
   Controllers.verifyRegistration
 );
 
 authRouter_v1.patch(
   "/login",
-  HelperMiddlewares.checkValidityOfUserData(["username", "password"]),
+  HelperMiddlewares.validateUserData(["username", "password"]),
   Middlewares.checkUserExistsOnLoginAttempt,
   Middlewares.checkUserVerifiedOnLoginAttempt,
   Controllers.loginUser
@@ -52,7 +52,7 @@ authRouter_v1.patch(
 
 authRouter_v1.patch(
   "/login/:userId/verify",
-  HelperMiddlewares.checkValidityOfUserData(["verificationCode", "thirtyDays"]),
+  HelperMiddlewares.validateUserData(["verificationCode", "thirtyDays"]),
   Middlewares.checkUserExistsWithId,
   Controllers.verifyLogin
 );

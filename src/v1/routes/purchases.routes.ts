@@ -22,7 +22,7 @@ const purchaseOptionalCreateData: PurchaseCreateData = [
 ];
 purchasesRouter_v1.post(
   "/",
-  HelperMiddlewares.checkValidityOfUserData(
+  HelperMiddlewares.validateUserData(
     purchaseCreateData,
     { isHttpPost: true },
     purchaseOptionalCreateData
@@ -41,7 +41,7 @@ const purchaseUpdateData: PurchaseUpdateData = [
 ];
 purchasesRouter_v1.patch(
   "/:purchaseId",
-  HelperMiddlewares.checkValidityOfUserData(purchaseUpdateData, {
+  HelperMiddlewares.validateUserData(purchaseUpdateData, {
     isHttpPost: false,
   }),
   Controllers.updatePurchase

@@ -14,7 +14,7 @@ type LogbookEntryCreateData = (keyof Validators.LogbookEntryCreateValidator)[];
 const logbookEntryCreateData: LogbookEntryCreateData = ["date"];
 logbookEntriesRouter_v1.post(
   "/:logbookId",
-  HelperMiddlewares.checkValidityOfUserData(logbookEntryCreateData),
+  HelperMiddlewares.validateUserData(logbookEntryCreateData),
   Controllers.createLogbookEntry
 );
 
@@ -26,7 +26,7 @@ const logbookEntryUpdateData: LogbookEntryUpdateData = [
 ];
 logbookEntriesRouter_v1.patch(
   "/:logbookEntryId/:logbookId?",
-  HelperMiddlewares.checkValidityOfUserData(logbookEntryUpdateData, {
+  HelperMiddlewares.validateUserData(logbookEntryUpdateData, {
     isHttpPost: false,
   }),
   Controllers.updateLogbookEntry

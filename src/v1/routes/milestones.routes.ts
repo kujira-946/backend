@@ -18,7 +18,7 @@ const milestoneCreateData: MilestoneCreateData = [
 ];
 milestonesRouter_v1.post(
   "/",
-  HelperMiddlewares.checkValidityOfUserData(milestoneCreateData),
+  HelperMiddlewares.validateUserData(milestoneCreateData),
   Controllers.createMilestone
 );
 
@@ -31,7 +31,7 @@ const milestoneUpdateData: MilestoneUpdateData = [
 ];
 milestonesRouter_v1.patch(
   "/:milestoneId",
-  HelperMiddlewares.checkValidityOfUserData(milestoneUpdateData, {
+  HelperMiddlewares.validateUserData(milestoneUpdateData, {
     isHttpPost: false,
   }),
   Controllers.updateMilestone

@@ -78,7 +78,7 @@ function _handleUpdate(
 type Options = { isHttpPost: boolean };
 const defaultOptions: Options = { isHttpPost: true };
 
-export function checkValidityOfUserData(
+export function validateUserData(
   requiredData: string[],
   options: Options = defaultOptions,
   optionalCreateData?: string[]

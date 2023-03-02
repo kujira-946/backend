@@ -15,13 +15,13 @@ const logbookData: LogbookData = ["name"];
 
 logbooksRouter_v1.post(
   "/:ownerId",
-  HelperMiddlewares.checkValidityOfUserData(logbookData),
+  HelperMiddlewares.validateUserData(logbookData),
   Controllers.createLogbook
 );
 
 logbooksRouter_v1.patch(
   "/:logbookId",
-  HelperMiddlewares.checkValidityOfUserData(logbookData, {
+  HelperMiddlewares.validateUserData(logbookData, {
     isHttpPost: false,
   }),
   Controllers.updateLogbook
