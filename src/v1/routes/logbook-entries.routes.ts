@@ -19,7 +19,11 @@ logbookEntriesRouter_v1.post(
 );
 
 type LogbookEntryUpdateData = (keyof Validators.LogbookEntryUpdateValidator)[];
-const logbookEntryUpdateData: LogbookEntryUpdateData = ["date", "totalCost"];
+const logbookEntryUpdateData: LogbookEntryUpdateData = [
+  "date",
+  "totalCost",
+  "dayBudget",
+];
 logbookEntriesRouter_v1.patch(
   "/:logbookEntryId/:logbookId?",
   HelperMiddlewares.checkValidityOfUserData(logbookEntryUpdateData, {
@@ -28,4 +32,7 @@ logbookEntriesRouter_v1.patch(
   Controllers.updateLogbookEntry
 );
 
-logbookEntriesRouter_v1.delete("/:logbookEntryId", Controllers.deleteLogbookEntry);
+logbookEntriesRouter_v1.delete(
+  "/:logbookEntryId",
+  Controllers.deleteLogbookEntry
+);

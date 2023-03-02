@@ -57,7 +57,11 @@ export async function fetchLogbookEntry(
 // ========================================================================================= //
 
 export async function createLogbookEntry(
-  request: Request<{ logbookId: string }, {}, { date: Date }>,
+  request: Request<
+    { logbookId: string },
+    {},
+    Validators.LogbookEntryCreateValidator
+  >,
   response: Response
 ) {
   try {
@@ -91,16 +95,21 @@ export async function updateLogbookEntry(
   request: Request<
     { logbookEntryId: string; logbookId?: string },
     {},
-    { date?: Date; totalCost?: number }
+    Validators.LogbookEntryUpdateValidator
   >,
   response: Response
 ) {
   try {
     const updateData: Validators.LogbookEntryUpdateValidator = {
-      logbookId: Number(request.params.logbookId),
       date: request.body.date,
       totalCost: request.body.totalCost,
+      dayBudget: request.body.dayBudget,
     };
+    if (request.params.logbookId) {
+      updateData["logbookId"] = Number(request.params.logbookId);
+    }
+
+    console.log("logbookEntryId:", Number(request.params.logbookEntryId));
 
     const updatedLogbookEntry: Validators.LogbookEntryUpdateValidator =
       await prisma.logbookEntry.update({
