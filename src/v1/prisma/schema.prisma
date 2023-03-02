@@ -45,9 +45,9 @@ enum Category {
 model Purchase {
   id                           Int           @id @default(autoincrement())
   placement                    Int
-  cost                         Float
   category                     Category?
   description                  String
+  cost                         Float
   createdAt                    DateTime      @default(now())
   updatedAt                    DateTime      @updatedAt
   // Belongs To
@@ -61,18 +61,18 @@ model Purchase {
 }
 
 model Overview {
-  id                 Int        @id @default(autoincrement())
-  income             Float
-  savings            Float      @default(0)
-  earnedBudget       Float      @default(0)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  id                   Int        @id @default(autoincrement())
+  income               Float
+  savings              Float      @default(0)
+  discretionarySavings Float?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
   // One To One
-  owner              User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId            Int        @unique
+  owner                User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId              Int        @unique
   // Has Many
-  recurringPurchases Purchase[] @relation(name: "OverviewRecurringPurchases")
-  incomingPurchases  Purchase[] @relation(name: "OverviewIncomingPurchases")
+  recurringPurchases   Purchase[] @relation(name: "OverviewRecurringPurchases")
+  incomingPurchases    Purchase[] @relation(name: "OverviewIncomingPurchases")
 }
 
 // Automatically created at the beginning of a new month.
@@ -94,6 +94,7 @@ model LogbookEntry {
   id        Int        @id @default(autoincrement())
   date      DateTime
   totalCost Float      @default(0)
+  dayBudget Float?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   // Has Many
@@ -101,27 +102,4 @@ model LogbookEntry {
   // Belongs To
   logbook   Logbook    @relation(fields: [logbookId], references: [id], onDelete: Cascade)
   logbookId Int
-}
-
-model Task {
-  id          Int        @id @default(autoincrement())
-  description String
-  completed   Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  // Belongs To
-  milestone   Milestone? @relation(fields: [milestoneId], references: [id])
-  milestoneId Int?
-}
-
-model Milestone {
-  id        Int      @id @default(autoincrement())
-  placement Int
-  name      String
-  reward    Float
-  achieved  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  // Has Many
-  tasks     Task[]
 }
