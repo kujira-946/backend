@@ -11,7 +11,6 @@ const overviewCreateValidator = Prisma.validator<Prisma.OverviewArgs>()({
   select: {
     income: true,
     savings: true,
-    discretionarySavings: true,
     ownerId: true,
   },
 });
@@ -23,7 +22,6 @@ const overviewUpdateValidator = Prisma.validator<Prisma.OverviewArgs>()({
   select: {
     income: true,
     savings: true,
-    discretionarySavings: true,
   },
 });
 export type OverviewUpdateValidator = Partial<

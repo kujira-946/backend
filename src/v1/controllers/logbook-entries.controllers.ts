@@ -102,14 +102,12 @@ export async function updateLogbookEntry(
   try {
     const updateData: Validators.LogbookEntryUpdateValidator = {
       date: request.body.date,
-      totalCost: request.body.totalCost,
-      dayBudget: request.body.dayBudget,
+      spent: request.body.spent,
+      budget: request.body.budget,
     };
     if (request.params.logbookId) {
       updateData["logbookId"] = Number(request.params.logbookId);
     }
-
-    console.log("logbookEntryId:", Number(request.params.logbookEntryId));
 
     const updatedLogbookEntry: Validators.LogbookEntryUpdateValidator =
       await prisma.logbookEntry.update({

@@ -24,8 +24,8 @@ const logbookEntryUpdateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
   {
     select: {
       date: true,
-      totalCost: true,
-      dayBudget: true,
+      spent: true,
+      budget: true,
       logbookId: true,
     },
   }

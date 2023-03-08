@@ -21,8 +21,8 @@ logbookEntriesRouter_v1.post(
 type LogbookEntryUpdateData = (keyof Validators.LogbookEntryUpdateValidator)[];
 const logbookEntryUpdateData: LogbookEntryUpdateData = [
   "date",
-  "totalCost",
-  "dayBudget",
+  "spent",
+  "budget",
 ];
 logbookEntriesRouter_v1.patch(
   "/:logbookEntryId/:logbookId?",

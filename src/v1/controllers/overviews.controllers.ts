@@ -64,7 +64,6 @@ export async function createOverview(
     const createData: Validators.OverviewCreateValidator = {
       income: request.body.income,
       savings: request.body.savings,
-      discretionarySavings: request.body.discretionarySavings,
       ownerId: Number(request.params.ownerId),
     };
 
@@ -101,7 +100,6 @@ export async function updateOverview(
     const updateData: Validators.OverviewUpdateValidator = {
       income: request.body.income,
       savings: request.body.savings,
-      discretionarySavings: request.body.discretionarySavings,
     };
 
     const updatedOverview: Validators.OverviewRelationsValidator =
