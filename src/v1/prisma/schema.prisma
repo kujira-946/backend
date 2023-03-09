@@ -43,35 +43,44 @@ enum Category {
 }
 
 model Purchase {
-  id                           Int           @id @default(autoincrement())
-  placement                    Int
-  category                     Category?
-  description                  String
-  cost                         Float
-  createdAt                    DateTime      @default(now())
-  updatedAt                    DateTime      @updatedAt
+  id              Int            @id @default(autoincrement())
+  placement       Int
+  category        Category?
+  description     String?
+  cost            Float?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   // Belongs To
-  overviewRecurringPurchases   Overview?     @relation(name: "OverviewRecurringPurchases", fields: [overviewRecurringPurchasesId], references: [id], onDelete: Cascade)
-  overviewRecurringPurchasesId Int?
-  overviewIncomingPurchases    Overview?     @relation(name: "OverviewIncomingPurchases", fields: [overviewIncomingPurchasesId], references: [id], onDelete: Cascade)
-  overviewIncomingPurchasesId  Int?
-  // 
-  logbookEntry                 LogbookEntry? @relation(fields: [logbookEntryId], references: [id])
-  logbookEntryId               Int?
+  overviewGroup   OverviewGroup? @relation(fields: [overviewGroupId], references: [id])
+  overviewGroupId Int?
+  logbookEntry    LogbookEntry?  @relation(fields: [logbookEntryId], references: [id])
+  logbookEntryId  Int?
 }
 
 model Overview {
-  id                 Int        @id @default(autoincrement())
-  income             Float
-  savings            Float      @default(0)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  // One To One
-  owner              User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId            Int        @unique
+  id        Int             @id @default(autoincrement())
+  income    Float
+  savings   Float           @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
   // Has Many
-  recurringPurchases Purchase[] @relation(name: "OverviewRecurringPurchases")
-  incomingPurchases  Purchase[] @relation(name: "OverviewIncomingPurchases")
+  groups    OverviewGroup[]
+  // Belongs to
+  owner      User            @relation(fields: [ownerId], references: [id])
+  ownerId    Int
+}
+
+model OverviewGroup {
+  id         Int        @id @default(autoincrement())
+  name       String
+  totalCost  Float      @default(0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  // Has Many
+  purchases  Purchase[]
+  // Belongs to
+  overview   Overview   @relation(fields: [overviewId], references: [id])
+  overviewId Int
 }
 
 // Automatically created at the beginning of a new month.

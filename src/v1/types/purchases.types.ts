@@ -1,1 +1,1 @@
-export type Category = "need" | "impulse" | "earned";
+export type Category = "need" | "planned" | "impulse" | "regret";

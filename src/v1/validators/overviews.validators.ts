@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 const overviewRelationsValidator = Prisma.validator<Prisma.OverviewArgs>()({
-  include: { recurringPurchases: true, incomingPurchases: true },
+  include: { groups: true },
 });
 export type OverviewRelationsValidator = Prisma.OverviewGetPayload<
   typeof overviewRelationsValidator

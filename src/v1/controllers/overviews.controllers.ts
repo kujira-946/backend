@@ -16,7 +16,7 @@ export async function fetchOverviews(_: Request, response: Response) {
     const overviews: Validators.OverviewRelationsValidator[] =
       await prisma.overview.findMany({
         orderBy: { id: "asc" },
-        include: { recurringPurchases: true, incomingPurchases: true },
+        include: { groups: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: overviews });
@@ -41,7 +41,7 @@ export async function fetchOverview(
     const overview: Validators.OverviewRelationsValidator =
       await prisma.overview.findUniqueOrThrow({
         where: { id: Number(request.params.overviewId) },
-        include: { recurringPurchases: true, incomingPurchases: true },
+        include: { groups: true },
       });
 
     return response.status(HttpStatusCodes.OK).json({ data: overview });
@@ -70,7 +70,7 @@ export async function createOverview(
     const newOverview: Validators.OverviewRelationsValidator =
       await prisma.overview.create({
         data: createData,
-        include: { recurringPurchases: true, incomingPurchases: true },
+        include: { groups: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
@@ -106,7 +106,7 @@ export async function updateOverview(
       await prisma.overview.update({
         where: { id: Number(request.params.overviewId) },
         data: updateData,
-        include: { recurringPurchases: true, incomingPurchases: true },
+        include: { groups: true },
       });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

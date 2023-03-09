@@ -11,14 +11,13 @@ purchasesRouter_v1.get("/", Controllers.fetchPurchases);
 purchasesRouter_v1.get("/:purchaseId", Controllers.fetchPurchase);
 
 type PurchaseCreateData = (keyof Validators.PurchaseCreateValidator)[];
-const purchaseCreateData: PurchaseCreateData = [
-  "placement",
-  "cost",
-  "description",
-];
+const purchaseCreateData: PurchaseCreateData = ["placement"];
 const purchaseOptionalCreateData: PurchaseCreateData = [
-  "overviewRecurringPurchasesId",
-  "overviewIncomingPurchasesId",
+  "category",
+  "description",
+  "cost",
+  "overviewGroupId",
+  "logbookEntryId",
 ];
 purchasesRouter_v1.post(
   "/",
@@ -33,11 +32,11 @@ purchasesRouter_v1.post(
 type PurchaseUpdateData = (keyof Validators.PurchaseUpdateValidator)[];
 const purchaseUpdateData: PurchaseUpdateData = [
   "placement",
-  "cost",
-  "description",
   "category",
-  "overviewRecurringPurchasesId",
-  "overviewIncomingPurchasesId",
+  "description",
+  "cost",
+  "overviewGroupId",
+  "logbookEntryId",
 ];
 purchasesRouter_v1.patch(
   "/:purchaseId",

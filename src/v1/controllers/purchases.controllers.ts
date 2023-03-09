@@ -59,11 +59,11 @@ export async function createPurchase(
   try {
     const createData: Validators.PurchaseCreateValidator = {
       placement: request.body.placement,
-      cost: request.body.cost,
       category: request.body.category,
       description: request.body.description,
-      overviewRecurringPurchasesId: request.body.overviewRecurringPurchasesId,
-      overviewIncomingPurchasesId: request.body.overviewIncomingPurchasesId,
+      cost: request.body.cost,
+      overviewGroupId: request.body.overviewGroupId,
+      logbookEntryId: request.body.logbookEntryId,
     };
 
     const newPurchase = await prisma.purchase.create({
@@ -96,11 +96,11 @@ export async function updatePurchase(
   try {
     const updateData: Validators.PurchaseUpdateValidator = {
       placement: request.body.placement,
-      cost: request.body.cost,
-      description: request.body.description,
       category: request.body.category,
-      overviewRecurringPurchasesId: request.body.overviewRecurringPurchasesId,
-      overviewIncomingPurchasesId: request.body.overviewIncomingPurchasesId,
+      description: request.body.description,
+      cost: request.body.cost,
+      overviewGroupId: request.body.overviewGroupId,
+      logbookEntryId: request.body.logbookEntryId,
     };
 
     const updatedPurchase = await prisma.purchase.update({
