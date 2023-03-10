@@ -135,7 +135,6 @@ export async function deleteOverview(
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "overview"),
-      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {

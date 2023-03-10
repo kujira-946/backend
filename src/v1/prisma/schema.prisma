@@ -51,9 +51,9 @@ model Purchase {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   // Belongs To
-  overviewGroup   OverviewGroup? @relation(fields: [overviewGroupId], references: [id])
+  overviewGroup   OverviewGroup? @relation(fields: [overviewGroupId], references: [id], onDelete: Cascade)
   overviewGroupId Int?
-  logbookEntry    LogbookEntry?  @relation(fields: [logbookEntryId], references: [id])
+  logbookEntry    LogbookEntry?  @relation(fields: [logbookEntryId], references: [id], onDelete: Cascade)
   logbookEntryId  Int?
 }
 
@@ -66,7 +66,7 @@ model Overview {
   // Has Many
   groups    OverviewGroup[]
   // Belongs to
-  owner      User            @relation(fields: [ownerId], references: [id])
+  owner      User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId    Int
 }
 
@@ -79,7 +79,7 @@ model OverviewGroup {
   // Has Many
   purchases  Purchase[]
   // Belongs to
-  overview   Overview   @relation(fields: [overviewId], references: [id])
+  overview   Overview   @relation(fields: [overviewId], references: [id], onDelete: Cascade)
   overviewId Int
 }
 

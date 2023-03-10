@@ -134,7 +134,6 @@ export async function updateUserPassword(
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "password"),
-      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -182,7 +181,7 @@ export async function updateUserTotalMoneySavedToDate(
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Failed to update your total money saved to date. Please refresh the page and try again.",
+      body: "Failed to update your total money saved to date. Please refresh the page and try again. If the problem persists, try logging out and log back in. I apologize for the inconvenience.",
     });
   }
 }
@@ -201,7 +200,6 @@ export async function deleteUser(
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "account"),
-      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {

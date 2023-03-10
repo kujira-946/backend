@@ -122,8 +122,8 @@ export async function registerUser(
         // ↓↓↓ Only need `userId` here for the client to hit proper endpoint to verify the correct account. ↓↓↓ //
         return HttpHelpers.respondWithSuccess(response, "created", {
           title:
-            "Thank you for registering with Kujira. We're glad to have you on board!",
-          body: "We've sent a verification code to your email. Please enter it below to gain access to the app.",
+            "Thank you for registering with Kujira. Glad to have you on board!",
+          body: "A verification code was sent to your email. Please enter it below to gain access to the app.",
           footnote:
             "Please note that your verification code will expire within 5 minutes.",
           data: newUser.id,
@@ -156,8 +156,8 @@ async function _registrationVerificationHandler(
         where: { id: foundUserId },
         data: { emailVerified: true, signedVerificationCode: null },
         include: {
-          overview: true,
-          logbooks: true,
+          overview: { include: { groups: true } },
+          logbooks: { include: { entries: { include: { purchases: true } } } },
         },
       });
       const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
@@ -304,7 +304,10 @@ async function _loginVerificationHandler(
     const updatedUser: UserRelationsValidator = await prisma.user.update({
       where: { id: foundUserId },
       data: { loggedIn: true, signedVerificationCode: null },
-      include: { overview: true, logbooks: true },
+      include: {
+        overview: { include: { groups: true } },
+        logbooks: { include: { entries: { include: { purchases: true } } } },
+      },
     });
     const accessToken = jwt.sign(
       { _id: foundUserId.toString() },
