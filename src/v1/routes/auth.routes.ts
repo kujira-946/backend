@@ -19,19 +19,22 @@ authRouter_v1.get(
   Controllers.checkUsernameAvailability
 );
 
-type RequiredRegistrationData = (keyof Types.UserRegistrationValidator)[];
-const requiredRegistrationData: RequiredRegistrationData = [
-  "email",
-  "username",
-  "password",
+type RegistrationData = (keyof Types.UserRegistrationValidator)[];
+const registrationData: RegistrationData = ["email", "username", "password"];
+const optionalRegistrationData: RegistrationData = [
   "firstName",
   "lastName",
   "birthday",
   "currency",
+  "mobileNumber",
 ];
 authRouter_v1.post(
   "/register",
-  HelperMiddlewares.validateUserData(requiredRegistrationData),
+  HelperMiddlewares.validateUserData(
+    registrationData,
+    { isHttpPost: true },
+    optionalRegistrationData
+  ),
   Controllers.registerUser
 );
 
@@ -42,9 +45,11 @@ authRouter_v1.patch(
   Controllers.verifyRegistration
 );
 
+type LoginData = (keyof Types.UserLoginValidator)[];
+const loginData: LoginData = ["username", "password"];
 authRouter_v1.patch(
   "/login",
-  HelperMiddlewares.validateUserData(["username", "password"]),
+  HelperMiddlewares.validateUserData(loginData),
   Middlewares.checkUserExistsOnLoginAttempt,
   Middlewares.checkUserVerifiedOnLoginAttempt,
   Controllers.loginUser

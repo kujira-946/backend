@@ -6,16 +6,20 @@ const userRegistrationValidator = Prisma.validator<Prisma.UserArgs>()({
     email: true,
     username: true,
     password: true,
-    firstName: true,
-    lastName: true,
-    birthday: true,
-    currency: true,
     signedVerificationCode: true,
   },
 });
+type OptionalRegistrationOptions = {
+  firstName?: string;
+  lastName?: string;
+  birthday?: string;
+  currency?: string;
+  mobileNumber?: string;
+};
 export type UserRegistrationValidator = Prisma.UserGetPayload<
   typeof userRegistrationValidator
->;
+> &
+  OptionalRegistrationOptions;
 
 const userLoginValidator = Prisma.validator<Prisma.UserArgs>()({
   select: {

@@ -63,7 +63,7 @@ export async function checkUsernameAvailability(
 // [ ADDS NEW USER TO DATABASE & EMAILS THEM A VERIFICATION CODE ] ========================= //
 // ========================================================================================= //
 
-// ↓↓↓ Adds new user to database and returns new user object. ↓↓↓
+// ↓↓↓ Adds new user to database and returns new user object. ↓↓↓ //
 async function _addUserToDatabase(
   request: Request<{}, {}, Validators.UserRegistrationValidator>,
   signedVerificationCode: string
@@ -78,13 +78,14 @@ async function _addUserToDatabase(
     lastName: request.body.lastName,
     birthday: request.body.birthday,
     currency: request.body.currency,
+    mobileNumber: request.body.mobileNumber,
     signedVerificationCode,
   };
   const newUser = await prisma.user.create({ data: UserRegistrationValidator });
   return newUser;
 }
 
-// ↓↓↓ Emailing user a code to verify the authenticity of their account. ↓↓↓
+// ↓↓↓ Emailing user a code to verify the authenticity of their account. ↓↓↓ //
 async function _emailVerificationCodeToNewUser(
   request: Request,
   signedVerificationCode: string,
@@ -155,7 +156,7 @@ async function _registrationVerificationHandler(
   foundUserId: number
 ) {
   try {
-    // ↓↓↓ If the user entered the correct verification code. ↓↓↓
+    // ↓↓↓ If the user entered the correct verification code. ↓↓↓ //
     if (clientVerificationCode === databaseVerificationCode) {
       const updatedUser: UserRelationsValidator = await prisma.user.update({
         where: { id: foundUserId },
@@ -173,7 +174,7 @@ async function _registrationVerificationHandler(
         data: userWithoutPassword,
       });
     }
-    // ↓↓↓ If the user entered an incorrect verification code. ↓↓↓
+    // ↓↓↓ If the user entered an incorrect verification code. ↓↓↓ //
     else {
       return HttpHelpers.respondWithClientError(response, "bad request", {
         body: Utils.AuthErrors.INCORRECT_VERIFICATION_CODE,
@@ -196,7 +197,7 @@ export function verifyRegistration(
   request: RegistrationVerificationRequest,
   response: Response
 ) {
-  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:userId/verify` route. ↓↓↓
+  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:userId/verify` route. ↓↓↓ //
   const { foundUser } = request as RegistrationVerificationRequest &
     Types.RequestWithFoundUser;
 
@@ -257,7 +258,7 @@ export async function loginUser(
   return Helpers.handleSecretKeysExist(
     response,
     async function (verificationSecretKey: string) {
-      // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login` route. ↓↓↓
+      // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login` route. ↓↓↓ //
       const { foundUser } = request as Types.LoginUserRequest &
         Types.RequestWithFoundUser;
 
@@ -341,7 +342,7 @@ export async function verifyLogin(
   request: LoginVerificationRequest,
   response: Response
 ) {
-  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login/:userId/verify` route. ↓↓↓
+  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/login/:userId/verify` route. ↓↓↓ //
   const { foundUser } = request as LoginVerificationRequest &
     Types.RequestWithFoundUser;
 
