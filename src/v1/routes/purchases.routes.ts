@@ -47,3 +47,11 @@ purchasesRouter_v1.patch(
 );
 
 purchasesRouter_v1.delete("/:purchaseId", Controllers.deletePurchase);
+
+purchasesRouter_v1.post(
+  "/batch-delete",
+  HelperMiddlewares.validateUserData(["ids"]),
+  Controllers.batchDeletePurchases
+);
+
+purchasesRouter_v1.post("/delete-all", Controllers.deleteAllPurchases);

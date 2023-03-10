@@ -141,3 +141,56 @@ export async function deletePurchase(
     });
   }
 }
+
+// ========================================================================================= //
+// [ BATCH DELETE ] ======================================================================== //
+// ========================================================================================= //
+
+export async function batchDeletePurchases(
+  request: Request<{}, {}, { ids: number[] }>,
+  response: Response
+) {
+  try {
+    await prisma.purchase.deleteMany({
+      where: { id: { in: request.body.ids } },
+    });
+
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: HttpHelpers.generateCudMessage("delete", "selected purchases"),
+    });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: "One or more of the selected purchases already don't exist. Please refresh the page and try again.",
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ DELETE ALL ] ========================================================================== //
+// ========================================================================================= //
+
+export async function deleteAllPurchases(
+  request: Request<
+    {},
+    {},
+    { overviewGroupId?: number; logbookEntryId?: number }
+  >,
+  response: Response
+) {
+  try {
+    await prisma.purchase.deleteMany({
+      where: {
+        overviewGroupId: request.body.overviewGroupId,
+        logbookEntryId: request.body.logbookEntryId,
+      },
+    });
+
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: HttpHelpers.generateCudMessage("delete", "all purchases"),
+    });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: "Failed to delete all purchases. Please refresh the page and try again.",
+    });
+  }
+}

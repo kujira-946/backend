@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { Category } from "../types/purchases.types";
 
 const purchaseCreateValidator = Prisma.validator<Prisma.PurchaseArgs>()({
-  select: { placement: true, category: true, description: true, cost: true },
+  select: { placement: true },
 });
 type OptionalCreateData = {
   category?: Category;
