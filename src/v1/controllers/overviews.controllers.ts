@@ -57,14 +57,14 @@ export async function fetchOverview(
 // ========================================================================================= //
 
 export async function createOverview(
-  request: Request<{ ownerId: string }, {}, Validators.OverviewCreateValidator>,
+  request: Request<{}, {}, Validators.OverviewCreateValidator>,
   response: Response
 ) {
   try {
     const createData: Validators.OverviewCreateValidator = {
       income: request.body.income,
       savings: request.body.savings,
-      ownerId: Number(request.params.ownerId),
+      ownerId: request.body.ownerId,
     };
 
     const newOverview: Validators.OverviewRelationsValidator =

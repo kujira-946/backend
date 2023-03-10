@@ -10,16 +10,21 @@ overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
 overviewsRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
-type OverviewCreateData = (keyof Validators.OverviewCreateValidator)[];
-const overviewCreateData: OverviewCreateData = ["income", "savings"];
+type CreateData = (keyof Validators.OverviewCreateValidator)[];
+const createData: CreateData = ["income", "ownerId"];
+const optionalCreateData: CreateData = ["savings"];
 overviewsRouter_v1.post(
-  "/:ownerId",
-  HelperMiddlewares.validateUserData(overviewCreateData),
+  "/",
+  HelperMiddlewares.validateUserData(
+    createData,
+    { isHttpPost: true },
+    optionalCreateData
+  ),
   Controllers.createOverview
 );
 
-type OverviewUpdateData = (keyof Validators.OverviewUpdateValidator)[];
-const overviewUpdateData: OverviewUpdateData = ["income", "savings"];
+type UpdateData = (keyof Validators.OverviewUpdateValidator)[];
+const overviewUpdateData: UpdateData = ["income", "savings"];
 overviewsRouter_v1.patch(
   "/:overviewId",
   HelperMiddlewares.validateUserData(overviewUpdateData, {

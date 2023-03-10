@@ -10,13 +10,14 @@ export type OverviewRelationsValidator = Prisma.OverviewGetPayload<
 const overviewCreateValidator = Prisma.validator<Prisma.OverviewArgs>()({
   select: {
     income: true,
-    savings: true,
     ownerId: true,
   },
 });
+type OptionalCreateData = { savings?: number };
 export type OverviewCreateValidator = Prisma.OverviewGetPayload<
   typeof overviewCreateValidator
->;
+> &
+  OptionalCreateData;
 
 const overviewUpdateValidator = Prisma.validator<Prisma.OverviewArgs>()({
   select: {

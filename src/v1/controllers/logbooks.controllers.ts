@@ -57,13 +57,13 @@ export async function fetchLogbook(
 // ========================================================================================= //
 
 export async function createLogbook(
-  request: Request<{ ownerId: string }, {}, { name: string }>,
+  request: Request<{}, {}, Validators.LogbookCreateValidator>,
   response: Response
 ) {
   try {
     const createData: Validators.LogbookCreateValidator = {
       name: request.body.name,
-      ownerId: Number(request.params.ownerId),
+      ownerId: request.body.ownerId,
     };
 
     const newLogbook: Validators.LogbookRelationsValidator =
