@@ -16,9 +16,11 @@ const logbookEntryCreateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
     },
   }
 );
+type OptionalCreateData = { spent?: number; budget?: number };
 export type LogbookEntryCreateValidator = Prisma.LogbookEntryGetPayload<
   typeof logbookEntryCreateValidator
->;
+> &
+  OptionalCreateData;
 
 const logbookEntryUpdateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
   {

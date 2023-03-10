@@ -10,23 +10,24 @@ logbookEntriesRouter_v1.get("/", Controllers.fetchLogbookEntries);
 
 logbookEntriesRouter_v1.get("/:logbookEntryId", Controllers.fetchLogbookEntry);
 
-type LogbookEntryCreateData = (keyof Validators.LogbookEntryCreateValidator)[];
-const logbookEntryCreateData: LogbookEntryCreateData = ["date"];
+type CreateData = (keyof Validators.LogbookEntryCreateValidator)[];
+const createData: CreateData = ["date", "logbookId"];
+const optionalCreateData: CreateData = ["spent", "budget"];
 logbookEntriesRouter_v1.post(
-  "/:logbookId",
-  HelperMiddlewares.validateUserData(logbookEntryCreateData),
+  "/",
+  HelperMiddlewares.validateUserData(
+    createData,
+    { isHttpPost: true },
+    optionalCreateData
+  ),
   Controllers.createLogbookEntry
 );
 
-type LogbookEntryUpdateData = (keyof Validators.LogbookEntryUpdateValidator)[];
-const logbookEntryUpdateData: LogbookEntryUpdateData = [
-  "date",
-  "spent",
-  "budget",
-];
+type UpdateData = (keyof Validators.LogbookEntryUpdateValidator)[];
+const updateData: UpdateData = ["date", "spent", "budget", "logbookId"];
 logbookEntriesRouter_v1.patch(
-  "/:logbookEntryId/:logbookId?",
-  HelperMiddlewares.validateUserData(logbookEntryUpdateData, {
+  "/:logbookEntryId",
+  HelperMiddlewares.validateUserData(updateData, {
     isHttpPost: false,
   }),
   Controllers.updateLogbookEntry

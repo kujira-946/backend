@@ -57,17 +57,15 @@ export async function fetchLogbookEntry(
 // ========================================================================================= //
 
 export async function createLogbookEntry(
-  request: Request<
-    { logbookId: string },
-    {},
-    Validators.LogbookEntryCreateValidator
-  >,
+  request: Request<{}, {}, Validators.LogbookEntryCreateValidator>,
   response: Response
 ) {
   try {
     const createData: Validators.LogbookEntryCreateValidator = {
-      logbookId: Number(request.params.logbookId),
       date: request.body.date,
+      spent: request.body.spent,
+      budget: request.body.budget,
+      logbookId: request.body.logbookId,
     };
 
     const newLogbookEntry: Validators.LogbookEntryRelationsValidator =
@@ -93,7 +91,7 @@ export async function createLogbookEntry(
 
 export async function updateLogbookEntry(
   request: Request<
-    { logbookEntryId: string; logbookId?: string },
+    { logbookEntryId: string },
     {},
     Validators.LogbookEntryUpdateValidator
   >,
@@ -104,10 +102,8 @@ export async function updateLogbookEntry(
       date: request.body.date,
       spent: request.body.spent,
       budget: request.body.budget,
+      logbookId: request.body.logbookId,
     };
-    if (request.params.logbookId) {
-      updateData["logbookId"] = Number(request.params.logbookId);
-    }
 
     const updatedLogbookEntry: Validators.LogbookEntryUpdateValidator =
       await prisma.logbookEntry.update({
@@ -142,7 +138,6 @@ export async function deleteLogbookEntry(
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "logbook entry"),
-      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
