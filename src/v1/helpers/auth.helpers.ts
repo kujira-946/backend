@@ -82,13 +82,13 @@ export function handleAccountVerification<VerificationHandler>(
           verificationSecretKey
         );
 
-        // ↓↓↓ If the user's verification code expired. ↓↓↓
+        // ↓↓↓ If the user's verification code expired. ↓↓↓ //
         if (verificationCodeExpired) {
           return HttpHelpers.respondWithClientError(response, "bad request", {
             body: AuthErrors.VERIFICATION_CODE_EXPIRED,
           });
         }
-        // ↓↓↓ If the user's verification code is still active. ↓↓↓
+        // ↓↓↓ If the user's verification code is still active. ↓↓↓ //
         else {
           const verificationCode = extractVerificationCode(
             foundUser.signedVerificationCode,

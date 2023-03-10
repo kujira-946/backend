@@ -31,7 +31,6 @@ export async function checkEmailAvailability(
   } catch (error) {
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Email available.",
-      data: null,
     });
   }
 }
@@ -54,7 +53,6 @@ export async function checkUsernameAvailability(
   } catch (error) {
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Username available.",
-      data: null,
     });
   }
 }
@@ -95,14 +93,10 @@ async function _emailVerificationCodeToNewUser(
     signedVerificationCode,
     verificationSecretKey
   );
-  Helpers.emailUser(
-    request.body.email,
-    "Thank you for registering with Kujira.",
-    [
-      "We're glad to have you on board :)",
-      `Please copy and paste the following verification code into the app to verify your registration: ${extractedCode}`,
-    ]
-  );
+  Helpers.emailUser(request.body.email, "Kujira: Confirm Registration", [
+    "Thank you for registering! Glad to have you on board :)",
+    `Please copy and paste the following verification code into the app to verify your registration: ${extractedCode}`,
+  ]);
 }
 
 export async function registerUser(
@@ -125,7 +119,7 @@ export async function registerUser(
           signedVerificationCode,
           verificationSecretKey
         );
-        // ↓↓↓ Only need `userId` here for the client to hit proper endpoint to verify the correct account. ↓↓↓
+        // ↓↓↓ Only need `userId` here for the client to hit proper endpoint to verify the correct account. ↓↓↓ //
         return HttpHelpers.respondWithSuccess(response, "created", {
           title:
             "Thank you for registering with Kujira. We're glad to have you on board!",
@@ -137,8 +131,8 @@ export async function registerUser(
       }
     );
   } catch (error) {
-    // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓
-    // ↓↓↓ Backup error handling in case it doesn't. ↓↓↓
+    // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓ //
+    // ↓↓↓ Backup error handling in case it doesn't. ↓↓↓ //
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: "Failed to create account. You may have entered a non-unique email or username. Please try again.",
     });
@@ -297,7 +291,7 @@ export async function loginUser(
 // [ VERIFIES LOGIN WITH VERIFICATION CODE & PROVIDES CLIENT WITH JWT ON SUCCESS ] ========= //
 // ========================================================================================= //
 
-// ↓↓↓ If the user supplied the correct verification code saved into their account. ↓↓↓
+// ↓↓↓ If the user supplied the correct verification code saved into their account. ↓↓↓ //
 async function _loginVerificationHandler(
   response: Response,
   clientVerificationCode: string,
@@ -337,7 +331,6 @@ type LoginVerificationRequest = Request<
   {},
   { verificationCode: string; thirtyDays: boolean }
 >;
-
 export async function verifyLogin(
   request: LoginVerificationRequest,
   response: Response
@@ -383,7 +376,6 @@ export async function logout(
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Log out successful.",
-      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -417,14 +409,13 @@ export async function requestNewVerificationCode(
           signedVerificationCode,
           verificationSecretKey
         );
-        Helpers.emailUser(user.email, "Your New Verification Code", [
-          "We've received your request for a new verification code.",
+        Helpers.emailUser(user.email, "Kujira: New Verification Code", [
+          "This email is in response to your request for a new verification code.",
           `Please copy and paste the following verification code into the app to verify your account: ${verificationCode}`,
         ]);
 
         return HttpHelpers.respondWithSuccess(response, "ok", {
           body: "New verification code sent! Please check your email.",
-          data: null,
         });
       } catch (error) {
         return HttpHelpers.respondWithClientError(response, "bad request", {

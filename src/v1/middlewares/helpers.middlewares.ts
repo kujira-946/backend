@@ -46,7 +46,7 @@ function _handleCreate(
   requiredData: string[]
 ) {
   const missingData = _generateMissingCreateData(providedData, requiredData);
-  // ↓↓↓ If the client's request doesn't contain all required inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
+  // ↓↓↓ If the client's request doesn't contain all required inputs, we send an error response and terminate the validity check at this stage. ↓↓↓ //
   if (missingData.length === 0) {
     return next();
   } else {
@@ -86,7 +86,7 @@ export function validateUserData(
   return function (request: Request, response: Response, next: NextFunction) {
     const providedData = Object.keys(request.body); // Data provided by the client.
 
-    // ↓↓↓ If the client's request contains any invalid inputs, we send an error response and terminate the validity check at this stage. ↓↓↓
+    // ↓↓↓ If the client's request contains any invalid inputs, we send an error response and terminate the validity check at this stage. ↓↓↓ //
     const invalidData = _generateInvalidData(
       providedData,
       requiredData,
@@ -98,7 +98,7 @@ export function validateUserData(
       });
     }
 
-    // ↓↓↓ If the client's request contains only valid inputs, we move onto checking if all required inputs were provided. ↓↓↓
+    // ↓↓↓ If the client's request contains only valid inputs, we move onto checking if all required inputs were provided. ↓↓↓ //
     else {
       if (options.isHttpPost) {
         return _handleCreate(response, next, providedData, requiredData);

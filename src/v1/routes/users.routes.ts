@@ -11,7 +11,7 @@ usersRouter_v1.get("/", Controllers.fetchUsers);
 
 usersRouter_v1.get("/:userId", Controllers.fetchUser);
 
-// ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓
+// ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓ //
 type UserData = (keyof Validators.UserUpdateValidator)[];
 const userData: UserData = [
   "email",
@@ -31,7 +31,7 @@ usersRouter_v1.patch(
   Controllers.updateUser
 );
 
-// ↓↓↓ Update a user's password. ↓↓↓
+// ↓↓↓ Update a user's password. ↓↓↓ //
 usersRouter_v1.patch(
   "/:userId/update-password",
   HelperMiddlewares.validateUserData(["oldPassword", "newPassword"]),
@@ -39,7 +39,7 @@ usersRouter_v1.patch(
   Controllers.updateUserPassword
 );
 
-// ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓
+// ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓ //
 // TODO : SET UP CRON JOB TO HIT THIS ENDPOINT ON HEROKU
 usersRouter_v1.patch(
   "/:userId/update-total-money-saved-to-date",

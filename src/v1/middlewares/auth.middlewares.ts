@@ -110,11 +110,11 @@ export async function checkUserAlreadyLoggedOut(
 // [ VERIFIES JWT ACCESS TOKEN ] =========================================================== //
 // ========================================================================================= //
 
-// ↓↓↓ Middleware that authenticates user actions via a JWT access token. ↓↓↓
-// ↓↓↓ Checks if there is a valid access token (e.g. it exists or supplies the correct secret key). ↓↓↓
-// ↓↓↓ If not, user is not authorized to make an action. ↓↓↓
+// ↓↓↓ Middleware that authenticates user actions via a JWT access token. ↓↓↓ //
+// ↓↓↓ Checks if there is a valid access token (e.g. it exists or supplies the correct secret key). ↓↓↓ //
+// ↓↓↓ If not, user is not authorized to make an action. ↓↓↓ //
 //
-// ↓↓↓ This middleware is performed before hitting any endpoint that requires validation credentials. ↓↓↓
+// ↓↓↓ This middleware is performed before hitting any endpoint that requires validation credentials. ↓↓↓ //
 type RequestWithAccessToken = { accessToken: string | JwtPayload } & Request;
 
 export async function verifyAccessToken(
@@ -136,8 +136,8 @@ export async function verifyAccessToken(
           });
         } else {
           const decodedAccessToken = jwt.verify(accessToken, authSecretKey);
-          // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓
-          // ↓↓↓ in the action the user wanted to perform. ↓↓↓
+          // ↓↓↓ Appending our decoded access token to Express's `request` object for use. ↓↓↓ //
+          // ↓↓↓ in the action the user wanted to perform. ↓↓↓ //
           (request as RequestWithAccessToken).accessToken = decodedAccessToken;
           return next();
         }

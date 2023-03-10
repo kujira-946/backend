@@ -16,7 +16,7 @@ type Success = "ok" | "created" | "no content";
 export function respondWithSuccess<WildcardMessageContent, Data>(
   response: Response,
   httpStatusCode: Success,
-  message: Message<WildcardMessageContent> & { data: Data }
+  message: Message<WildcardMessageContent> & { data?: Data }
 ) {
   switch (httpStatusCode) {
     case "ok":

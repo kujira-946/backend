@@ -21,7 +21,7 @@ enum RouteBases {
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
 }
 
-// ↓↓↓ Allows API to parse client payload. ↓↓↓
+// ↓↓↓ Allows API to parse client payload. ↓↓↓ //
 app.use(express.json());
 
 // ↓↓↓ Routes ↓↓↓
@@ -33,7 +33,7 @@ app.use(RouteBases.OVERVIEW_GROUPS, Routes.overviewGroupsRouter_v1);
 app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
 app.use(RouteBases.LOGBOOK_ENTRIES, Routes.logbookEntriesRouter_v1);
 
-// ↓↓↓ Global error-catching middleware. ↓↓↓
+// ↓↓↓ Global error-catching middleware. ↓↓↓ //
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
   error: Error,
   request: Request,
@@ -44,7 +44,7 @@ const globalErrorHandlerMiddleware: ErrorRequestHandler = (
 };
 app.use(globalErrorHandlerMiddleware);
 
-// ↓↓↓ Listening ↓↓↓
+// ↓↓↓ Listening ↓↓↓ //
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
   console.log(
