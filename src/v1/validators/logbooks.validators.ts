@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 const logbookRelationsValidator = Prisma.validator<Prisma.LogbookArgs>()({
-  include: { entries: true },
+  include: { entries: { include: { purchases: true } } },
 });
 export type LogbookRelationsValidator = Prisma.LogbookGetPayload<
   typeof logbookRelationsValidator

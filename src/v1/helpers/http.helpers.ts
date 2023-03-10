@@ -109,7 +109,7 @@ export function generateFetchError(
   } else {
     return (
       baseMessage +
-      " Please make sure you've entered the correct information and try again."
+      " Please include an existing ID and try again."
     );
   }
 }
