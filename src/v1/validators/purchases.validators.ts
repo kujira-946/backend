@@ -5,7 +5,7 @@ import { Category } from "../types/purchases.types";
 const purchaseCreateValidator = Prisma.validator<Prisma.PurchaseArgs>()({
   select: { placement: true, category: true, description: true, cost: true },
 });
-type OptionalPurchaseFields = {
+type OptionalCreateOptions = {
   category?: Category;
   description?: string;
   cost?: number;
@@ -15,7 +15,7 @@ type OptionalPurchaseFields = {
 export type PurchaseCreateValidator = Prisma.PurchaseGetPayload<
   typeof purchaseCreateValidator
 > &
-  OptionalPurchaseFields;
+  OptionalCreateOptions;
 
 const purchaseUpdateValidator = Prisma.validator<Prisma.PurchaseArgs>()({
   select: {

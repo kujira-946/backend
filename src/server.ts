@@ -16,6 +16,7 @@ enum RouteBases {
   USERS = "/api/v1/users",
   PURCHASES = "/api/v1/purchases",
   OVERVIEWS = "/api/v1/overviews",
+  OVERVIEW_GROUPS = "/api/v1/overview-groups",
   LOGBOOKS = "/api/v1/logbooks",
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
 }
@@ -28,6 +29,7 @@ app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, Routes.usersRouter_v1);
 app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
 app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
+app.use(RouteBases.OVERVIEW_GROUPS, Routes.overviewGroupsRouter_v1);
 app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
 app.use(RouteBases.LOGBOOK_ENTRIES, Routes.logbookEntriesRouter_v1);
 
