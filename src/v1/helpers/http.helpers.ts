@@ -122,10 +122,18 @@ export function generateCudMessage(
   if (error) {
     let baseMessage = `Failed to ${type} ${noun}.`;
 
-    if (type === "delete") {
-      return baseMessage + " Please refresh the page and try again.";
+    if (type === "update") {
+      return (
+        baseMessage +
+        " Please include an existing ID or properly fill in provided fields and try again."
+      );
+    } else if (type === "delete") {
+      return baseMessage + " Please include an existing ID and try again.";
     } else {
-      return baseMessage + " Please fill all required fields and try again.";
+      return (
+        baseMessage +
+        " Please properly fill in all required fields and try again."
+      );
     }
   } else {
     return `Successfully ${type}d ${noun}.`;

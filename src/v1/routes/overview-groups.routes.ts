@@ -1,7 +1,7 @@
 import express from "express";
 
-import * as Validators from "../validators/overview-group.validators";
-import * as Controllers from "../controllers/overview-group.controllers";
+import * as Validators from "../validators/overview-groups.validators";
+import * as Controllers from "../controllers/overview-groups.controllers";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const overviewGroupsRouter_v1 = express.Router();
@@ -13,30 +13,24 @@ overviewGroupsRouter_v1.get(
   Controllers.fetchOverviewGroup
 );
 
-type OverviewGroupCreateData =
-  (keyof Validators.OverviewGroupCreateValidator)[];
-const overviewGroupCreateData: OverviewGroupCreateData = ["name", "overviewId"];
-const overviewGroupOptionalCreateData: OverviewGroupCreateData = ["totalCost"];
+type CreateData = (keyof Validators.OverviewGroupCreateValidator)[];
+const createData: CreateData = ["name", "overviewId"];
+const optionalCreateData: CreateData = ["totalCost"];
 overviewGroupsRouter_v1.post(
   "/",
   HelperMiddlewares.validateUserData(
-    overviewGroupCreateData,
+    createData,
     { isHttpPost: true },
-    overviewGroupOptionalCreateData
+    optionalCreateData
   ),
   Controllers.createOverviewGroup
 );
 
-type OverviewGroupUpdateData =
-  (keyof Validators.OverviewGroupUpdateValidator)[];
-const overviewGroupUpdateData: OverviewGroupUpdateData = [
-  "name",
-  "totalCost",
-  "overviewId",
-];
+type UpdateData = (keyof Validators.OverviewGroupUpdateValidator)[];
+const updateData: UpdateData = ["name", "totalCost", "overviewId"];
 overviewGroupsRouter_v1.patch(
   "/:overviewGroupId",
-  HelperMiddlewares.validateUserData(overviewGroupUpdateData, {
+  HelperMiddlewares.validateUserData(updateData, {
     isHttpPost: false,
   }),
   Controllers.updateOverviewGroup

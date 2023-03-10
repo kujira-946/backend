@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
-import * as Validators from "../validators/overview-group.validators";
+import * as Validators from "../validators/overview-groups.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
-import { HttpStatusCodes } from "./../../utils/http-status-codes";
+import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
 
@@ -136,7 +136,6 @@ export async function deleteOverviewGroup(
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "overview group"),
-      data: null,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {

@@ -19,7 +19,7 @@ export async function fetchUsers(_: Request, response: Response) {
     const users: Validators.UserRelationsValidator[] =
       await prisma.user.findMany({
         orderBy: { id: "asc" },
-        include: { overview: true, logbooks: true },
+        include: { overview: { include: { groups: true } }, logbooks: true },
       });
     const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
       "password",
@@ -46,7 +46,7 @@ export async function fetchUser(
     const user: Validators.UserRelationsValidator =
       await prisma.user.findUniqueOrThrow({
         where: { id: Number(request.params.userId) },
-        include: { overview: true, logbooks: true },
+        include: { overview: { include: { groups: true } }, logbooks: true },
       });
     const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return response
@@ -83,7 +83,7 @@ export async function updateUser(
     const user: Validators.UserRelationsValidator = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdateData,
-      include: { overview: true, logbooks: true },
+      include: { overview: { include: { groups: true } }, logbooks: true },
     });
     const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
     return HttpHelpers.respondWithSuccess(response, "ok", {
@@ -118,7 +118,7 @@ export async function updateUserPassword(
     await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdatePasswordData,
-      include: { overview: true, logbooks: true },
+      include: { overview: { include: { groups: true } }, logbooks: true },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "password"),
@@ -152,7 +152,7 @@ export async function updateUserTotalMoneySavedToDate(
     const user: Validators.UserRelationsValidator = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: totalMoneySavedToDateData,
-      include: { overview: true, logbooks: true },
+      include: { overview: { include: { groups: true } }, logbooks: true },
     });
 
     const { totalMoneySavedToDate } =

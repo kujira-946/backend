@@ -66,11 +66,12 @@ function _handleUpdate(
     providedData,
     requiredData
   );
+  const missingData = _generateMissingCreateData(providedData, requiredData);
   if (atLeastOneRequiredDataProvided) {
     return next();
   } else {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Missing at least one required field. Please provide the missing field and try again.",
+      body: `Missing at least one required data: ${missingData.join(", ")}.`,
     });
   }
 }
