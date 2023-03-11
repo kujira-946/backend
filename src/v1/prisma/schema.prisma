@@ -24,7 +24,6 @@ model User {
   currency               String     @default("USD")
   mobileNumber           String?
   theme                  Theme      @default(light)
-  totalMoneySavedToDate  Float      @default(0)
   emailVerified          Boolean    @default(false)
   loggedIn               Boolean    @default(false)
   signedVerificationCode String?

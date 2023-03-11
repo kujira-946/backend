@@ -143,50 +143,6 @@ export async function updateUserPassword(
 }
 
 // ========================================================================================= //
-// [ UPDATE A USER'S `totalMoneySavedToDate` FIELD ] ======================================= //
-// ========================================================================================= //
-
-export async function updateUserTotalMoneySavedToDate(
-  request: Request<
-    { userId: string },
-    {},
-    Validators.UserTotalMoneySavedToDateValidator
-  >,
-  response: Response
-) {
-  try {
-    const totalMoneySavedToDateData: Validators.UserTotalMoneySavedToDateValidator =
-      {
-        totalMoneySavedToDate: request.body.totalMoneySavedToDate,
-      };
-
-    const user: Validators.UserRelationsValidator = await prisma.user.update({
-      where: { id: Number(request.params.userId) },
-      data: totalMoneySavedToDateData,
-      include: {
-        overview: { include: { groups: true } },
-        logbooks: { include: { entries: { include: { purchases: true } } } },
-      },
-    });
-
-    const { totalMoneySavedToDate } =
-      Helpers.removePasswordFromUserObject(user);
-
-    return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: HttpHelpers.generateCudMessage(
-        "update",
-        "total money saved to date"
-      ),
-      data: totalMoneySavedToDate,
-    });
-  } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Failed to update your total money saved to date. Please refresh the page and try again. If the problem persists, try logging out and log back in. I apologize for the inconvenience.",
-    });
-  }
-}
-
-// ========================================================================================= //
 // [ DELETE A USER ] ======================================================================== //
 // ========================================================================================= //
 

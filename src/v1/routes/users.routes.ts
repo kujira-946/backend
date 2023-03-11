@@ -39,12 +39,4 @@ usersRouter_v1.patch(
   Controllers.updateUserPassword
 );
 
-// ↓↓↓ Update a user's `totalMoneySavedToDate` field. ↓↓↓ //
-// TODO : SET UP CRON JOB TO HIT THIS ENDPOINT ON HEROKU
-usersRouter_v1.patch(
-  "/:userId/update-total-money-saved-to-date",
-  HelperMiddlewares.validateUserData(["totalMoneySavedToDate"]),
-  Controllers.updateUserTotalMoneySavedToDate
-);
-
 usersRouter_v1.delete("/:userId", Controllers.deleteUser);
