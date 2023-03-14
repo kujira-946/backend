@@ -2,6 +2,10 @@
   "name": "kujira-backend",
   "version": "0.0.1",
   "description": "Monolithic backend for Kujira.",
+  "engines": {
+    "node": ">=19.4.0"
+  },
+  "private": true,
   "main": "src/server.ts",
   "scripts": {
     "build": "npx tsc",
