@@ -12,9 +12,15 @@ import * as Routes from "./v1/routes";
 
 dotenv.config();
 const app = express();
+
+// ↓↓↓ Add compression to all routes. ↓↓↓ //
 app.use(compression());
+
+// ↓↓↓ Allows API to parse client payload. ↓↓↓ //
+app.use(express.json());
 app.use(cors());
 
+// ↓↓↓ Routes ↓↓↓
 enum RouteBases {
   AUTH = "/api/v1/auth",
   USERS = "/api/v1/users",
@@ -24,11 +30,6 @@ enum RouteBases {
   LOGBOOKS = "/api/v1/logbooks",
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
 }
-
-// ↓↓↓ Allows API to parse client payload. ↓↓↓ //
-app.use(express.json());
-
-// ↓↓↓ Routes ↓↓↓
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, Routes.usersRouter_v1);
 app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
