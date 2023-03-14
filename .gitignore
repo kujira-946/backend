@@ -138,7 +138,7 @@ dist
 .pnp.*
 
 # Prisma ORM
-*/**/migrations
+# */**/migrations
 
 # misc
 .DS_Store
