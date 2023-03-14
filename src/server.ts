@@ -5,11 +5,13 @@ import express, {
   Response,
 } from "express";
 import dotenv from "dotenv";
+import compression from "compression";
 
 import * as Routes from "./v1/routes";
 
 dotenv.config();
 const app = express();
+app.use(compression());
 
 enum RouteBases {
   AUTH = "/api/v1/auth",
