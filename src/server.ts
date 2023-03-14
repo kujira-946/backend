@@ -61,9 +61,9 @@ const globalErrorHandlerMiddleware: ErrorRequestHandler = (
 app.use(globalErrorHandlerMiddleware);
 
 // ↓↓↓ Listening ↓↓↓ //
-const serverPort = process.env.SERVER_PORT;
-app.listen(serverPort, () => {
+const port = process.env.PORT;
+app.listen(port, () => {
   console.log(
-    `🚀 Success! CORS-enabled web server is running at https://localhost:${serverPort}`
+    `🚀 Success! CORS-enabled web server is running at https://localhost:${port}`
   );
 });
