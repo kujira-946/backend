@@ -6,12 +6,14 @@ import express, {
 } from "express";
 import dotenv from "dotenv";
 import compression from "compression";
+import cors from "cors";
 
 import * as Routes from "./v1/routes";
 
 dotenv.config();
 const app = express();
 app.use(compression());
+app.use(cors());
 
 enum RouteBases {
   AUTH = "/api/v1/auth",
@@ -50,6 +52,6 @@ app.use(globalErrorHandlerMiddleware);
 const serverPort = process.env.SERVER_PORT;
 app.listen(serverPort, () => {
   console.log(
-    `🚀 Success! Server is running at https://localhost:${serverPort}`
+    `🚀 Success! CORS-enabled web server is running at https://localhost:${serverPort}`
   );
 });
