@@ -6,19 +6,30 @@ import express, {
 } from "express";
 import dotenv from "dotenv";
 import compression from "compression";
+import helmet from "helmet";
 import cors from "cors";
+import { rateLimit } from "express-rate-limit";
 
 import * as Routes from "./v1/routes";
 
 dotenv.config();
 const app = express();
 
-// ↓↓↓ Add compression to all routes. ↓↓↓ //
-app.use(compression());
+app.use(compression()); // Compresses all routes.
+app.use(helmet()); // Sets HTTP headers to protect app from well-known web vulnerabilities.
+app.use(cors()); // Sets up CORS for all API routes.
+
+// ↓↓↓ Add rate limiting to a max of 20 requests/per minute. ↓↓↓ //
+// ↓↓↓ Prevents excessive requests, attacks (e.g. DDOS), performance issues, etc. ↓↓↓ //
+app.use(
+  rateLimit({
+    windowMs: 1 * 60 * 1000, // one minute
+    max: 20,
+  })
+);
 
 // ↓↓↓ Allows API to parse client payload. ↓↓↓ //
 app.use(express.json());
-app.use(cors());
 
 // ↓↓↓ Routes ↓↓↓
 enum RouteBases {
