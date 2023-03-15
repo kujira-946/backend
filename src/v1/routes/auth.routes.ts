@@ -7,13 +7,13 @@ import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const authRouter_v1 = express.Router();
 
-authRouter_v1.get(
+authRouter_v1.patch(
   "/register/check-email-availability",
   HelperMiddlewares.validateUserData(["email"]),
   Controllers.checkEmailAvailability
 );
 
-authRouter_v1.get(
+authRouter_v1.patch(
   "/register/check-username-availability",
   HelperMiddlewares.validateUserData(["username"]),
   Controllers.checkUsernameAvailability
