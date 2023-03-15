@@ -46,7 +46,7 @@ authRouter_v1.patch(
 );
 
 type LoginData = (keyof Types.UserLoginValidator)[];
-const loginData: LoginData = ["username", "password"];
+const loginData: LoginData = ["email", "password"];
 authRouter_v1.patch(
   "/login",
   HelperMiddlewares.validateUserData(loginData),

@@ -23,7 +23,7 @@ export type UserRegistrationValidator = Prisma.UserGetPayload<
 
 const userLoginValidator = Prisma.validator<Prisma.UserArgs>()({
   select: {
-    username: true,
+    email: true,
     password: true,
   },
 });

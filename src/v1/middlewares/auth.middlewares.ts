@@ -46,7 +46,7 @@ export async function checkUserExistsOnLoginAttempt(
 ) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { username: request.body.username },
+      where: { email: request.body.email },
     });
     (request as Types.LoginUserRequest & Types.RequestWithFoundUser).foundUser =
       user;
