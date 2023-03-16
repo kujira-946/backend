@@ -15,14 +15,14 @@ import * as Routes from "./v1/routes";
 dotenv.config();
 const app = express();
 
+app.use(compression()); // Compresses all routes.
+app.use(helmet()); // Sets HTTP headers to protect app from well-known web vulnerabilities.
 app.use(
   cors({
     origin: "*",
     optionsSuccessStatus: 200,
   })
 ); // Sets up CORS for all API routes.
-app.use(helmet()); // Sets HTTP headers to protect app from well-known web vulnerabilities.
-app.use(compression()); // Compresses all routes.
 
 // ↓↓↓ Add rate limiting to a max of 20 requests/per minute. ↓↓↓ //
 // ↓↓↓ Prevents excessive requests, attacks (e.g. DDOS), performance issues, etc. ↓↓↓ //
