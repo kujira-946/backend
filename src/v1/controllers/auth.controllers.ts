@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -103,10 +103,10 @@ export async function registerUser(
   request: Request<{}, {}, Validators.UserRegistrationValidator>,
   response: Response
 ) {
-  try {
-    return Helpers.handleSecretKeysExist(
-      response,
-      async function (verificationSecretKey: string) {
+  return Helpers.handleSecretKeysExist(
+    response,
+    async function (verificationSecretKey: string) {
+      try {
         const signedVerificationCode = Helpers.generateSignedVerificationCode(
           verificationSecretKey
         );
@@ -128,15 +128,19 @@ export async function registerUser(
             "Please note that your verification code will expire within 5 minutes.",
           data: newUser.id,
         });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          return HttpHelpers.respondWithClientError(response, "bad request", {
+            body: `Failed to create account. Field "${error.meta?.target}" is already taken.`,
+          });
+        } else {
+          return HttpHelpers.respondWithClientError(response, "bad request", {
+            body: "Failed to create account. You may have entered a non-unique email or username. Please try again.",
+          });
+        }
       }
-    );
-  } catch (error) {
-    // ↓↓↓ The client should verify uniqueness of email and username before hitting this endpoint. ↓↓↓ //
-    // ↓↓↓ Backup error handling in case it doesn't. ↓↓↓ //
-    return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "Failed to create account. You may have entered a non-unique email or username. Please try again.",
-    });
-  }
+    }
+  );
 }
 
 // ========================================================================================= //
