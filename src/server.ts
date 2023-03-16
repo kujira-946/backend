@@ -16,7 +16,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors()); // Sets up CORS for all routes.
-app.use(helmet()); // Sets HTTP headers to protect app from well-known web vulnerabilities.
+// app.use(helmet()); // Sets HTTP headers to protect app from well-known web vulnerabilities.
 app.use(compression()); // Compresses all routes.
 
 // ↓↓↓ Add rate limiting to a max of 20 requests/per minute. ↓↓↓ //
