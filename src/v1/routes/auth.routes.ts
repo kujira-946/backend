@@ -7,18 +7,6 @@ import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const authRouter_v1 = express.Router();
 
-authRouter_v1.patch(
-  "/register/check-email-availability",
-  HelperMiddlewares.validateUserData(["email"]),
-  Controllers.checkEmailAvailability
-);
-
-authRouter_v1.patch(
-  "/register/check-username-availability",
-  HelperMiddlewares.validateUserData(["username"]),
-  Controllers.checkUsernameAvailability
-);
-
 type RegistrationData = (keyof Types.UserRegistrationValidator)[];
 const registrationData: RegistrationData = ["email", "username", "password"];
 const optionalRegistrationData: RegistrationData = [
@@ -43,6 +31,18 @@ authRouter_v1.patch(
   HelperMiddlewares.validateUserData(["verificationCode"]),
   Middlewares.checkUserExistsWithId,
   Controllers.verifyRegistration
+);
+
+authRouter_v1.patch(
+  "/register/check-email-availability",
+  HelperMiddlewares.validateUserData(["email"]),
+  Controllers.checkEmailAvailability
+);
+
+authRouter_v1.patch(
+  "/register/check-username-availability",
+  HelperMiddlewares.validateUserData(["username"]),
+  Controllers.checkUsernameAvailability
 );
 
 type LoginData = (keyof Types.UserLoginValidator)[];
