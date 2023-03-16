@@ -131,7 +131,7 @@ export async function registerUser(
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
           return HttpHelpers.respondWithClientError(response, "bad request", {
-            body: `Failed to create account. Field "${error.meta?.target}" is already taken.`,
+            body: `Field "${error.meta?.target}" is already taken.`,
           });
         } else {
           return HttpHelpers.respondWithClientError(response, "bad request", {
