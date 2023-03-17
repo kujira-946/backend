@@ -280,6 +280,8 @@ export async function loginUser(
         );
         return HttpHelpers.respondWithSuccess(response, "ok", {
           body: "Please check your email for a verification code.",
+          footnote:
+            "Please note that your verification code will expire within 5 minutes.",
           data: userId,
         });
       } else {
