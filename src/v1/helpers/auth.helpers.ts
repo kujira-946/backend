@@ -114,26 +114,46 @@ export async function emailUser(
   subject: string,
   body: string[]
 ) {
-  let testAccount = await nodemailer.createTestAccount();
-  const SMTPtransporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
-  });
+  if (process.env.NODE_ENV === "production") {
+    const SMTPtransporter = nodemailer.createTransport({
+      host: "smpt.gmail.email",
+      port: 587,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_HELP,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+    const html = body.map((text: string) => `<p>${text}</p>`).join("");
+    const message = {
+      from: `"Kujira" <${process.env.EMAIL_HELP}>`,
+      to: userEmail,
+      subject,
+      html,
+    };
+    await SMTPtransporter.sendMail(message);
+  } else {
+    let testAccount = await nodemailer.createTestAccount();
+    const SMTPtransporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
 
-  const html = body.map((text: string) => `<p>${text}</p>`).join("");
-  const message = {
-    from: `"Kujira" <foo@example.com>`,
-    to: userEmail,
-    subject,
-    html,
-  };
-  const info = await SMTPtransporter.sendMail(message);
+    const html = body.map((text: string) => `<p>${text}</p>`).join("");
+    const message = {
+      from: `"Kujira" <foo@example.com>`,
+      to: userEmail,
+      subject,
+      html,
+    };
+    const info = await SMTPtransporter.sendMail(message);
 
-  console.log("Message sent: %s", info.messageId);
-  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    console.log("Message sent: %s", info.messageId);
+    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  }
 }
