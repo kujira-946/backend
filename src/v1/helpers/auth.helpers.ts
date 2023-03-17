@@ -1,10 +1,10 @@
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import { Response } from "express";
+import { User } from "@prisma/client";
 
 import * as HttpHelpers from "../helpers/http.helpers";
 import { AuthErrors } from "../utils/auth.utils";
-import { User } from "@prisma/client";
 
 // ========================================================================================= //
 // [ JWT HELPERS ] ========================================================================= //
@@ -116,8 +116,7 @@ export async function emailUser(
 ) {
   if (process.env.NODE_ENV === "production") {
     const SMTPtransporter = nodemailer.createTransport({
-      host: "smpt.gmail.email",
-      port: 587,
+      service: "hotmail",
       secure: true,
       auth: {
         user: process.env.EMAIL_HELP,
@@ -131,7 +130,10 @@ export async function emailUser(
       subject,
       html,
     };
-    await SMTPtransporter.sendMail(message);
+    SMTPtransporter.sendMail(message, function (error: any, information: any) {
+      if (error) console.log(error);
+      else console.log("Sent Response:", information.response);
+    });
   } else {
     let testAccount = await nodemailer.createTestAccount();
     const SMTPtransporter = nodemailer.createTransport({
