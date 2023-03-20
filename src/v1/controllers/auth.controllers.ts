@@ -131,7 +131,7 @@ export async function registerUser(
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
           return HttpHelpers.respondWithClientError(response, "bad request", {
-            body: `Field "${error.meta?.target}" is already taken.`,
+            body: `${error.meta?.target} not available.`,
           });
         } else {
           return HttpHelpers.respondWithClientError(response, "bad request", {
