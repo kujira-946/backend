@@ -11,6 +11,7 @@ import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 
 import * as Routes from "./v1/routes";
+import { verifyAccessToken } from "./v1/middlewares/auth.middlewares";
 
 dotenv.config();
 const app = express();
@@ -42,12 +43,20 @@ enum RouteBases {
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
 }
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
-app.use(RouteBases.USERS, Routes.usersRouter_v1);
-app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
-app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
-app.use(RouteBases.OVERVIEW_GROUPS, Routes.overviewGroupsRouter_v1);
-app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
-app.use(RouteBases.LOGBOOK_ENTRIES, Routes.logbookEntriesRouter_v1);
+app.use(RouteBases.USERS, verifyAccessToken, Routes.usersRouter_v1);
+app.use(RouteBases.PURCHASES, verifyAccessToken, Routes.purchasesRouter_v1);
+app.use(RouteBases.OVERVIEWS, verifyAccessToken, Routes.overviewsRouter_v1);
+app.use(
+  RouteBases.OVERVIEW_GROUPS,
+  verifyAccessToken,
+  Routes.overviewGroupsRouter_v1
+);
+app.use(RouteBases.LOGBOOKS, verifyAccessToken, Routes.logbooksRouter_v1);
+app.use(
+  RouteBases.LOGBOOK_ENTRIES,
+  verifyAccessToken,
+  Routes.logbookEntriesRouter_v1
+);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓ //
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (

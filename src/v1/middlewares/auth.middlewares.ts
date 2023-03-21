@@ -126,9 +126,11 @@ export async function verifyAccessToken(
     return Helpers.handleSecretKeysExist(
       response,
       function (_: string, authSecretKey: string) {
-        const accessToken = request
-          .header("Authorization")
-          ?.replace("Bearer ", "");
+        // const accessToken = request
+        //   .header("Authorization")
+        //   ?.replace("Bearer ", "");
+
+        const accessToken = request.cookies.accessToken;
 
         if (!accessToken) {
           return HttpHelpers.respondWithClientError(response, "unauthorized", {
