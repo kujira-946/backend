@@ -131,6 +131,7 @@ export async function verifyAccessToken(
         //   ?.replace("Bearer ", "");
 
         const accessToken = request.cookies.accessToken;
+        console.log("Access Token:", accessToken);
 
         if (!accessToken) {
           return HttpHelpers.respondWithClientError(response, "unauthorized", {

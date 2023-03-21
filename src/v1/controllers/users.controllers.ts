@@ -26,6 +26,7 @@ export async function fetchUsers(_: Request, response: Response) {
       });
     const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
       "password",
+      "signedVerificationCode",
     ]);
     return response
       .status(HttpStatusCodes.OK)
@@ -54,7 +55,7 @@ export async function fetchUser(
           logbooks: { include: { entries: { include: { purchases: true } } } },
         },
       });
-    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
+    const userWithoutPassword = Helpers.generateSafeUser(user);
     return response
       .status(HttpStatusCodes.OK)
       .json({ data: userWithoutPassword });
@@ -94,7 +95,7 @@ export async function updateUser(
         logbooks: { include: { entries: { include: { purchases: true } } } },
       },
     });
-    const userWithoutPassword = Helpers.removePasswordFromUserObject(user);
+    const userWithoutPassword = Helpers.generateSafeUser(user);
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "account"),
       data: userWithoutPassword,

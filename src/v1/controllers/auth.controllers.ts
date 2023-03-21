@@ -315,13 +315,12 @@ async function _loginVerificationHandler(
         logbooks: { include: { entries: { include: { purchases: true } } } },
       },
     });
-    
+
     const accessToken = jwt.sign(
       { _id: foundUserId.toString() },
       authSecretKey,
       { expiresIn: thirtyDays ? "30 days" : "7 days" }
     );
-    response.cookie("accessToken", accessToken, { httpOnly: true });
 
     const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
       "password",

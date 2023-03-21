@@ -22,6 +22,9 @@ export function excludeFieldFromUserObject<User, Field extends keyof User>(
   return user;
 }
 
-export function removePasswordFromUserObject(user: User) {
-  return excludeFieldFromUserObject(user, ["password"]);
+export function generateSafeUser(user: User) {
+  return excludeFieldFromUserObject(user, [
+    "password",
+    "signedVerificationCode",
+  ]);
 }
