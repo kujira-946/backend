@@ -126,16 +126,11 @@ export async function verifyAccessToken(
     return Helpers.handleSecretKeysExist(
       response,
       function (_: string, authSecretKey: string) {
-        // const accessToken = request
-        //   .header("Authorization")
-        //   ?.replace("Bearer ", "");
-
-        const accessToken = request.cookies.accessToken;
-        console.log("Access Token:", accessToken);
+        const accessToken = request.header("authorization");
 
         if (!accessToken) {
           return HttpHelpers.respondWithClientError(response, "unauthorized", {
-            body: "No access token. Either the token has expired or there was an error in locating it. Please try again.",
+            body: "No access token. Either the token has expired or there was an error in locating it.",
           });
         } else {
           const decodedAccessToken = jwt.verify(accessToken, authSecretKey);
