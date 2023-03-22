@@ -55,10 +55,8 @@ export async function fetchUser(
           logbooks: { include: { entries: { include: { purchases: true } } } },
         },
       });
-    const userWithoutPassword = Helpers.generateSafeUser(user);
-    return response
-      .status(HttpStatusCodes.OK)
-      .json({ data: userWithoutPassword });
+    const safeUser = Helpers.generateSafeUser(user);
+    return response.status(HttpStatusCodes.OK).json({ data: safeUser });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateFetchError("account", false),
@@ -96,10 +94,10 @@ export async function updateUser(
         logbooks: { include: { entries: { include: { purchases: true } } } },
       },
     });
-    const userWithoutPassword = Helpers.generateSafeUser(user);
+    const safeUser = Helpers.generateSafeUser(user);
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "account"),
-      data: userWithoutPassword,
+      data: safeUser,
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {

@@ -9,7 +9,7 @@ import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { UserRelationsValidator } from "../validators/users.validators";
-import { excludeFieldFromUserObject } from "../helpers/users.helpers";
+import { generateSafeUser } from "../helpers/users.helpers";
 
 const prisma = new PrismaClient();
 
@@ -172,12 +172,10 @@ async function _registrationVerificationHandler(
         { expiresIn: "30 days" }
       );
 
-      const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
-        "password",
-      ]);
+      const safeUser = generateSafeUser(updatedUser);
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
-        data: userWithoutPassword,
+        data: safeUser,
         accessToken,
       });
     }
@@ -332,12 +330,10 @@ async function _loginVerificationHandler(
       { expiresIn: thirtyDays ? "30 days" : "7 days" }
     );
 
-    const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
-      "password",
-    ]);
+    const safeUser = generateSafeUser(updatedUser);
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
-      data: userWithoutPassword,
+      data: safeUser,
       accessToken,
     });
   } else {

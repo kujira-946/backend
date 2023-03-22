@@ -14,7 +14,7 @@ export function excludeFieldFromUsersObject<User, Field extends keyof User>(
   return users;
 }
 
-export function excludeFieldFromUserObject<User, Field extends keyof User>(
+function excludeFieldFromUserObject<User, Field extends keyof User>(
   user: User,
   fields: Field[]
 ): Omit<User, Field> {
