@@ -96,6 +96,7 @@ async function _emailVerificationCodeToNewUser(
   Helpers.emailUser(request.body.email, "Kujira: Confirm Registration", [
     "Thank you for registering! Glad to have you on board :)",
     `Please copy and paste the following verification code into the app to verify your registration: ${extractedCode}`,
+    "If this is a mistake, you can safely ignore this email.",
   ]);
 }
 
@@ -254,6 +255,7 @@ function _emailNewVerificationCodeToUser(
   Helpers.emailUser(foundUserEmail, "Kujira Login", [
     "Welcome back! This email is in response to your login request.",
     `Please copy and paste the following verification code into the app to verify your login: ${verificationCode}`,
+    "If this is a mistake, you can safely ignore this email.",
   ]);
 }
 
@@ -429,6 +431,7 @@ export async function requestNewVerificationCode(
         Helpers.emailUser(user.email, "Kujira: New Verification Code", [
           "This email is in response to your request for a new verification code.",
           `Please copy and paste the following verification code into the app to verify your account: ${verificationCode}`,
+          "If this is a mistake, you can safely ignore this email.",
         ]);
 
         return HttpHelpers.respondWithSuccess(response, "ok", {
