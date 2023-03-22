@@ -11,7 +11,7 @@ usersRouter_v1.get("/", Controllers.fetchUsers);
 
 usersRouter_v1.get("/:userId", Controllers.fetchUser);
 
-// ↓↓↓ Update a user (`password` and `totalSavedToDate` are handled by different endpoints). ↓↓↓ //
+// ↓↓↓ Update a user (password update in different endpoint). ↓↓↓ //
 type UpdateData = (keyof Validators.UserUpdateValidator)[];
 const updateData: UpdateData = [
   "email",
@@ -21,6 +21,7 @@ const updateData: UpdateData = [
   "birthday",
   "currency",
   "mobileNumber",
+  "onboarded",
   "theme",
 ];
 usersRouter_v1.patch(

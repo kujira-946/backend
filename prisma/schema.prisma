@@ -24,6 +24,7 @@ model User {
   currency               String     @default("USD")
   mobileNumber           String?
   theme                  Theme      @default(light)
+  onboarded              Boolean    @default(false)
   emailVerified          Boolean    @default(false)
   loggedIn               Boolean    @default(false)
   signedVerificationCode String?
@@ -65,8 +66,8 @@ model Overview {
   // Has Many
   groups    OverviewGroup[]
   // Belongs to
-  owner      User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId    Int
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
 }
 
 model OverviewGroup {

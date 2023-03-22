@@ -21,6 +21,7 @@ const userUpdateValidator = Prisma.validator<Prisma.UserArgs>()({
     birthday: true,
     currency: true,
     theme: true,
+    onboarded: true,
     mobileNumber: true,
   },
 });

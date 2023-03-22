@@ -130,7 +130,7 @@ export async function verifyAccessToken(
 
         if (!accessToken) {
           return HttpHelpers.respondWithClientError(response, "unauthorized", {
-            body: "No access token. Either the token has expired or there was an error in locating it.",
+            body: "Unauthorized access.",
           });
         } else {
           const decodedAccessToken = jwt.verify(accessToken, authSecretKey);

@@ -84,6 +84,7 @@ export async function updateUser(
       birthday: request.body.birthday,
       currency: request.body.currency,
       theme: request.body.theme,
+      onboarded: request.body.onboarded,
       mobileNumber: request.body.mobileNumber,
     };
 
