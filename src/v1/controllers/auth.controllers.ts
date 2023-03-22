@@ -151,6 +151,7 @@ async function _registrationVerificationHandler(
   response: Response,
   clientVerificationCode: string,
   databaseVerificationCode: string,
+  authSecretKey: string,
   foundUserId: number
 ) {
   try {
@@ -164,12 +165,20 @@ async function _registrationVerificationHandler(
           logbooks: { include: { entries: { include: { purchases: true } } } },
         },
       });
+
+      const accessToken = jwt.sign(
+        { _id: foundUserId.toString() },
+        authSecretKey,
+        { expiresIn: "30 days" }
+      );
+
       const userWithoutPassword = excludeFieldFromUserObject(updatedUser, [
         "password",
       ]);
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
         data: userWithoutPassword,
+        accessToken,
       });
     }
     // ↓↓↓ If the user entered an incorrect verification code. ↓↓↓ //
@@ -207,11 +216,12 @@ export function verifyRegistration(
     return Helpers.handleAccountVerification(
       response,
       foundUser,
-      function (verificationCode: string) {
+      function (verificationCode: string, authSecretKey: string) {
         return _registrationVerificationHandler(
           response,
           request.body.verificationCode,
           verificationCode,
+          authSecretKey,
           foundUser.id
         );
       }
