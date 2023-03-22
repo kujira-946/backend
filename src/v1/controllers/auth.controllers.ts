@@ -160,7 +160,11 @@ async function _registrationVerificationHandler(
     if (clientVerificationCode === databaseVerificationCode) {
       const updatedUser: UserRelationsValidator = await prisma.user.update({
         where: { id: foundUserId },
-        data: { emailVerified: true, signedVerificationCode: null },
+        data: {
+          emailVerified: true,
+          loggedIn: true,
+          signedVerificationCode: null,
+        },
         include: {
           overview: { include: { groups: true } },
           logbooks: { include: { entries: { include: { purchases: true } } } },
