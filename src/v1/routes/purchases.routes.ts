@@ -8,6 +8,24 @@ export const purchasesRouter_v1 = express.Router();
 
 purchasesRouter_v1.get("/", Controllers.fetchPurchases);
 
+purchasesRouter_v1.get(
+  "/fetch-overview-group-purchases",
+  HelperMiddlewares.validateUserData(["overviewGroupId"]),
+  Controllers.fetchOverviewGroupPurchases
+);
+
+purchasesRouter_v1.get(
+  "/fetch-logbook-entry-purchases",
+  HelperMiddlewares.validateUserData(["logbookEntryId"]),
+  Controllers.fetchLogbookEntryPurchases
+);
+
+purchasesRouter_v1.get(
+  "/bulk-fetch",
+  HelperMiddlewares.validateUserData(["purchaseIds"]),
+  Controllers.bulkFetchPurchases
+);
+
 purchasesRouter_v1.get("/:purchaseId", Controllers.fetchPurchase);
 
 type CreateData = (keyof Validators.PurchaseCreateValidator)[];

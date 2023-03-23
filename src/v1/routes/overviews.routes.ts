@@ -8,6 +8,18 @@ export const overviewsRouter_v1 = express.Router();
 
 overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
+overviewsRouter_v1.get(
+  "/fetch-user-overviews",
+  HelperMiddlewares.validateUserData(["ownerId"]),
+  Controllers.fetchUserOverviews
+);
+
+overviewsRouter_v1.get(
+  "/bulk-fetch",
+  HelperMiddlewares.validateUserData(["overviewIds"]),
+  Controllers.bulkFetchOverviews
+);
+
 overviewsRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
 type CreateData = (keyof Validators.OverviewCreateValidator)[];

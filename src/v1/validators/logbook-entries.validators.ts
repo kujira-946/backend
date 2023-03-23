@@ -1,13 +1,5 @@
 import { Prisma } from "@prisma/client";
 
-const logbookEntryRelationsValidator =
-  Prisma.validator<Prisma.LogbookEntryArgs>()({
-    include: { purchases: { orderBy: { placement: "asc" } } },
-  });
-export type LogbookEntryRelationsValidator = Prisma.LogbookEntryGetPayload<
-  typeof logbookEntryRelationsValidator
->;
-
 const logbookEntryCreateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
   {
     select: {

@@ -13,11 +13,9 @@ const prisma = new PrismaClient();
 
 export async function fetchOverviewGroups(_: Request, response: Response) {
   try {
-    const overviewGroups: Validators.OverviewGroupRelationsValidator[] =
-      await prisma.overviewGroup.findMany({
-        orderBy: { id: "asc" },
-        include: { purchases: true },
-      });
+    const overviewGroups = await prisma.overviewGroup.findMany({
+      orderBy: { id: "asc" },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: overviewGroups });
   } catch (error) {
@@ -30,6 +28,50 @@ export async function fetchOverviewGroups(_: Request, response: Response) {
 }
 
 // ========================================================================================= //
+// [ FETCH OVERVIEW OVERVIEW GROUPS ] ================================================================ //
+// ========================================================================================= //
+
+export async function fetchOverviewOverviewGroups(
+  request: Request<{}, {}, { overviewId: number }>,
+  response: Response
+) {
+  try {
+    const overviewGroups = await prisma.overviewGroup.findMany({
+      orderBy: { id: "asc" },
+      where: { overviewId: request.body.overviewId },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: overviewGroups });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("overview groups", true),
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ BULK FETCH OVERVIEW GROUPS ] ========================================================== //
+// ========================================================================================= //
+
+export async function bulkFetchOverviewGroups(
+  request: Request<{}, {}, { overviewGroupIds: number[] }>,
+  response: Response
+) {
+  try {
+    const overviewGroups = await prisma.overviewGroup.findMany({
+      orderBy: { id: "asc" },
+      where: { id: { in: request.body.overviewGroupIds } },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: overviewGroups });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("overview groups", true),
+    });
+  }
+}
+
+// ========================================================================================= //
 // [ FETCH ONE OVERVIEW GROUP ] ============================================================ //
 // ========================================================================================= //
 
@@ -38,11 +80,9 @@ export async function fetchOverviewGroup(
   response: Response
 ) {
   try {
-    const overviewGroup: Validators.OverviewGroupRelationsValidator =
-      await prisma.overviewGroup.findUniqueOrThrow({
-        where: { id: Number(request.params.overviewGroupId) },
-        include: { purchases: true },
-      });
+    const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+      where: { id: Number(request.params.overviewGroupId) },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: overviewGroup });
   } catch (error) {
@@ -67,11 +107,9 @@ export async function createOverviewGroup(
       overviewId: request.body.overviewId,
     };
 
-    const newOverviewGroup: Validators.OverviewGroupRelationsValidator =
-      await prisma.overviewGroup.create({
-        data: createData,
-        include: { purchases: true },
-      });
+    const newOverviewGroup = await prisma.overviewGroup.create({
+      data: createData,
+    });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("create", "overview group"),
@@ -103,12 +141,10 @@ export async function updateOverviewGroup(
       overviewId: request.body.overviewId,
     };
 
-    const updatedOverviewGroup: Validators.OverviewGroupRelationsValidator =
-      await prisma.overviewGroup.update({
-        where: { id: Number(request.params.overviewGroupId) },
-        data: updateData,
-        include: { purchases: true },
-      });
+    const updatedOverviewGroup = await prisma.overviewGroup.update({
+      where: { id: Number(request.params.overviewGroupId) },
+      data: updateData,
+    });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "overview group"),

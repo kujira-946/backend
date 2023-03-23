@@ -28,6 +28,72 @@ export async function fetchPurchases(_: Request, response: Response) {
 }
 
 // ========================================================================================= //
+// [ FETCH OVERVIEW GROUP PURCHASES ] ================================================================ //
+// ========================================================================================= //
+
+export async function fetchOverviewGroupPurchases(
+  request: Request<{}, {}, { overviewGroupId: number }>,
+  response: Response
+) {
+  try {
+    const purchases = await prisma.purchase.findMany({
+      orderBy: { id: "asc" },
+      where: { overviewGroupId: request.body.overviewGroupId },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: purchases });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("overview group purchases", true),
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ FETCH LOGBOOK PURCHASES ] ================================================================ //
+// ========================================================================================= //
+
+export async function fetchLogbookEntryPurchases(
+  request: Request<{}, {}, { logbookEntryId: number }>,
+  response: Response
+) {
+  try {
+    const purchases = await prisma.purchase.findMany({
+      orderBy: { id: "asc" },
+      where: { logbookEntryId: request.body.logbookEntryId },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: purchases });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("overview group purchases", true),
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ BULK FETCH PURCHASES ] ================================================================ //
+// ========================================================================================= //
+
+export async function bulkFetchPurchases(
+  request: Request<{}, {}, { purchaseIds: number[] }>,
+  response: Response
+) {
+  try {
+    const purchases = await prisma.purchase.findMany({
+      orderBy: { id: "asc" },
+      where: { id: { in: request.body.purchaseIds } },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: purchases });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("purchases", true),
+    });
+  }
+}
+
+// ========================================================================================= //
 // [ FETCH ONE PURCHASE ] ================================================================== //
 // ========================================================================================= //
 

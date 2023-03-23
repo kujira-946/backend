@@ -16,21 +16,12 @@ const prisma = new PrismaClient();
 
 export async function fetchUsers(_: Request, response: Response) {
   try {
-    const users: Validators.UserRelationsValidator[] =
-      await prisma.user.findMany({
-        orderBy: { id: "asc" },
-        include: {
-          overview: { include: { groups: true } },
-          logbooks: { include: { entries: { include: { purchases: true } } } },
-        },
-      });
-    const usersWithoutPassword = Helpers.excludeFieldFromUsersObject(users, [
-      "password",
-      "signedVerificationCode",
-    ]);
-    return response
-      .status(HttpStatusCodes.OK)
-      .json({ data: usersWithoutPassword });
+    const users = await prisma.user.findMany({
+      orderBy: { id: "asc" },
+    });
+    const safeUsers = Helpers.generateSafeUsers(users);
+
+    return response.status(HttpStatusCodes.OK).json({ data: safeUsers });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateFetchError("accounts"),
@@ -47,15 +38,11 @@ export async function fetchUser(
   response: Response
 ) {
   try {
-    const user: Validators.UserRelationsValidator =
-      await prisma.user.findUniqueOrThrow({
-        where: { id: Number(request.params.userId) },
-        include: {
-          overview: { include: { groups: true } },
-          logbooks: { include: { entries: { include: { purchases: true } } } },
-        },
-      });
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: Number(request.params.userId) },
+    });
     const safeUser = Helpers.generateSafeUser(user);
+
     return response.status(HttpStatusCodes.OK).json({ data: safeUser });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
@@ -86,15 +73,12 @@ export async function updateUser(
       mobileNumber: request.body.mobileNumber,
     };
 
-    const user: Validators.UserRelationsValidator = await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdateData,
-      include: {
-        overview: { include: { groups: true } },
-        logbooks: { include: { entries: { include: { purchases: true } } } },
-      },
     });
     const safeUser = Helpers.generateSafeUser(user);
+
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "account"),
       data: safeUser,
@@ -127,11 +111,8 @@ export async function updateUserPassword(
     await prisma.user.update({
       where: { id: Number(request.params.userId) },
       data: userUpdatePasswordData,
-      include: {
-        overview: { include: { groups: true } },
-        logbooks: { include: { entries: { include: { purchases: true } } } },
-      },
     });
+
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "password"),
     });
@@ -154,6 +135,7 @@ export async function deleteUser(
     await prisma.user.delete({
       where: { id: Number(request.params.userId) },
     });
+
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "account"),
     });

@@ -13,11 +13,10 @@ const prisma = new PrismaClient();
 
 export async function fetchLogbooks(_: Request, response: Response) {
   try {
-    const logbooks: Validators.LogbookRelationsValidator[] =
-      await prisma.logbook.findMany({
-        orderBy: { id: "asc" },
-        include: { entries: { include: { purchases: true } } },
-      });
+    const logbooks = await prisma.logbook.findMany({
+      orderBy: { id: "asc" },
+      include: { entries: { include: { purchases: true } } },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbooks });
   } catch (error) {
@@ -30,6 +29,28 @@ export async function fetchLogbooks(_: Request, response: Response) {
 }
 
 // ========================================================================================= //
+// [ FETCH USER LOGBOOKS ] ================================================================= //
+// ========================================================================================= //
+
+export async function fetchUserLogbooks(
+  request: Request<{}, {}, { ownerId: number }>,
+  response: Response
+) {
+  try {
+    const logbooks = await prisma.logbook.findMany({
+      orderBy: { id: "asc" },
+      where: { ownerId: request.body.ownerId },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: logbooks });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("logbooks", true),
+    });
+  }
+}
+
+// ========================================================================================= //
 // [ FETCH ONE LOGBOOK ] =================================================================== //
 // ========================================================================================= //
 
@@ -38,11 +59,10 @@ export async function fetchLogbook(
   response: Response
 ) {
   try {
-    const logbook: Validators.LogbookRelationsValidator =
-      await prisma.logbook.findUniqueOrThrow({
-        where: { id: Number(request.params.logbookId) },
-        include: { entries: { include: { purchases: true } } },
-      });
+    const logbook = await prisma.logbook.findUniqueOrThrow({
+      where: { id: Number(request.params.logbookId) },
+      include: { entries: { include: { purchases: true } } },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: logbook });
   } catch (error) {
@@ -66,11 +86,10 @@ export async function createLogbook(
       ownerId: request.body.ownerId,
     };
 
-    const newLogbook: Validators.LogbookRelationsValidator =
-      await prisma.logbook.create({
-        data: createData,
-        include: { entries: { include: { purchases: true } } },
-      });
+    const newLogbook = await prisma.logbook.create({
+      data: createData,
+      include: { entries: { include: { purchases: true } } },
+    });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("create", "logbook"),
@@ -100,12 +119,11 @@ export async function updateLogbook(
       name: request.body.name,
     };
 
-    const updatedLogbook: Validators.LogbookRelationsValidator =
-      await prisma.logbook.update({
-        where: { id: Number(request.params.logbookId) },
-        data: updateData,
-        include: { entries: { include: { purchases: true } } },
-      });
+    const updatedLogbook = await prisma.logbook.update({
+      where: { id: Number(request.params.logbookId) },
+      data: updateData,
+      include: { entries: { include: { purchases: true } } },
+    });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "logbook"),

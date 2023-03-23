@@ -13,11 +13,9 @@ const prisma = new PrismaClient();
 
 export async function fetchOverviews(_: Request, response: Response) {
   try {
-    const overviews: Validators.OverviewRelationsValidator[] =
-      await prisma.overview.findMany({
-        orderBy: { id: "asc" },
-        include: { groups: true },
-      });
+    const overviews = await prisma.overview.findMany({
+      orderBy: { id: "asc" },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: overviews });
   } catch (error) {
@@ -30,6 +28,50 @@ export async function fetchOverviews(_: Request, response: Response) {
 }
 
 // ========================================================================================= //
+// [ FETCH USER OVERVIEWS ] ================================================================ //
+// ========================================================================================= //
+
+export async function fetchUserOverviews(
+  request: Request<{}, {}, { ownerId: number }>,
+  response: Response
+) {
+  try {
+    const overviews = await prisma.overview.findMany({
+      orderBy: { id: "asc" },
+      where: { ownerId: request.body.ownerId },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: overviews });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("user overviews", true),
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ BULK FETCH OVERVIEWS ] ================================================================ //
+// ========================================================================================= //
+
+export async function bulkFetchOverviews(
+  request: Request<{}, {}, { overviewIds: number[] }>,
+  response: Response
+) {
+  try {
+    const overviews = await prisma.overview.findMany({
+      orderBy: { id: "asc" },
+      where: { id: { in: request.body.overviewIds } },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: overviews });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("overviews", true),
+    });
+  }
+}
+
+// ========================================================================================= //
 // [ FETCH ONE OVERVIEW ] ================================================================== //
 // ========================================================================================= //
 
@@ -38,11 +80,9 @@ export async function fetchOverview(
   response: Response
 ) {
   try {
-    const overview: Validators.OverviewRelationsValidator =
-      await prisma.overview.findUniqueOrThrow({
-        where: { id: Number(request.params.overviewId) },
-        include: { groups: true },
-      });
+    const overview = await prisma.overview.findUniqueOrThrow({
+      where: { id: Number(request.params.overviewId) },
+    });
 
     return response.status(HttpStatusCodes.OK).json({ data: overview });
   } catch (error) {
@@ -67,11 +107,9 @@ export async function createOverview(
       ownerId: request.body.ownerId,
     };
 
-    const newOverview: Validators.OverviewRelationsValidator =
-      await prisma.overview.create({
-        data: createData,
-        include: { groups: true },
-      });
+    const newOverview = await prisma.overview.create({
+      data: createData,
+    });
 
     return HttpHelpers.respondWithSuccess(response, "created", {
       body: HttpHelpers.generateCudMessage("create", "overview"),
@@ -102,12 +140,10 @@ export async function updateOverview(
       savings: request.body.savings,
     };
 
-    const updatedOverview: Validators.OverviewRelationsValidator =
-      await prisma.overview.update({
-        where: { id: Number(request.params.overviewId) },
-        data: updateData,
-        include: { groups: true },
-      });
+    const updatedOverview = await prisma.overview.update({
+      where: { id: Number(request.params.overviewId) },
+      data: updateData,
+    });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "overview"),
