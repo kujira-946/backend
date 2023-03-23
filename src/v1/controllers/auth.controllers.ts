@@ -8,7 +8,6 @@ import * as Validators from "../validators/auth.validators";
 import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
-import { UserRelationsValidator } from "../validators/users.validators";
 import { generateSafeUser } from "../helpers/users.helpers";
 
 const prisma = new PrismaClient();
@@ -158,16 +157,12 @@ async function _registrationVerificationHandler(
   try {
     // ↓↓↓ If the user entered the correct verification code. ↓↓↓ //
     if (clientVerificationCode === databaseVerificationCode) {
-      const updatedUser: UserRelationsValidator = await prisma.user.update({
+      const updatedUser = await prisma.user.update({
         where: { id: foundUserId },
         data: {
           emailVerified: true,
           loggedIn: true,
           signedVerificationCode: null,
-        },
-        include: {
-          overview: { include: { groups: true } },
-          logbooks: { include: { entries: { include: { purchases: true } } } },
         },
       });
 
@@ -321,13 +316,9 @@ async function _loginVerificationHandler(
   thirtyDays: boolean
 ) {
   if (clientVerificationCode === databaseVerificationCode) {
-    const updatedUser: UserRelationsValidator = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: foundUserId },
       data: { loggedIn: true, signedVerificationCode: null },
-      include: {
-        overview: { include: { groups: true } },
-        logbooks: { include: { entries: { include: { purchases: true } } } },
-      },
     });
 
     const accessToken = jwt.sign(
