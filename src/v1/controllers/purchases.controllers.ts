@@ -242,12 +242,12 @@ export async function deletePurchase(
 // ========================================================================================= //
 
 export async function batchDeletePurchases(
-  request: Request<{}, {}, { ids: number[] }>,
+  request: Request<{}, {}, { purchaseIds: number[] }>,
   response: Response
 ) {
   try {
     await prisma.purchase.deleteMany({
-      where: { id: { in: request.body.ids } },
+      where: { id: { in: request.body.purchaseIds } },
     });
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

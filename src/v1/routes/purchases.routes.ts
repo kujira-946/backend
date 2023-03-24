@@ -74,7 +74,7 @@ purchasesRouter_v1.delete("/:purchaseId", Controllers.deletePurchase);
 
 purchasesRouter_v1.post(
   "/batch-delete",
-  HelperMiddlewares.validateUserData(["ids"]),
+  HelperMiddlewares.validateUserData(["purchaseIds"]),
   Controllers.batchDeletePurchases
 );
 
