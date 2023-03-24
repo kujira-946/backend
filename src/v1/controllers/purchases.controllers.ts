@@ -148,6 +148,35 @@ export async function createPurchase(
 }
 
 // ========================================================================================= //
+// [ BULK CREATE PURCHASES ] =============================================================== //
+// ========================================================================================= //
+
+export async function bulkCreatePurchases(
+  request: Request<
+    {},
+    {},
+    { purchasesData: Validators.PurchaseCreateValidator[] }
+  >,
+  response: Response
+) {
+  try {
+    const newPurchases = await prisma.purchase.createMany({
+      data: request.body.purchasesData,
+      skipDuplicates: true,
+    });
+
+    return HttpHelpers.respondWithSuccess(response, "created", {
+      body: HttpHelpers.generateCudMessage("create", "purchases"),
+      data: newPurchases,
+    });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "bad request", {
+      body: HttpHelpers.generateCudMessage("create", "purchases", true),
+    });
+  }
+}
+
+// ========================================================================================= //
 // [ UPDATE A PURCHASE ] =================================================================== //
 // ========================================================================================= //
 

@@ -47,6 +47,12 @@ purchasesRouter_v1.post(
   Controllers.createPurchase
 );
 
+purchasesRouter_v1.post(
+  "/bulk-create-purchases",
+  HelperMiddlewares.validateUserData(["purchasesData"], { isHttpPost: true }),
+  Controllers.bulkCreatePurchases
+);
+
 type UpdateData = (keyof Validators.PurchaseUpdateValidator)[];
 const updateData: UpdateData = [
   "placement",
