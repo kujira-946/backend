@@ -1,4 +1,4 @@
-import { PrismaClient, Purchase } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
 import * as HttpHelpers from "../helpers/http.helpers";
