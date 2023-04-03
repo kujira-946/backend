@@ -8,13 +8,13 @@ export const overviewsRouter_v1 = express.Router();
 
 overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
-overviewsRouter_v1.get(
+overviewsRouter_v1.post(
   "/fetch-user-overviews",
   HelperMiddlewares.validateUserData(["ownerId"]),
   Controllers.fetchUserOverviews
 );
 
-overviewsRouter_v1.get(
+overviewsRouter_v1.post(
   "/bulk-fetch",
   HelperMiddlewares.validateUserData(["overviewIds"]),
   Controllers.bulkFetchOverviews

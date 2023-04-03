@@ -8,7 +8,7 @@ export const logbooksRouter_v1 = express.Router();
 
 logbooksRouter_v1.get("/", Controllers.fetchLogbooks);
 
-logbooksRouter_v1.get(
+logbooksRouter_v1.post(
   "/fetch-user-logbooks",
   HelperMiddlewares.validateUserData(["ownerId"]),
   Controllers.fetchUserLogbooks

@@ -8,13 +8,13 @@ export const overviewGroupsRouter_v1 = express.Router();
 
 overviewGroupsRouter_v1.get("/", Controllers.fetchOverviewGroups);
 
-overviewGroupsRouter_v1.get(
+overviewGroupsRouter_v1.post(
   "/fetch-overview-groups",
   HelperMiddlewares.validateUserData(["overviewId"]),
   Controllers.fetchOverviewOverviewGroups
 );
 
-overviewGroupsRouter_v1.get(
+overviewGroupsRouter_v1.post(
   "/bulk-fetch",
   HelperMiddlewares.validateUserData(["overviewGroupIds"]),
   Controllers.bulkFetchOverviewGroups

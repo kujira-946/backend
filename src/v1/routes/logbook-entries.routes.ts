@@ -8,7 +8,7 @@ export const logbookEntriesRouter_v1 = express.Router();
 
 logbookEntriesRouter_v1.get("/", Controllers.fetchLogbookEntries);
 
-logbookEntriesRouter_v1.get(
+logbookEntriesRouter_v1.post(
   "/fetch-logbook-entries",
   HelperMiddlewares.validateUserData(["logbookId"]),
   Controllers.fetchLogbookLogbookEntries
