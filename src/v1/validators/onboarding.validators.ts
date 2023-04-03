@@ -29,7 +29,7 @@ const purchaseCreateValidator = Prisma.validator<Prisma.PurchaseArgs>()({
     cost: true,
   },
 });
-type PurchaseCreateValidator = Prisma.PurchaseGetPayload<
+export type PurchaseCreateValidator = Prisma.PurchaseGetPayload<
   typeof purchaseCreateValidator
 >;
 

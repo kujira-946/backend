@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Purchase } from "@prisma/client";
 import { Request, Response } from "express";
 
 import * as HttpHelpers from "../helpers/http.helpers";
@@ -27,19 +27,29 @@ export async function onboardNewUser(
       data: { ...request.body.incomingOverviewGroup, overviewId: overview.id },
     });
 
+    const recurringPurchasesData = request.body.recurringPurchases.map(
+      (purchase: Validators.PurchaseCreateValidator) => {
+        return {
+          ...purchase,
+          overviewGroupId: recurringOverviewGroup.id,
+        };
+      }
+    );
     const recurringPurchases = await prisma.purchase.createMany({
-      data: {
-        ...request.body.recurringPurchases,
-        overviewGroupId: recurringOverviewGroup.id,
-      },
+      data: recurringPurchasesData,
       skipDuplicates: true,
     });
 
+    const incomingPurchasesData = request.body.incomingPurchases.map(
+      (purchase: Validators.PurchaseCreateValidator) => {
+        return {
+          ...purchase,
+          overviewGroupId: incomingOverviewGroup.id,
+        };
+      }
+    );
     const incomingPurchases = await prisma.purchase.createMany({
-      data: {
-        ...request.body.incomingPurchases,
-        overviewGroupId: incomingOverviewGroup.id,
-      },
+      data: incomingPurchasesData,
       skipDuplicates: true,
     });
 
