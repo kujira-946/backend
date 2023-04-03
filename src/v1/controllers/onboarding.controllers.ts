@@ -35,7 +35,7 @@ export async function onboardNewUser(
         };
       }
     );
-    const recurringPurchases = await prisma.purchase.createMany({
+    await prisma.purchase.createMany({
       data: recurringPurchasesData,
       skipDuplicates: true,
     });
@@ -48,20 +48,19 @@ export async function onboardNewUser(
         };
       }
     );
-    const incomingPurchases = await prisma.purchase.createMany({
+    await prisma.purchase.createMany({
       data: incomingPurchasesData,
       skipDuplicates: true,
     });
 
+    await prisma.user.update({
+      where: { id: request.body.overview.ownerId },
+      data: { onboarded: true },
+    });
+
     return HttpHelpers.respondWithSuccess(response, "created", {
-      body: HttpHelpers.generateCudMessage("create", "onboarded user content"),
-      data: {
-        overview,
-        recurringOverviewGroup,
-        incomingOverviewGroup,
-        recurringPurchases,
-        incomingPurchases,
-      },
+      title: "Successfully onboarded!",
+      body: "Taking you to your logbooks dashboard.",
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
