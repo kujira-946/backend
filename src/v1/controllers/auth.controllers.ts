@@ -403,7 +403,7 @@ export async function logout(
 // ========================================================================================= //
 
 export async function requestNewVerificationCode(
-  request: Request<{ userId: string }>,
+  request: Request<{}, {}, { email: string }>,
   response: Response
 ) {
   return Helpers.handleSecretKeysExist(
@@ -415,7 +415,7 @@ export async function requestNewVerificationCode(
         );
 
         const user = await prisma.user.update({
-          where: { id: Number(request.params.userId) },
+          where: { email: request.body.email },
           data: { loggedIn: false, signedVerificationCode },
         });
 

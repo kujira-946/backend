@@ -69,6 +69,7 @@ authRouter_v1.patch(
 );
 
 authRouter_v1.patch(
-  "/request-new-verification-code/:userId",
+  "/request-new-verification-code",
+  HelperMiddlewares.validateUserData(["email"]),
   Controllers.requestNewVerificationCode
 );
