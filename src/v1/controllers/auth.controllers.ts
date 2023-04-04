@@ -193,9 +193,9 @@ async function _registrationVerificationHandler(
 }
 
 type RegistrationVerificationRequest = Request<
-  { userId: string },
   {},
-  { verificationCode: string }
+  {},
+  { email: string; verificationCode: string }
 >;
 
 export function verifyRegistration(
@@ -341,9 +341,9 @@ async function _loginVerificationHandler(
 }
 
 type LoginVerificationRequest = Request<
-  { userId: string },
   {},
-  { verificationCode: string; thirtyDays: boolean }
+  {},
+  { email: string; verificationCode: string; thirtyDays: boolean }
 >;
 export async function verifyLogin(
   request: LoginVerificationRequest,

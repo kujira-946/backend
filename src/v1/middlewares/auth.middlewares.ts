@@ -13,16 +13,16 @@ const prisma = new PrismaClient();
 // [ CHECKS IF USER IS IN DATABASE WITH ID & PASSES IT TO THE NEXT MIDDLEWARE ] ============ //
 // ========================================================================================= //
 
-type RequestWithUserIdInParams = Request<{ userId: string }, {}, {}>;
+type RequestWithUserIdInParams = Request<{}, {}, { email: string }>;
 
-export async function checkUserExistsWithId(
+export async function checkUserExistsWithEmail(
   request: RequestWithUserIdInParams,
   response: Response,
   next: NextFunction
 ) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { id: Number(request.params.userId) },
+      where: { email: request.body.email },
     });
     (
       request as Types.RequestWithFoundUser & RequestWithUserIdInParams

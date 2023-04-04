@@ -8,9 +8,9 @@ import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 export const authRouter_v1 = express.Router();
 
 authRouter_v1.patch(
-  "/register/:userId/verify",
-  HelperMiddlewares.validateUserData(["verificationCode"]),
-  Middlewares.checkUserExistsWithId,
+  "/register/verify",
+  HelperMiddlewares.validateUserData(["email", "verificationCode"]),
+  Middlewares.checkUserExistsWithEmail,
   Controllers.verifyRegistration
 );
 
@@ -56,9 +56,13 @@ authRouter_v1.patch(
 );
 
 authRouter_v1.patch(
-  "/login/:userId/verify",
-  HelperMiddlewares.validateUserData(["verificationCode", "thirtyDays"]),
-  Middlewares.checkUserExistsWithId,
+  "/login/verify",
+  HelperMiddlewares.validateUserData([
+    "email",
+    "verificationCode",
+    "thirtyDays",
+  ]),
+  Middlewares.checkUserExistsWithEmail,
   Controllers.verifyLogin
 );
 
