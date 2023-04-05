@@ -264,7 +264,7 @@ export async function batchDeletePurchases(
 // [ DELETE ALL ] ========================================================================== //
 // ========================================================================================= //
 
-export async function deleteAllPurchases(
+export async function deleteAssociatedPurchases(
   request: Request<
     {},
     {},

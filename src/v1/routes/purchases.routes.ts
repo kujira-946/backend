@@ -79,10 +79,10 @@ purchasesRouter_v1.post(
 );
 
 purchasesRouter_v1.post(
-  "/delete-all",
+  "/delete-associated-purchases",
   HelperMiddlewares.validateUserData([], { isHttpPost: true }, [
     "overviewGroupId",
     "logbookEntryId",
   ]),
-  Controllers.deleteAllPurchases
+  Controllers.deleteAssociatedPurchases
 );
