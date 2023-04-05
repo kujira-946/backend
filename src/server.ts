@@ -22,12 +22,15 @@ app.use(compression()); // Compresses all routes.
 
 // ↓↓↓ Add rate limiting to a max of 20 requests/per minute. ↓↓↓ //
 // ↓↓↓ Prevents excessive requests, attacks (e.g. DDOS), performance issues, etc. ↓↓↓ //
-app.use(
-  rateLimit({
-    windowMs: 1 * 60 * 1000, // one minute
-    max: 20,
-  })
-);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(
+    rateLimit({
+      windowMs: 1 * 60 * 1000, // one minute
+      max: 20,
+    })
+  );
+}
 
 // ↓↓↓ Allows API to parse client payload. ↓↓↓ //
 app.use(express.json());
