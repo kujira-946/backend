@@ -78,4 +78,11 @@ purchasesRouter_v1.post(
   Controllers.batchDeletePurchases
 );
 
-purchasesRouter_v1.post("/delete-all", Controllers.deleteAllPurchases);
+purchasesRouter_v1.post(
+  "/delete-all",
+  HelperMiddlewares.validateUserData([], { isHttpPost: true }, [
+    "overviewGroupId",
+    "logbookEntryId",
+  ]),
+  Controllers.deleteAllPurchases
+);
