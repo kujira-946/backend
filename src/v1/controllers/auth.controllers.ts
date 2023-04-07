@@ -8,6 +8,8 @@ import * as Validators from "../validators/auth.validators";
 import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
+import { OverviewCreateValidator } from "./../validators/overviews.validators";
+import { OverviewGroupCreateValidator } from "./../validators/overview-groups.validators";
 import { generateSafeUser } from "../helpers/users.helpers";
 
 const prisma = new PrismaClient();
@@ -166,13 +168,37 @@ async function _registrationVerificationHandler(
         },
       });
 
+      const overviewCreateData: OverviewCreateValidator = {
+        income: 0,
+        ownerId: foundUserId,
+      };
+      const newUserOverview = await prisma.overview.create({
+        data: overviewCreateData,
+      });
+
+      const recurringOverviewGroupData: OverviewGroupCreateValidator = {
+        name: "Recurring",
+        overviewId: newUserOverview.id,
+      };
+      await prisma.overviewGroup.create({
+        data: recurringOverviewGroupData,
+      });
+
+      const incomingOverviewGroupData: OverviewGroupCreateValidator = {
+        name: "Incoming",
+        overviewId: newUserOverview.id,
+      };
+      await prisma.overviewGroup.create({
+        data: incomingOverviewGroupData,
+      });
+
       const accessToken = jwt.sign(
         { _id: foundUserId.toString() },
         authSecretKey,
         { expiresIn: "30 days" }
       );
-
       const safeUser = generateSafeUser(updatedUser);
+
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
         data: safeUser,
