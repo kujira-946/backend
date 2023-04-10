@@ -38,7 +38,6 @@ app.use(express.json());
 // ↓↓↓ Routes ↓↓↓
 enum RouteBases {
   AUTH = "/api/v1/auth",
-  ONBOARDING = "/api/v1/onboarding",
   USERS = "/api/v1/users",
   PURCHASES = "/api/v1/purchases",
   OVERVIEWS = "/api/v1/overviews",
@@ -47,7 +46,6 @@ enum RouteBases {
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
 }
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
-app.use(RouteBases.ONBOARDING, verifyAccessToken, Routes.onboardingRouter_v1);
 app.use(RouteBases.USERS, verifyAccessToken, Routes.usersRouter_v1);
 app.use(RouteBases.PURCHASES, verifyAccessToken, Routes.purchasesRouter_v1);
 app.use(RouteBases.OVERVIEWS, verifyAccessToken, Routes.overviewsRouter_v1);
