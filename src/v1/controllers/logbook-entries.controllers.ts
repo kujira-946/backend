@@ -81,7 +81,7 @@ export async function createLogbookEntry(
   try {
     const createData: Validators.LogbookEntryCreateValidator = {
       date: request.body.date,
-      spent: request.body.spent,
+      totalSpent: request.body.totalSpent,
       budget: request.body.budget,
       logbookId: request.body.logbookId,
     };
@@ -116,7 +116,7 @@ export async function updateLogbookEntry(
   try {
     const updateData: Validators.LogbookEntryUpdateValidator = {
       date: request.body.date,
-      spent: request.body.spent,
+      totalSpent: request.body.totalSpent,
       budget: request.body.budget,
       logbookId: request.body.logbookId,
     };

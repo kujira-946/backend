@@ -6,14 +6,12 @@ const logbookCreateValidator = Prisma.validator<Prisma.LogbookArgs>()({
     ownerId: true,
   },
 });
-type OptionalCreateData = { totalSpent?: number };
 export type LogbookCreateValidator = Prisma.LogbookGetPayload<
   typeof logbookCreateValidator
-> &
-  OptionalCreateData;
+>;
 
 const logbookUpdateValidator = Prisma.validator<Prisma.LogbookArgs>()({
-  select: { name: true, totalSpent: true },
+  select: { name: true },
 });
 export type LogbookUpdateValidator = Partial<
   Prisma.LogbookGetPayload<typeof logbookUpdateValidator>

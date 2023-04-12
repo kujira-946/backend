@@ -18,7 +18,7 @@ logbookEntriesRouter_v1.get("/:logbookEntryId", Controllers.fetchLogbookEntry);
 
 type CreateData = (keyof Validators.LogbookEntryCreateValidator)[];
 const createData: CreateData = ["date", "logbookId"];
-const optionalCreateData: CreateData = ["spent", "budget"];
+const optionalCreateData: CreateData = ["totalSpent", "budget"];
 logbookEntriesRouter_v1.post(
   "/",
   HelperMiddlewares.validateUserData(
@@ -30,7 +30,7 @@ logbookEntriesRouter_v1.post(
 );
 
 type UpdateData = (keyof Validators.LogbookEntryUpdateValidator)[];
-const updateData: UpdateData = ["date", "spent", "budget", "logbookId"];
+const updateData: UpdateData = ["date", "totalSpent", "budget", "logbookId"];
 logbookEntriesRouter_v1.patch(
   "/:logbookEntryId",
   HelperMiddlewares.validateUserData(updateData, {
