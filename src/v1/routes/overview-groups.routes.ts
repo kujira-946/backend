@@ -27,7 +27,7 @@ overviewGroupsRouter_v1.get(
 
 type CreateData = (keyof Validators.OverviewGroupCreateValidator)[];
 const createData: CreateData = ["name", "overviewId"];
-const optionalCreateData: CreateData = ["totalCost"];
+const optionalCreateData: CreateData = ["totalSpent"];
 overviewGroupsRouter_v1.post(
   "/",
   HelperMiddlewares.validateUserData(
@@ -39,7 +39,7 @@ overviewGroupsRouter_v1.post(
 );
 
 type UpdateData = (keyof Validators.OverviewGroupUpdateValidator)[];
-const updateData: UpdateData = ["name", "totalCost", "overviewId"];
+const updateData: UpdateData = ["name", "totalSpent", "overviewId"];
 overviewGroupsRouter_v1.patch(
   "/:overviewGroupId",
   HelperMiddlewares.validateUserData(updateData, {

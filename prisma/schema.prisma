@@ -46,7 +46,7 @@ model Purchase {
   id              Int            @id @default(autoincrement())
   placement       Int
   category        Category?
-  description     String?        @default("")
+  description     String         @default("")
   cost            Float?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -73,7 +73,7 @@ model Overview {
 model OverviewGroup {
   id         Int        @id @default(autoincrement())
   name       String
-  totalCost  Float      @default(0)
+  totalSpent Float      @default(0)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   // Has Many
@@ -87,15 +87,16 @@ model OverviewGroup {
 // `name` field default to month and year in which the logbook was created (e.g. "Jan. 2023").
 // `name` field MAY be edited later down the line for potentially better UX.
 model Logbook {
-  id        Int            @id @default(autoincrement())
-  name      String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id         Int            @id @default(autoincrement())
+  name       String
+  totalSpent Float          @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
   // Has Many
-  entries   LogbookEntry[]
+  entries    LogbookEntry[]
   // Belongs to
-  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   Int
+  owner      User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    Int
 }
 
 model LogbookEntry {

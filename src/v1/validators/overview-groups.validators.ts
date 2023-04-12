@@ -4,7 +4,7 @@ const overviewGroupCreateValidator =
   Prisma.validator<Prisma.OverviewGroupArgs>()({
     select: { name: true, overviewId: true },
   });
-type OptionalCreateData = { totalCost?: number };
+type OptionalCreateData = { totalSpent?: number };
 export type OverviewGroupCreateValidator = Prisma.OverviewGroupGetPayload<
   typeof overviewGroupCreateValidator
 > &
@@ -12,7 +12,7 @@ export type OverviewGroupCreateValidator = Prisma.OverviewGroupGetPayload<
 
 const overviewGroupUpdateValidator =
   Prisma.validator<Prisma.OverviewGroupArgs>()({
-    select: { name: true, totalCost: true, overviewId: true },
+    select: { name: true, totalSpent: true, overviewId: true },
   });
 export type OverviewGroupUpdateValidator = Prisma.OverviewGroupGetPayload<
   typeof overviewGroupUpdateValidator

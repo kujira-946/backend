@@ -103,7 +103,7 @@ export async function createOverviewGroup(
   try {
     const createData: Validators.OverviewGroupCreateValidator = {
       name: request.body.name,
-      totalCost: request.body.totalCost,
+      totalSpent: request.body.totalSpent,
       overviewId: request.body.overviewId,
     };
 
@@ -137,7 +137,7 @@ export async function updateOverviewGroup(
   try {
     const updateData: Validators.OverviewGroupUpdateValidator = {
       name: request.body.name,
-      totalCost: request.body.totalCost,
+      totalSpent: request.body.totalSpent,
       overviewId: request.body.overviewId,
     };
 
