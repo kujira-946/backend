@@ -100,7 +100,7 @@ model Logbook {
 
 model LogbookEntry {
   id         Int        @id @default(autoincrement())
-  date       DateTime
+  date       String
   totalSpent Float      @default(0)
   budget     Float?
   createdAt  DateTime   @default(now())
