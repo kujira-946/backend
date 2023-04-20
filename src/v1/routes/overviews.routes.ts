@@ -9,18 +9,10 @@ export const overviewsRouter_v1 = express.Router();
 overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
 overviewsRouter_v1.post(
-  "/fetch-user-overviews",
+  "/fetch-user-overview",
   HelperMiddlewares.validateUserData(["ownerId"]),
-  Controllers.fetchUserOverviews
+  Controllers.fetchUserOverview
 );
-
-overviewsRouter_v1.post(
-  "/bulk-fetch",
-  HelperMiddlewares.validateUserData(["overviewIds"]),
-  Controllers.bulkFetchOverviews
-);
-
-overviewsRouter_v1.get("/:overviewId", Controllers.fetchOverview);
 
 type CreateData = (keyof Validators.OverviewCreateValidator)[];
 const createData: CreateData = ["income", "ownerId"];

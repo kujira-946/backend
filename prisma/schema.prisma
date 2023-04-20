@@ -14,24 +14,25 @@ enum Theme {
 }
 
 model User {
-  id                     Int        @id @default(autoincrement())
-  email                  String     @unique
-  username               String     @unique @db.VarChar(16)
+  id                     Int       @id @default(autoincrement())
+  email                  String    @unique
+  username               String    @unique @db.VarChar(16)
   password               String
   firstName              String?
   lastName               String?
   birthday               DateTime?
-  currency               String     @default("USD")
+  currency               String    @default("USD")
   mobileNumber           String?
-  theme                  Theme      @default(light)
-  onboarded              Boolean    @default(false)
-  emailVerified          Boolean    @default(false)
-  loggedIn               Boolean    @default(false)
+  theme                  Theme     @default(light)
+  onboarded              Boolean   @default(false)
+  emailVerified          Boolean   @default(false)
+  loggedIn               Boolean   @default(false)
   signedVerificationCode String?
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  // One To One
+  overview               Overview?
   // Has Many
-  overviews              Overview[]
   logbooks               Logbook[]
 }
 
@@ -63,11 +64,11 @@ model Overview {
   savings   Float           @default(0)
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  // One To One
+  owner     User            @relation(fields: [ownerId], references: [id])
+  ownerId   Int             @unique
   // Has Many
   groups    OverviewGroup[]
-  // Belongs to
-  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   Int
 }
 
 model OverviewGroup {
