@@ -22,7 +22,6 @@ app.use(compression()); // Compresses all routes.
 
 // ↓↓↓ Add rate limiting to a max of 20 requests/per minute. ↓↓↓ //
 // ↓↓↓ Prevents excessive requests, attacks (e.g. DDOS), performance issues, etc. ↓↓↓ //
-
 if (process.env.NODE_ENV === "production") {
   app.use(
     rateLimit({

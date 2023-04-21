@@ -65,7 +65,7 @@ model Overview {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   // One To One
-  owner     User            @relation(fields: [ownerId], references: [id])
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int             @unique
   // Has Many
   groups    OverviewGroup[]
