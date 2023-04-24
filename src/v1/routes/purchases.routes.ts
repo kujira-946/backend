@@ -21,6 +21,12 @@ purchasesRouter_v1.post(
 );
 
 purchasesRouter_v1.post(
+  "/fetch-logbook-entry-purchases-by-category",
+  HelperMiddlewares.validateUserData(["logbookEntryId", "category"]),
+  Controllers.fetchLogbookEntryPurchasesByCategory
+);
+
+purchasesRouter_v1.post(
   "/bulk-fetch",
   HelperMiddlewares.validateUserData(["purchaseIds"]),
   Controllers.bulkFetchPurchases

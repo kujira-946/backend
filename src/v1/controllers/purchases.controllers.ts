@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 
 import * as Validators from "../validators/purchases.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
+import { Category } from "../types/purchases.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
@@ -28,7 +29,7 @@ export async function fetchPurchases(_: Request, response: Response) {
 }
 
 // ========================================================================================= //
-// [ FETCH OVERVIEW GROUP PURCHASES ] ================================================================ //
+// [ FETCH OVERVIEW GROUP PURCHASES ] ====================================================== //
 // ========================================================================================= //
 
 export async function fetchOverviewGroupPurchases(
@@ -50,7 +51,7 @@ export async function fetchOverviewGroupPurchases(
 }
 
 // ========================================================================================= //
-// [ FETCH LOGBOOK PURCHASES ] ================================================================ //
+// [ FETCH LOGBOOK ENTRY PURCHASES ] ======================================================= //
 // ========================================================================================= //
 
 export async function fetchLogbookEntryPurchases(
@@ -66,7 +67,35 @@ export async function fetchLogbookEntryPurchases(
     return response.status(HttpStatusCodes.OK).json({ data: purchases });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
-      body: HttpHelpers.generateFetchError("overview group purchases", true),
+      body: HttpHelpers.generateFetchError("logbook entry purchases", true),
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ FETCH LOGBOOK ENTRY PURCHASES BY CATEGORY ] =========================================== //
+// ========================================================================================= //
+
+export async function fetchLogbookEntryPurchasesByCategory(
+  request: Request<{}, {}, { logbookEntryId: number; category: Category }>,
+  response: Response
+) {
+  try {
+    const purchases = await prisma.purchase.findMany({
+      orderBy: { id: "asc" },
+      where: {
+        logbookEntryId: request.body.logbookEntryId,
+        category: request.body.category,
+      },
+    });
+
+    return response.status(HttpStatusCodes.OK).json({ data: purchases });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError(
+        "logbook entry purchases by category",
+        true
+      ),
     });
   }
 }
