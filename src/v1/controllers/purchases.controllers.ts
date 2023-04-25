@@ -270,7 +270,7 @@ export async function deletePurchase(
 // [ BATCH DELETE ] ======================================================================== //
 // ========================================================================================= //
 
-export async function batchDeletePurchases(
+export async function bulkDeletePurchases(
   request: Request<{}, {}, { purchaseIds: number[] }>,
   response: Response
 ) {
