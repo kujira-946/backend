@@ -23,7 +23,7 @@ model User {
   birthday               DateTime?
   currency               String    @default("USD")
   mobileNumber           String?
-  theme                  Theme     @default(light)
+  theme                  Theme     @default(dark)
   onboarded              Boolean   @default(false)
   emailVerified          Boolean   @default(false)
   loggedIn               Boolean   @default(false)
