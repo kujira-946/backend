@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Purchase } from "@prisma/client";
 import { Request, Response } from "express";
 
 import * as Validators from "../validators/purchases.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
-import { Category } from "../types/purchases.types";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
@@ -77,25 +76,44 @@ export async function fetchLogbookEntryPurchases(
 // ========================================================================================= //
 
 export async function fetchLogbookEntryPurchasesByCategory(
-  request: Request<{}, {}, { logbookEntryId: number; category: Category }>,
+  request: Request<{}, {}, { logbookEntryIds: number[] }>,
   response: Response
 ) {
   try {
-    const purchases = await prisma.purchase.findMany({
-      orderBy: { id: "asc" },
-      where: {
-        logbookEntryId: request.body.logbookEntryId,
-        category: request.body.category,
+    const needPurchases: Purchase[] = [];
+    const plannedPurchases: Purchase[] = [];
+    const impulsePurchases: Purchase[] = [];
+
+    for (const logbookEntryId of request.body.logbookEntryIds) {
+      const needCategoryPurchases = await prisma.purchase.findMany({
+        orderBy: { id: "asc" },
+        where: { logbookEntryId: logbookEntryId, category: "need" },
+      });
+      needPurchases.push(...needCategoryPurchases);
+
+      const plannedCategoryPurchases = await prisma.purchase.findMany({
+        orderBy: { id: "asc" },
+        where: { logbookEntryId: logbookEntryId, category: "planned" },
+      });
+      plannedPurchases.push(...plannedCategoryPurchases);
+
+      const impulseCategoryPurchases = await prisma.purchase.findMany({
+        orderBy: { id: "asc" },
+        where: { logbookEntryId: logbookEntryId, category: "impulse" },
+      });
+      impulsePurchases.push(...impulseCategoryPurchases);
+    }
+
+    return response.status(HttpStatusCodes.OK).json({
+      data: {
+        needPurchases,
+        plannedPurchases,
+        impulsePurchases,
       },
     });
-
-    return response.status(HttpStatusCodes.OK).json({ data: purchases });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
-      body: HttpHelpers.generateFetchError(
-        "logbook entry purchases by category",
-        true
-      ),
+      body: HttpHelpers.generateFetchError("logbooks", true),
     });
   }
 }
