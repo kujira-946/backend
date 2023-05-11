@@ -21,7 +21,7 @@ purchasesRouter_v1.post(
 );
 
 purchasesRouter_v1.post(
-  "/fetch-categorized-logbook-entry-purchases",
+  "/fetch-logbook-entry-purchases-by-category",
   HelperMiddlewares.validateUserData(["logbookEntryIds"]),
   Controllers.fetchLogbookEntryPurchasesByCategory
 );
