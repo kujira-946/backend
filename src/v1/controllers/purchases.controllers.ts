@@ -59,7 +59,7 @@ export async function fetchLogbookEntryPurchases(
 ) {
   try {
     const purchases = await prisma.purchase.findMany({
-      orderBy: { id: "asc" },
+      orderBy: { placement: "asc" },
       where: { logbookEntryId: request.body.logbookEntryId },
     });
 
@@ -165,13 +165,49 @@ export async function fetchPurchase(
 // [ CREATE A PURCHASE ] =================================================================== //
 // ========================================================================================= //
 
+async function createOverviewGroupPurchase(
+  overviewGroupId: number,
+  createData: Validators.PurchaseValidator,
+  response: Response
+) {
+  const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+    where: { id: overviewGroupId },
+    include: { purchases: true },
+  });
+  const newPurchase = await prisma.purchase.create({
+    data: { placement: overviewGroup.purchases.length + 1, ...createData },
+  });
+  return HttpHelpers.respondWithSuccess(response, "created", {
+    body: HttpHelpers.generateCudMessage("create", "overview group purchase"),
+    data: newPurchase,
+  });
+}
+
+async function createLogbookEntryPurchase(
+  logbookEntryId: number,
+  createData: Validators.PurchaseValidator,
+  response: Response
+) {
+  const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+    where: { id: logbookEntryId },
+    include: { purchases: true },
+  });
+
+  const newPurchase = await prisma.purchase.create({
+    data: { placement: logbookEntry.purchases.length + 1, ...createData },
+  });
+  return HttpHelpers.respondWithSuccess(response, "created", {
+    body: HttpHelpers.generateCudMessage("create", "logbook entry purchase"),
+    data: newPurchase,
+  });
+}
+
 export async function createPurchase(
-  request: Request<{}, {}, Validators.PurchaseCreateValidator>,
+  request: Request<{}, {}, Validators.PurchaseValidator>,
   response: Response
 ) {
   try {
-    const createData: Validators.PurchaseCreateValidator = {
-      placement: request.body.placement,
+    const createData: Validators.PurchaseValidator = {
       category: request.body.category,
       description: request.body.description,
       cost: request.body.cost,
@@ -179,14 +215,25 @@ export async function createPurchase(
       logbookEntryId: request.body.logbookEntryId,
     };
 
-    const newPurchase = await prisma.purchase.create({
-      data: createData,
-    });
-
-    return HttpHelpers.respondWithSuccess(response, "created", {
-      body: HttpHelpers.generateCudMessage("create", "purchase"),
-      data: newPurchase,
-    });
+    if (request.body.overviewGroupId) {
+      return createOverviewGroupPurchase(
+        request.body.overviewGroupId,
+        createData,
+        response
+      );
+    } else if (request.body.logbookEntryId) {
+      return createLogbookEntryPurchase(
+        request.body.logbookEntryId,
+        createData,
+        response
+      );
+    } else {
+      const newPurchase = await prisma.purchase.create({ data: createData });
+      return HttpHelpers.respondWithSuccess(response, "created", {
+        body: HttpHelpers.generateCudMessage("create", "purchase"),
+        data: newPurchase,
+      });
+    }
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: HttpHelpers.generateCudMessage("create", "purchase", true),
@@ -199,11 +246,7 @@ export async function createPurchase(
 // ========================================================================================= //
 
 export async function bulkCreatePurchases(
-  request: Request<
-    {},
-    {},
-    { purchasesData: Validators.PurchaseCreateValidator[] }
-  >,
+  request: Request<{}, {}, { purchasesData: Validators.PurchaseValidator[] }>,
   response: Response
 ) {
   try {
@@ -228,15 +271,11 @@ export async function bulkCreatePurchases(
 // ========================================================================================= //
 
 export async function updatePurchase(
-  request: Request<
-    { purchaseId: string },
-    {},
-    Validators.PurchaseUpdateValidator
-  >,
+  request: Request<{ purchaseId: string }, {}, Validators.PurchaseValidator>,
   response: Response
 ) {
   try {
-    const updateData: Validators.PurchaseUpdateValidator = {
+    const updateData: Validators.PurchaseValidator = {
       placement: request.body.placement,
       category: request.body.category,
       description: request.body.description,
@@ -262,17 +301,211 @@ export async function updatePurchase(
 }
 
 // ========================================================================================= //
+// [ UPDATE PURCHASE PLACEMENT ] =========================================================== //
+// ========================================================================================= //
+
+async function updateOverviewGroupPurchasePlacement(
+  overviewGroupId: number,
+  previousPlacement: number,
+  updatedPlacement: number,
+  updatedPurchaseId: number
+) {
+  try {
+    const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+      where: { id: overviewGroupId },
+      include: { purchases: true },
+    });
+    await prisma.$transaction(async () => {
+      overviewGroup.purchases.forEach(async (purchase: Purchase) => {
+        if (
+          purchase.placement &&
+          purchase.placement >= updatedPlacement &&
+          purchase.placement < previousPlacement &&
+          purchase.id !== updatedPurchaseId
+        ) {
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { placement: purchase.placement + 1 },
+          });
+        }
+      });
+    });
+    await prisma.$disconnect();
+  } catch (error) {
+    console.log(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+async function updateLogbookEntryPurchasePlacement(
+  logbookEntryId: number,
+  previousPlacement: number,
+  updatedPlacement: number,
+  updatedPurchaseId: number
+) {
+  try {
+    const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+      where: { id: logbookEntryId },
+      include: { purchases: true },
+    });
+
+    await prisma.$transaction(async () => {
+      logbookEntry.purchases.forEach(async (purchase: Purchase) => {
+        if (
+          purchase.placement &&
+          purchase.placement >= updatedPlacement &&
+          purchase.placement < previousPlacement &&
+          purchase.id !== updatedPurchaseId
+        ) {
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { placement: purchase.placement + 1 },
+          });
+        }
+      });
+    });
+    await prisma.$disconnect();
+  } catch (error) {
+    console.log(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+export async function updatePurchasePlacement(
+  request: Request<
+    { purchaseId: string },
+    {},
+    {
+      association: "Overview Group" | "Logbook Entry";
+      previousPlacement: number;
+      updatedPlacement: number;
+    }
+  >,
+  response: Response
+) {
+  try {
+    const updatedPurchase = await prisma.purchase.update({
+      where: { id: Number(request.params.purchaseId) },
+      data: { placement: request.body.updatedPlacement },
+    });
+
+    if (updatedPurchase.overviewGroupId) {
+      updateOverviewGroupPurchasePlacement(
+        updatedPurchase.overviewGroupId,
+        request.body.previousPlacement,
+        request.body.updatedPlacement,
+        Number(request.params.purchaseId)
+      );
+    } else if (updatedPurchase.logbookEntryId) {
+      updateLogbookEntryPurchasePlacement(
+        updatedPurchase.logbookEntryId,
+        request.body.previousPlacement,
+        request.body.updatedPlacement,
+        Number(request.params.purchaseId)
+      );
+    }
+
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: HttpHelpers.generateCudMessage("update", "purchase"),
+      data: updatedPurchase,
+    });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateCudMessage("delete", "purchase", true),
+    });
+  }
+}
+
+// ========================================================================================= //
 // [ DELETE A PURCHASE ] =================================================================== //
 // ========================================================================================= //
+
+async function updateOverviewGroupPurchasePlacementAfterDelete(
+  overviewGroupId: number,
+  deletePurchasePlacement: number
+) {
+  try {
+    const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+      where: { id: overviewGroupId },
+      include: { purchases: true },
+    });
+
+    await prisma.$transaction(async () => {
+      overviewGroup.purchases.forEach(async (purchase: Purchase) => {
+        if (
+          purchase.placement &&
+          purchase.placement > deletePurchasePlacement
+        ) {
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { placement: purchase.placement - 1 },
+          });
+        }
+      });
+    });
+    await prisma.$disconnect();
+  } catch (error) {
+    console.log(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
+
+async function updateLogbookEntryPurchasePlacementAfterDelete(
+  logbookEntryId: number,
+  deletePurchasePlacement: number
+) {
+  try {
+    const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+      where: { id: logbookEntryId },
+      include: { purchases: true },
+    });
+
+    await prisma.$transaction(async () => {
+      logbookEntry.purchases.forEach(async (purchase: Purchase) => {
+        if (
+          purchase.placement &&
+          purchase.placement > deletePurchasePlacement
+        ) {
+          await prisma.purchase.update({
+            where: { id: purchase.id },
+            data: { placement: purchase.placement - 1 },
+          });
+        }
+      });
+    });
+    await prisma.$disconnect();
+  } catch (error) {
+    console.log(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  }
+}
 
 export async function deletePurchase(
   request: Request<{ purchaseId: string }>,
   response: Response
 ) {
   try {
-    await prisma.purchase.delete({
+    const purchase = await prisma.purchase.delete({
       where: { id: Number(request.params.purchaseId) },
     });
+
+    if (purchase.overviewGroupId && purchase.placement) {
+      updateOverviewGroupPurchasePlacementAfterDelete(
+        purchase.overviewGroupId,
+        purchase.placement
+      );
+    } else if (purchase.logbookEntryId && purchase.placement) {
+      updateLogbookEntryPurchasePlacementAfterDelete(
+        purchase.logbookEntryId,
+        purchase.placement
+      );
+    }
+
+    console.log("Delete Purchase:", purchase);
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "purchase"),

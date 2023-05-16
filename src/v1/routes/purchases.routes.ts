@@ -34,8 +34,8 @@ purchasesRouter_v1.post(
 
 purchasesRouter_v1.get("/:purchaseId", Controllers.fetchPurchase);
 
-type CreateData = (keyof Validators.PurchaseCreateValidator)[];
-const createData: CreateData = ["placement"];
+type CreateData = (keyof Validators.PurchaseValidator)[];
+// const createData: CreateData = ["placement"];
 const optionalCreateData: CreateData = [
   "category",
   "description",
@@ -46,7 +46,7 @@ const optionalCreateData: CreateData = [
 purchasesRouter_v1.post(
   "/",
   HelperMiddlewares.validateUserData(
-    createData,
+    [],
     { isHttpPost: true },
     optionalCreateData
   ),
@@ -59,7 +59,17 @@ purchasesRouter_v1.post(
   Controllers.bulkCreatePurchases
 );
 
-type UpdateData = (keyof Validators.PurchaseUpdateValidator)[];
+purchasesRouter_v1.patch(
+  "/:purchaseId/update-purchase-placement",
+  HelperMiddlewares.validateUserData([
+    "association",
+    "previousPlacement",
+    "updatedPlacement",
+  ]),
+  Controllers.updatePurchasePlacement
+);
+
+type UpdateData = (keyof Validators.PurchaseValidator)[];
 const updateData: UpdateData = [
   "placement",
   "category",

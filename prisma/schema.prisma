@@ -45,7 +45,7 @@ enum Category {
 
 model Purchase {
   id              Int            @id @default(autoincrement())
-  placement       Int
+  placement       Int?
   category        Category?
   description     String         @default("")
   cost            Float?
