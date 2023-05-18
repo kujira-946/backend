@@ -304,31 +304,21 @@ export async function updatePurchase(
 // [ UPDATE PURCHASE PLACEMENT ] =========================================================== //
 // ========================================================================================= //
 
-async function updateOverviewGroupPurchasePlacement(
-  overviewGroupId: number,
-  previousPlacement: number,
-  updatedPlacement: number,
-  updatedPurchaseId: number
-) {
+async function updateOverviewGroupPurchasePlacement(overviewGroupId: number) {
   try {
     const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
       where: { id: overviewGroupId },
       include: { purchases: true },
     });
     await prisma.$transaction(async () => {
-      overviewGroup.purchases.forEach(async (purchase: Purchase) => {
-        if (
-          purchase.placement &&
-          purchase.placement >= updatedPlacement &&
-          purchase.placement < previousPlacement &&
-          purchase.id !== updatedPurchaseId
-        ) {
+      overviewGroup.purchases.forEach(
+        async (purchase: Purchase, index: number) => {
           await prisma.purchase.update({
             where: { id: purchase.id },
-            data: { placement: purchase.placement + 1 },
+            data: { placement: index + 1 },
           });
         }
-      });
+      );
     });
     await prisma.$disconnect();
   } catch (error) {
@@ -338,12 +328,7 @@ async function updateOverviewGroupPurchasePlacement(
   }
 }
 
-async function updateLogbookEntryPurchasePlacement(
-  logbookEntryId: number,
-  previousPlacement: number,
-  updatedPlacement: number,
-  updatedPurchaseId: number
-) {
+async function updateLogbookEntryPurchasePlacement(logbookEntryId: number) {
   try {
     const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
       where: { id: logbookEntryId },
@@ -351,19 +336,14 @@ async function updateLogbookEntryPurchasePlacement(
     });
 
     await prisma.$transaction(async () => {
-      logbookEntry.purchases.forEach(async (purchase: Purchase) => {
-        if (
-          purchase.placement &&
-          purchase.placement >= updatedPlacement &&
-          purchase.placement < previousPlacement &&
-          purchase.id !== updatedPurchaseId
-        ) {
+      logbookEntry.purchases.forEach(
+        async (purchase: Purchase, index: number) => {
           await prisma.purchase.update({
             where: { id: purchase.id },
-            data: { placement: purchase.placement + 1 },
+            data: { placement: index + 1 },
           });
         }
-      });
+      );
     });
     await prisma.$disconnect();
   } catch (error) {
@@ -374,15 +354,7 @@ async function updateLogbookEntryPurchasePlacement(
 }
 
 export async function updatePurchasePlacement(
-  request: Request<
-    { purchaseId: string },
-    {},
-    {
-      association: "Overview Group" | "Logbook Entry";
-      previousPlacement: number;
-      updatedPlacement: number;
-    }
-  >,
+  request: Request<{ purchaseId: string }, {}, { updatedPlacement: number }>,
   response: Response
 ) {
   try {
@@ -392,19 +364,9 @@ export async function updatePurchasePlacement(
     });
 
     if (updatedPurchase.overviewGroupId) {
-      updateOverviewGroupPurchasePlacement(
-        updatedPurchase.overviewGroupId,
-        request.body.previousPlacement,
-        request.body.updatedPlacement,
-        Number(request.params.purchaseId)
-      );
+      updateOverviewGroupPurchasePlacement(updatedPurchase.overviewGroupId);
     } else if (updatedPurchase.logbookEntryId) {
-      updateLogbookEntryPurchasePlacement(
-        updatedPurchase.logbookEntryId,
-        request.body.previousPlacement,
-        request.body.updatedPlacement,
-        Number(request.params.purchaseId)
-      );
+      updateLogbookEntryPurchasePlacement(updatedPurchase.logbookEntryId);
     }
 
     return HttpHelpers.respondWithSuccess(response, "ok", {

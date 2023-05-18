@@ -61,11 +61,7 @@ purchasesRouter_v1.post(
 
 purchasesRouter_v1.patch(
   "/:purchaseId/update-purchase-placement",
-  HelperMiddlewares.validateUserData([
-    "association",
-    "previousPlacement",
-    "updatedPlacement",
-  ]),
+  HelperMiddlewares.validateUserData(["updatedPlacement"]),
   Controllers.updatePurchasePlacement
 );
 
@@ -91,7 +87,7 @@ purchasesRouter_v1.delete("/:purchaseId", Controllers.deletePurchase);
 type BulkDeleteData = (keyof Validators.PurchaseValidator)[];
 const optionalBulkDeleteData: BulkDeleteData = [
   "overviewGroupId",
-  "logbookEntryId"
+  "logbookEntryId",
 ];
 purchasesRouter_v1.post(
   "/bulk-delete",
