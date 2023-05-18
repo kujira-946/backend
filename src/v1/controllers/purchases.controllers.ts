@@ -505,8 +505,6 @@ export async function deletePurchase(
       );
     }
 
-    console.log("Delete Purchase:", purchase);
-
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "purchase"),
     });
@@ -518,17 +516,61 @@ export async function deletePurchase(
 }
 
 // ========================================================================================= //
-// [ BATCH DELETE ] ======================================================================== //
+// [ BULK DELETE ] ========================================================================= //
 // ========================================================================================= //
 
+async function updateOverviewGroupPurchasePlacementAfterBulkDelete(
+  overviewGroupId: number
+) {
+  const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+    where: { id: overviewGroupId },
+    include: { purchases: true },
+  });
+  overviewGroup.purchases.forEach(async (purchase: Purchase, index: number) => {
+    await prisma.purchase.update({
+      where: { id: purchase.id },
+      data: { placement: index + 1 },
+    });
+  });
+}
+
+async function updateLogbookEntryPurchasePlacementAfterBulkDelete(
+  logbookEntryId: number
+) {
+  const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+    where: { id: logbookEntryId },
+    include: { purchases: true },
+  });
+  logbookEntry.purchases.forEach(async (purchase: Purchase, index: number) => {
+    await prisma.purchase.update({
+      where: { id: purchase.id },
+      data: { placement: index + 1 },
+    });
+  });
+}
+
 export async function bulkDeletePurchases(
-  request: Request<{}, {}, { purchaseIds: number[] }>,
+  request: Request<
+    {},
+    {},
+    { purchaseIds: number[]; overviewGroupId?: number; logbookEntryId?: number }
+  >,
   response: Response
 ) {
   try {
     await prisma.purchase.deleteMany({
       where: { id: { in: request.body.purchaseIds } },
     });
+
+    if (request.body.overviewGroupId) {
+      updateOverviewGroupPurchasePlacementAfterBulkDelete(
+        request.body.overviewGroupId
+      );
+    } else if (request.body.logbookEntryId) {
+      updateLogbookEntryPurchasePlacementAfterBulkDelete(
+        request.body.logbookEntryId
+      );
+    }
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "selected purchases"),

@@ -88,9 +88,18 @@ purchasesRouter_v1.patch(
 
 purchasesRouter_v1.delete("/:purchaseId", Controllers.deletePurchase);
 
+type BulkDeleteData = (keyof Validators.PurchaseValidator)[];
+const optionalBulkDeleteData: BulkDeleteData = [
+  "overviewGroupId",
+  "logbookEntryId"
+];
 purchasesRouter_v1.post(
   "/bulk-delete",
-  HelperMiddlewares.validateUserData(["purchaseIds"]),
+  HelperMiddlewares.validateUserData(
+    ["purchaseIds"],
+    { isHttpPost: true },
+    optionalBulkDeleteData
+  ),
   Controllers.bulkDeletePurchases
 );
 
