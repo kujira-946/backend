@@ -37,7 +37,7 @@ export async function fetchLogbookLogbookEntries(
 ) {
   try {
     const logbookEntries = await prisma.logbookEntry.findMany({
-      orderBy: { id: "asc" },
+      orderBy: { id: "desc" },
       where: { logbookId: request.body.logbookId },
     });
 
