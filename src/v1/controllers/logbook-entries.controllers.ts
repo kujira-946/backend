@@ -86,17 +86,24 @@ export async function createLogbookEntry(
       logbookId: request.body.logbookId,
     };
 
-    const newLogbookEntry = await prisma.logbookEntry.create({
-      data: createData,
+    const existingLogbookEntry = await prisma.logbookEntry.findFirst({
+      where: { date: request.body.date },
     });
 
-    return HttpHelpers.respondWithSuccess(response, "created", {
-      body: HttpHelpers.generateCudMessage("create", "logbook entry"),
-      data: newLogbookEntry,
-    });
+    if (!existingLogbookEntry) {
+      const newLogbookEntry = await prisma.logbookEntry.create({
+        data: createData,
+      });
+      return HttpHelpers.respondWithSuccess(response, "created", {
+        body: HttpHelpers.generateCudMessage("create", "logbook entry"),
+        data: newLogbookEntry,
+      });
+    } else {
+      throw new Error();
+    }
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: HttpHelpers.generateCudMessage("create", "logbook entry", true),
+      body: "A logbook entry for today already exists.",
     });
   }
 }
@@ -121,19 +128,27 @@ export async function updateLogbookEntry(
       logbookId: request.body.logbookId,
     };
 
-    const updatedLogbookEntry: Validators.LogbookEntryUpdateValidator =
-      await prisma.logbookEntry.update({
-        where: { id: Number(request.params.logbookEntryId) },
-        data: updateData,
-      });
-
-    return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: HttpHelpers.generateCudMessage("update", "logbook entry"),
-      data: updatedLogbookEntry,
+    const existingLogbookEntry = await prisma.logbookEntry.findFirst({
+      where: { date: request.body.date },
     });
+
+    if (!existingLogbookEntry) {
+      const updatedLogbookEntry: Validators.LogbookEntryUpdateValidator =
+        await prisma.logbookEntry.update({
+          where: { id: Number(request.params.logbookEntryId) },
+          data: updateData,
+        });
+
+      return HttpHelpers.respondWithSuccess(response, "ok", {
+        body: HttpHelpers.generateCudMessage("update", "logbook entry"),
+        data: updatedLogbookEntry,
+      });
+    } else {
+      throw new Error();
+    }
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: HttpHelpers.generateCudMessage("update", "logbook entry", true),
+      body: "A logbook entry with that date already exists.",
     });
   }
 }
