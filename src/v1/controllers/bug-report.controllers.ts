@@ -1,10 +1,32 @@
+import { PrismaClient, Purchase } from "@prisma/client";
 import { Request, Response } from "express";
 import nodemailer from "nodemailer";
 
 import * as HttpHelpers from "../helpers/http.helpers";
 
+const prisma = new PrismaClient();
+
 // ========================================================================================= //
-// [ REPORT BUG ] ================================================================== //
+// [ FETCH USER BUG REPORTS ] ============================================================== //
+// ========================================================================================= //
+
+export async function fetchUserBugReports(
+  request: Request<{}, {}, { userId: number }>,
+  response: Response
+) {
+  try {
+    const bugReports = await prisma.bug.findUniqueOrThrow({
+      where: { id: request.body.userId },
+    });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError("user bug reports", true),
+    });
+  }
+}
+
+// ========================================================================================= //
+// [ SEND BUG REPORT ] ===================================================================== //
 // ========================================================================================= //
 
 export async function sendBugReport(
