@@ -24,3 +24,5 @@ bugReportRouter_v1.post(
   ),
   Controllers.createBugReport
 );
+
+bugReportRouter_v1.delete("/:bugReportId", Controllers.deleteBugReport);

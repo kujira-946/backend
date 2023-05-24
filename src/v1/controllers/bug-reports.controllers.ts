@@ -102,3 +102,23 @@ export async function createBugReport(
     });
   }
 }
+
+// ========================================================================================= //
+// [ DELETE BUG REPORT ] =================================================================== //
+// ========================================================================================= //
+
+export async function deleteBugReport(request: Request, response: Response) {
+  try {
+    await prisma.bugReport.delete({
+      where: { id: Number(request.params.bugReportId) },
+    });
+
+    return HttpHelpers.respondWithSuccess(response, "ok", {
+      body: HttpHelpers.generateCudMessage("delete", "bug report"),
+    });
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateCudMessage("delete", "bug report", true),
+    });
+  }
+}
