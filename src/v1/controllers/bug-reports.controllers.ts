@@ -33,6 +33,40 @@ export async function fetchUserBugReports(
 // [ CREATE BUG REPORT ] =================================================================== //
 // ========================================================================================= //
 
+function emailBugReportToKujiraHelp(
+  bugReportTitle: string,
+  bugReportBody: string | null,
+  userId: number,
+  username: string
+) {
+  const message = {
+    from: `"KUJIRA BUG REPORT" <${process.env.EMAIL_HELP}>`,
+    to: process.env.EMAIL_HELP,
+    subject: bugReportTitle,
+    html: [
+      `<p>Sent by user with ID: <b>${userId}</b> and USERNAME: <b>${username}</b></p>`,
+      `<p>${
+        bugReportBody || "User did not describe the issue in more detail."
+      }</p>`,
+    ].join(""),
+  };
+
+  const SMTPtransporter = nodemailer.createTransport({
+    service: "hotmail",
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_HELP,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    tls: { ciphers: "SSLv3" },
+  });
+
+  SMTPtransporter.sendMail(message, function (error: any, information: any) {
+    if (error) console.log(error);
+    else console.log("Sent Response:", information.response);
+  });
+}
+
 export async function createBugReport(
   request: Request<{}, {}, Validators.BugReportsCreateValidator>,
   response: Response
@@ -50,32 +84,12 @@ export async function createBugReport(
       where: { id: request.body.ownerId },
     });
 
-    const message = {
-      from: `"KUJIRA BUG REPORT" <${process.env.EMAIL_HELP}>`,
-      to: process.env.EMAIL_HELP,
-      subject: bugReport.title,
-      html: [
-        `<p>Sent by user with ID: <b>${user.id}</b> and USERNAME: <b>${user.username}</b></p>`,
-        `<p>${
-          bugReport.body || "User did not describe the issue in more detail."
-        }</p>`,
-      ].join(""),
-    };
-
-    const SMTPtransporter = nodemailer.createTransport({
-      service: "hotmail",
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_HELP,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      tls: { ciphers: "SSLv3" },
-    });
-
-    SMTPtransporter.sendMail(message, function (error: any, information: any) {
-      if (error) console.log(error);
-      else console.log("Sent Response:", information.response);
-    });
+    emailBugReportToKujiraHelp(
+      bugReport.title,
+      bugReport.body,
+      user.id,
+      user.username
+    );
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       title: "Bug report sent!",
