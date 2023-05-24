@@ -1,8 +1,10 @@
-import { PrismaClient, Purchase } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import nodemailer from "nodemailer";
 
+import * as Validators from "../validators/bug-reports.validators";
 import * as HttpHelpers from "../helpers/http.helpers";
+import { HttpStatusCodes } from "../../utils/http-status-codes";
 
 const prisma = new PrismaClient();
 
@@ -11,13 +13,15 @@ const prisma = new PrismaClient();
 // ========================================================================================= //
 
 export async function fetchUserBugReports(
-  request: Request<{}, {}, { userId: number }>,
+  request: Request<{}, {}, { ownerId: number }>,
   response: Response
 ) {
   try {
-    const bugReports = await prisma.bug.findUniqueOrThrow({
-      where: { id: request.body.userId },
+    const bugReports = await prisma.bugReport.findMany({
+      where: { ownerId: request.body.ownerId },
     });
+
+    return response.status(HttpStatusCodes.OK).json({ data: bugReports });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
       body: HttpHelpers.generateFetchError("user bug reports", true),
@@ -26,20 +30,36 @@ export async function fetchUserBugReports(
 }
 
 // ========================================================================================= //
-// [ SEND BUG REPORT ] ===================================================================== //
+// [ CREATE BUG REPORT ] =================================================================== //
 // ========================================================================================= //
 
-export async function sendBugReport(
-  request: Request<{}, {}, { title: string; body?: string }>,
+export async function createBugReport(
+  request: Request<{}, {}, Validators.BugReportsCreateValidator>,
   response: Response
 ) {
   try {
+    const bugReport = await prisma.bugReport.create({
+      data: {
+        title: request.body.title,
+        body: request.body.body,
+        ownerId: request.body.ownerId,
+      },
+    });
+
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: request.body.ownerId },
+    });
+
     const message = {
-      from: `"Kujira" <BUG REPORT>`,
+      from: `"KUJIRA BUG REPORT" <${process.env.EMAIL_HELP}>`,
       to: process.env.EMAIL_HELP,
-      subject: request.body.title,
-      text:
-        request.body.body || "User did not describe the issue in more detail.",
+      subject: bugReport.title,
+      html: [
+        `<p>Sent by user with ID: <b>${user.id}</b> and USERNAME: <b>${user.username}</b></p>`,
+        `<p>${
+          bugReport.body || "User did not describe the issue in more detail."
+        }</p>`,
+      ].join(""),
     };
 
     const SMTPtransporter = nodemailer.createTransport({
@@ -64,7 +84,7 @@ export async function sendBugReport(
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       title: "Failed to send report.",
-      body: "Please check to make sure you've filled in all of the required fields and try again.",
+      body: "Please properly fill in all required fields and try again.",
     });
   }
 }

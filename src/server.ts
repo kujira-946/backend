@@ -43,7 +43,7 @@ enum RouteBases {
   OVERVIEW_GROUPS = "/api/v1/overview-groups",
   LOGBOOKS = "/api/v1/logbooks",
   LOGBOOK_ENTRIES = "/api/v1/logbook-entries",
-  BUG_REPORT = "/api/v1/bug-report",
+  BUG_REPORTS = "/api/v1/bug-reports",
 }
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, verifyAccessToken, Routes.usersRouter_v1);
@@ -60,7 +60,7 @@ app.use(
   verifyAccessToken,
   Routes.logbookEntriesRouter_v1
 );
-app.use(RouteBases.BUG_REPORT, verifyAccessToken, Routes.bugReportRouter_v1);
+app.use(RouteBases.BUG_REPORTS, verifyAccessToken, Routes.bugReportRouter_v1);
 
 // ↓↓↓ Global error-catching middleware. ↓↓↓ //
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
