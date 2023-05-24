@@ -145,9 +145,7 @@ export async function emailUser(
       user: process.env.EMAIL_HELP,
       pass: process.env.EMAIL_PASSWORD,
     },
-    tls: {
-      ciphers: "SSLv3",
-    },
+    tls: { ciphers: "SSLv3" },
   });
   prodSMTPtransporter.sendMail(
     message,

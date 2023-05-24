@@ -14,26 +14,27 @@ enum Theme {
 }
 
 model User {
-  id                     Int       @id @default(autoincrement())
-  email                  String    @unique
-  username               String    @unique @db.VarChar(16)
+  id                     Int         @id @default(autoincrement())
+  email                  String      @unique
+  username               String      @unique @db.VarChar(16)
   password               String
   firstName              String?
   lastName               String?
   birthday               DateTime?
-  currency               String    @default("USD")
+  currency               String      @default("USD")
   mobileNumber           String?
-  theme                  Theme     @default(dark)
-  onboarded              Boolean   @default(false)
-  emailVerified          Boolean   @default(false)
-  loggedIn               Boolean   @default(false)
+  theme                  Theme       @default(dark)
+  onboarded              Boolean     @default(false)
+  emailVerified          Boolean     @default(false)
+  loggedIn               Boolean     @default(false)
   signedVerificationCode String?
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
   // One To One
   overview               Overview?
   // Has Many
   logbooks               Logbook[]
+  bugReports             BugReport[]
 }
 
 enum Category {
@@ -111,4 +112,15 @@ model LogbookEntry {
   // Belongs To
   logbook    Logbook    @relation(fields: [logbookId], references: [id], onDelete: Cascade)
   logbookId  Int
+}
+
+model BugReport {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // Belongs To
+  User      User     @relation(fields: [userId], references: [id])
+  userId    Int
 }

@@ -5,6 +5,7 @@ import { overviewsRouter_v1 } from "./overviews.routes";
 import { overviewGroupsRouter_v1 } from "./overview-groups.routes";
 import { logbooksRouter_v1 } from "./logbooks.routes";
 import { logbookEntriesRouter_v1 } from "./logbook-entries.routes";
+import { bugReportRouter_v1 } from "./bug-report.routes";
 
 export {
   authRouter_v1,
@@ -14,4 +15,5 @@ export {
   overviewGroupsRouter_v1,
   logbooksRouter_v1,
   logbookEntriesRouter_v1,
+  bugReportRouter_v1,
 };
