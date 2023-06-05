@@ -38,6 +38,7 @@ model User {
 }
 
 enum Category {
+  monthly
   need
   planned
   impulse

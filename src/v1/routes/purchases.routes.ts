@@ -35,7 +35,6 @@ purchasesRouter_v1.post(
 purchasesRouter_v1.get("/:purchaseId", Controllers.fetchPurchase);
 
 type CreateData = (keyof Validators.PurchaseValidator)[];
-// const createData: CreateData = ["placement"];
 const optionalCreateData: CreateData = [
   "category",
   "description",
