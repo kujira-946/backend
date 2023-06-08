@@ -451,7 +451,7 @@ async function updateAssociatedTotalSpent(
   response: Response
 ) {
   try {
-    if (purchase.category !== "monthly" && purchase.cost) {
+    if (purchase.category && purchase.category !== "monthly" && purchase.cost) {
       // Update associated overview group's `totalCost`.
       if (purchase.overviewGroupId) {
         const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
