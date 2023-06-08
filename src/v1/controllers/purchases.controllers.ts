@@ -446,6 +446,49 @@ async function updateLogbookEntryPurchasePlacementAfterDelete(
   }
 }
 
+async function updateAssociatedTotalSpent(
+  purchase: Purchase,
+  response: Response
+) {
+  try {
+    if (purchase.category !== "monthly" && purchase.cost) {
+      // Update associated overview group's `totalCost`.
+      if (purchase.overviewGroupId) {
+        const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+          where: { id: purchase.overviewGroupId },
+        });
+        const updatedTotalSpent = overviewGroup.totalSpent - purchase.cost;
+
+        await prisma.overviewGroup.update({
+          where: { id: overviewGroup.id },
+          data: { totalSpent: updatedTotalSpent < 0 ? 0 : updatedTotalSpent },
+        });
+      }
+      // Update associated logbook entry's `totalCost`.
+      else if (purchase.logbookEntryId) {
+        const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+          where: { id: purchase.logbookEntryId },
+        });
+        const updatedTotalSpent = logbookEntry.totalSpent - purchase.cost;
+
+        await prisma.logbookEntry.update({
+          where: { id: logbookEntry.id },
+          data: { totalSpent: updatedTotalSpent < 0 ? 0 : updatedTotalSpent },
+        });
+      }
+    }
+  } catch (error) {
+    return HttpHelpers.respondWithClientError(response, "not found", {
+      body: HttpHelpers.generateFetchError(
+        purchase.overviewGroupId
+          ? "associated overview group"
+          : "associated logbook entry",
+        false
+      ),
+    });
+  }
+}
+
 export async function deletePurchase(
   request: Request<{ purchaseId: string }>,
   response: Response
@@ -454,6 +497,10 @@ export async function deletePurchase(
     const purchase = await prisma.purchase.delete({
       where: { id: Number(request.params.purchaseId) },
     });
+
+    // If the deleted purchase belongs to an overview group or logbook entry,
+    // the function below updates the association's `totalSpent` field.
+    await updateAssociatedTotalSpent(purchase, response);
 
     if (purchase.overviewGroupId && purchase.placement) {
       updateOverviewGroupPurchasePlacementAfterDelete(
