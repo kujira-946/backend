@@ -140,7 +140,7 @@ export async function updateLogbookEntry(
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: "A logbook entry with that date already exists.",
+      body: HttpHelpers.generateCudMessage("update", "logbook entry", true),
     });
   }
 }

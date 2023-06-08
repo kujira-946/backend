@@ -289,9 +289,43 @@ export async function updatePurchase(
       data: updateData,
     });
 
+    let newAssociatedTotalSpent = 0;
+
+    if (updatedPurchase.overviewGroupId) {
+      const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+        where: { id: updatedPurchase.overviewGroupId },
+        include: { purchases: true },
+      });
+      overviewGroup.purchases.forEach((purchase: Purchase) => {
+        if (
+          purchase.cost &&
+          (purchase.category === "need" ||
+            purchase.category === "planned" ||
+            purchase.category === "impulse")
+        ) {
+          newAssociatedTotalSpent += purchase.cost;
+        }
+      });
+    } else if (updatedPurchase.logbookEntryId) {
+      const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+        where: { id: updatedPurchase.logbookEntryId },
+        include: { purchases: true },
+      });
+      logbookEntry.purchases.forEach((purchase: Purchase) => {
+        if (
+          purchase.cost &&
+          (purchase.category === "need" ||
+            purchase.category === "planned" ||
+            purchase.category === "impulse")
+        ) {
+          newAssociatedTotalSpent += purchase.cost;
+        }
+      });
+    }
+
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "purchase"),
-      data: updatedPurchase,
+      data: { updatedPurchase, newAssociatedTotalSpent },
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
@@ -446,46 +480,59 @@ async function updateLogbookEntryPurchasePlacementAfterDelete(
   }
 }
 
-async function updateAssociatedTotalSpent(
-  purchase: Purchase,
-  response: Response
+// If the deleted purchase belongs to an overview group or logbook entry,
+// the function below updates the association's `totalSpent` field.
+
+function calculateAssociatedTotalSpent(
+  oldTotalSpent: number,
+  purchaseCost: number
 ) {
-  try {
-    if (purchase.category && purchase.category !== "monthly" && purchase.cost) {
-      // Update associated overview group's `totalCost`.
-      if (purchase.overviewGroupId) {
-        const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-          where: { id: purchase.overviewGroupId },
-        });
-        const updatedTotalSpent = overviewGroup.totalSpent - purchase.cost;
+  const newTotalSpent = oldTotalSpent - purchaseCost;
+  if (newTotalSpent < 0) return 0;
+  else return newTotalSpent;
+}
 
-        await prisma.overviewGroup.update({
-          where: { id: overviewGroup.id },
-          data: { totalSpent: updatedTotalSpent < 0 ? 0 : updatedTotalSpent },
-        });
-      }
-      // Update associated logbook entry's `totalCost`.
-      else if (purchase.logbookEntryId) {
-        const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-          where: { id: purchase.logbookEntryId },
-        });
-        const updatedTotalSpent = logbookEntry.totalSpent - purchase.cost;
+async function updateAssociatedTotalSpent(purchase: Purchase) {
+  if (
+    purchase.cost &&
+    (purchase.category === "need" ||
+      purchase.category === "planned" ||
+      purchase.category === "impulse")
+  ) {
+    // Update associated overview group's `totalCost`.
+    if (purchase.overviewGroupId) {
+      const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
+        where: { id: purchase.overviewGroupId },
+      });
+      const totalSpent = calculateAssociatedTotalSpent(
+        overviewGroup.totalSpent,
+        purchase.cost
+      );
 
-        await prisma.logbookEntry.update({
-          where: { id: logbookEntry.id },
-          data: { totalSpent: updatedTotalSpent < 0 ? 0 : updatedTotalSpent },
-        });
-      }
+      await prisma.overviewGroup.update({
+        where: { id: overviewGroup.id },
+        data: { totalSpent },
+      });
+
+      return totalSpent;
     }
-  } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "not found", {
-      body: HttpHelpers.generateFetchError(
-        purchase.overviewGroupId
-          ? "associated overview group"
-          : "associated logbook entry",
-        false
-      ),
-    });
+    // Update associated logbook entry's `totalCost`.
+    else if (purchase.logbookEntryId) {
+      const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
+        where: { id: purchase.logbookEntryId },
+      });
+      const totalSpent = calculateAssociatedTotalSpent(
+        logbookEntry.totalSpent,
+        purchase.cost
+      );
+
+      await prisma.logbookEntry.update({
+        where: { id: logbookEntry.id },
+        data: { totalSpent },
+      });
+
+      return totalSpent;
+    }
   }
 }
 
@@ -498,9 +545,7 @@ export async function deletePurchase(
       where: { id: Number(request.params.purchaseId) },
     });
 
-    // If the deleted purchase belongs to an overview group or logbook entry,
-    // the function below updates the association's `totalSpent` field.
-    await updateAssociatedTotalSpent(purchase, response);
+    const newAssociatedTotalSpent = await updateAssociatedTotalSpent(purchase);
 
     if (purchase.overviewGroupId && purchase.placement) {
       updateOverviewGroupPurchasePlacementAfterDelete(
@@ -516,6 +561,7 @@ export async function deletePurchase(
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "purchase"),
+      data: { newAssociatedTotalSpent },
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "not found", {
