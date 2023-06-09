@@ -338,46 +338,17 @@ export async function updatePurchase(
 // [ UPDATE PURCHASE PLACEMENT ] =========================================================== //
 // ========================================================================================= //
 
-async function updateOverviewGroupPurchasePlacement(overviewGroupId: number) {
+async function handleUpdatingOfPurchasePlacements(
+  updatedPurchaseIds: number[]
+) {
   try {
-    const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-      where: { id: overviewGroupId },
-      include: { purchases: true },
-    });
     await prisma.$transaction(async () => {
-      overviewGroup.purchases.forEach(
-        async (purchase: Purchase, index: number) => {
-          await prisma.purchase.update({
-            where: { id: purchase.id },
-            data: { placement: index + 1 },
-          });
-        }
-      );
-    });
-    await prisma.$disconnect();
-  } catch (error) {
-    console.log(error);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
-}
-
-async function updateLogbookEntryPurchasePlacement(logbookEntryId: number) {
-  try {
-    const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-      where: { id: logbookEntryId },
-      include: { purchases: true },
-    });
-
-    await prisma.$transaction(async () => {
-      logbookEntry.purchases.forEach(
-        async (purchase: Purchase, index: number) => {
-          await prisma.purchase.update({
-            where: { id: purchase.id },
-            data: { placement: index + 1 },
-          });
-        }
-      );
+      for (const [index, purchaseId] of updatedPurchaseIds.entries()) {
+        await prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { placement: index + 1 },
+        });
+      }
     });
     await prisma.$disconnect();
   } catch (error) {
@@ -388,29 +359,27 @@ async function updateLogbookEntryPurchasePlacement(logbookEntryId: number) {
 }
 
 export async function updatePurchasePlacement(
-  request: Request<{ purchaseId: string }, {}, { updatedPlacement: number }>,
+  request: Request<
+    { purchaseId: string },
+    {},
+    { updatedPurchaseIds: number[] }
+  >,
   response: Response
 ) {
   try {
-    const updatedPurchase = await prisma.purchase.update({
-      where: { id: Number(request.params.purchaseId) },
-      data: { placement: request.body.updatedPlacement },
-    });
-
-    if (updatedPurchase.overviewGroupId) {
-      updateOverviewGroupPurchasePlacement(updatedPurchase.overviewGroupId);
-    } else if (updatedPurchase.logbookEntryId) {
-      updateLogbookEntryPurchasePlacement(updatedPurchase.logbookEntryId);
-    }
+    await handleUpdatingOfPurchasePlacements(request.body.updatedPurchaseIds);
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "purchase"),
-      data: updatedPurchase,
     });
   } catch (error) {
-    return HttpHelpers.respondWithClientError(response, "not found", {
-      body: HttpHelpers.generateCudMessage("delete", "purchase", true),
-    });
+    return HttpHelpers.respondWithServerError(
+      response,
+      "internal server error",
+      {
+        body: "Failed to update placements of purchases.",
+      }
+    );
   }
 }
 

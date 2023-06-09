@@ -60,7 +60,7 @@ purchasesRouter_v1.post(
 
 purchasesRouter_v1.patch(
   "/:purchaseId/update-purchase-placement",
-  HelperMiddlewares.validateUserData(["updatedPlacement"]),
+  HelperMiddlewares.validateUserData(["updatedPurchaseIds"]),
   Controllers.updatePurchasePlacement
 );
 
