@@ -6,9 +6,11 @@ import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const bugReportRouter_v1 = express.Router();
 
+type FetchData = (keyof Validators.FetchUserBugReportsValidator)[];
+const fetchData: FetchData = ["ownerId"];
 bugReportRouter_v1.post(
   "/fetch-user-bug-reports",
-  HelperMiddlewares.validateUserData(["ownerId"], { isHttpPost: true }),
+  HelperMiddlewares.validateUserData(fetchData, { isHttpPost: true }),
   Controllers.fetchUserBugReports
 );
 

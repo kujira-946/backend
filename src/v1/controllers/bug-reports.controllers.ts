@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
-import nodemailer from "nodemailer";
 
 import * as Validators from "../validators/bug-reports.validators";
+import * as Services from "../services/bug-reports.services";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
@@ -33,40 +33,6 @@ export async function fetchUserBugReports(
 // [ CREATE BUG REPORT ] =================================================================== //
 // ========================================================================================= //
 
-function emailBugReportToKujiraHelp(
-  bugReportTitle: string,
-  bugReportBody: string | null,
-  userId: number,
-  username: string
-) {
-  const message = {
-    from: `"KUJIRA BUG REPORT" <${process.env.EMAIL_HELP}>`,
-    to: process.env.EMAIL_HELP,
-    subject: bugReportTitle,
-    html: [
-      `<p>Sent by user with ID: <b>${userId}</b> and USERNAME: <b>${username}</b></p>`,
-      `<p>${
-        bugReportBody || "User did not describe the issue in more detail."
-      }</p>`,
-    ].join(""),
-  };
-
-  const SMTPtransporter = nodemailer.createTransport({
-    service: "hotmail",
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_HELP,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-    tls: { ciphers: "SSLv3" },
-  });
-
-  SMTPtransporter.sendMail(message, function (error: any, information: any) {
-    if (error) console.log(error);
-    else console.log("Sent Response:", information.response);
-  });
-}
-
 export async function createBugReport(
   request: Request<{}, {}, Validators.BugReportsCreateValidator>,
   response: Response
@@ -84,7 +50,7 @@ export async function createBugReport(
       where: { id: request.body.ownerId },
     });
 
-    emailBugReportToKujiraHelp(
+    Services.emailBugReportToKujiraHelp(
       bugReport.title,
       bugReport.body,
       user.id,
@@ -107,7 +73,10 @@ export async function createBugReport(
 // [ DELETE BUG REPORT ] =================================================================== //
 // ========================================================================================= //
 
-export async function deleteBugReport(request: Request, response: Response) {
+export async function deleteBugReport(
+  request: Request<{ bugReportId: string }>,
+  response: Response
+) {
   try {
     await prisma.bugReport.delete({
       where: { id: Number(request.params.bugReportId) },
