@@ -1,5 +1,12 @@
 import { Prisma } from "@prisma/client";
 
+const logbookEntryFetchValidator = Prisma.validator<Prisma.LogbookEntryArgs>()({
+  select: { logbookId: true },
+});
+export type LogbookEntryFetchValidator = Prisma.LogbookEntryGetPayload<
+  typeof logbookEntryFetchValidator
+>;
+
 const logbookEntryCreateValidator = Prisma.validator<Prisma.LogbookEntryArgs>()(
   {
     select: {

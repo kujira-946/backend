@@ -8,9 +8,11 @@ export const logbookEntriesRouter_v1 = express.Router();
 
 logbookEntriesRouter_v1.get("/", Controllers.fetchLogbookEntries);
 
+type FetchData = (keyof Validators.LogbookEntryFetchValidator)[];
+const fetchData: FetchData = ["logbookId"];
 logbookEntriesRouter_v1.post(
   "/fetch-logbook-entries",
-  HelperMiddlewares.validateUserData(["logbookId"]),
+  HelperMiddlewares.validateUserData(fetchData),
   Controllers.fetchLogbookLogbookEntries
 );
 

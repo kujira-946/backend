@@ -32,7 +32,7 @@ export async function fetchLogbookEntries(_: Request, response: Response) {
 // ========================================================================================= //
 
 export async function fetchLogbookLogbookEntries(
-  request: Request<{}, {}, { logbookId: number }>,
+  request: Request<{}, {}, Validators.LogbookEntryFetchValidator>,
   response: Response
 ) {
   try {
