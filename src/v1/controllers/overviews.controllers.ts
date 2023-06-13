@@ -32,7 +32,7 @@ export async function fetchOverviews(_: Request, response: Response) {
 // ========================================================================================= //
 
 export async function fetchUserOverview(
-  request: Request<{}, {}, { ownerId: number }>,
+  request: Request<{}, {}, Validators.FetchUserOverviewValidator>,
   response: Response
 ) {
   try {

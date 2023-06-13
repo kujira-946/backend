@@ -8,9 +8,11 @@ export const overviewsRouter_v1 = express.Router();
 
 overviewsRouter_v1.get("/", Controllers.fetchOverviews);
 
+type FetchUserOverviewData = (keyof Validators.FetchUserOverviewValidator)[];
+const fetchUserOverviewData: FetchUserOverviewData = ["ownerId"];
 overviewsRouter_v1.post(
   "/fetch-user-overview",
-  HelperMiddlewares.validateUserData(["ownerId"]),
+  HelperMiddlewares.validateUserData(fetchUserOverviewData),
   Controllers.fetchUserOverview
 );
 
