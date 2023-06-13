@@ -8,9 +8,11 @@ export const logbooksRouter_v1 = express.Router();
 
 logbooksRouter_v1.get("/", Controllers.fetchLogbooks);
 
+type FetchUserLogbooksData = (keyof Validators.FetchUserLogbooksValidator)[];
+const fetchUserLogbooksData: FetchUserLogbooksData = ["ownerId"];
 logbooksRouter_v1.post(
   "/fetch-user-logbooks",
-  HelperMiddlewares.validateUserData(["ownerId"]),
+  HelperMiddlewares.validateUserData(fetchUserLogbooksData),
   Controllers.fetchUserLogbooks
 );
 

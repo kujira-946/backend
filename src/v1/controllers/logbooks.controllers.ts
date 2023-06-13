@@ -33,7 +33,7 @@ export async function fetchLogbooks(_: Request, response: Response) {
 // ========================================================================================= //
 
 export async function fetchUserLogbooks(
-  request: Request<{}, {}, { ownerId: number }>,
+  request: Request<{}, {}, Validators.FetchUserLogbooksValidator>,
   response: Response
 ) {
   try {

@@ -1,5 +1,12 @@
 import { Prisma } from "@prisma/client";
 
+const fetchUserLogbooksValidator = Prisma.validator<Prisma.LogbookArgs>()({
+  select: { ownerId: true },
+});
+export type FetchUserLogbooksValidator = Prisma.LogbookGetPayload<
+  typeof fetchUserLogbooksValidator
+>;
+
 const logbookCreateValidator = Prisma.validator<Prisma.LogbookArgs>()({
   select: {
     name: true,
