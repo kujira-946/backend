@@ -1,26 +1,33 @@
 import express from "express";
 
-import * as Types from "../validators/auth.validators";
+import * as Validators from "../validators/auth.validators";
 import * as Controllers from "../controllers/auth.controllers";
 import * as Middlewares from "../middlewares/auth.middlewares";
 import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const authRouter_v1 = express.Router();
 
+type VerifyRegistrationData = (keyof Validators.VerifyRegistrationValidator)[];
+const verifyRegistrationData: VerifyRegistrationData = [
+  "email",
+  "signedVerificationCode",
+];
 authRouter_v1.patch(
   "/register/verify",
-  HelperMiddlewares.validateUserData(["email", "verificationCode"]),
+  HelperMiddlewares.validateUserData(verifyRegistrationData),
   Middlewares.checkUserExistsWithEmail,
   Controllers.verifyRegistration
 );
 
+type EmailAvailabilityData = (keyof Validators.EmailAvailabilityValidator)[];
+const emailAvailabilityData: EmailAvailabilityData = ["email"];
 authRouter_v1.patch(
   "/register/check-email-availability",
-  HelperMiddlewares.validateUserData(["email"]),
+  HelperMiddlewares.validateUserData(emailAvailabilityData),
   Controllers.checkEmailAvailability
 );
 
-type RegistrationData = (keyof Types.UserRegistrationValidator)[];
+type RegistrationData = (keyof Validators.RegistrationValidator)[];
 const registrationData: RegistrationData = ["email", "username", "password"];
 const optionalRegistrationData: RegistrationData = [
   "firstName",
@@ -39,13 +46,16 @@ authRouter_v1.post(
   Controllers.registerUser
 );
 
+type UsernameAvailabilityData =
+  (keyof Validators.UsernameAvailabilityValidator)[];
+const usernameAvailabilityData: UsernameAvailabilityData = ["username"];
 authRouter_v1.patch(
   "/register/check-username-availability",
-  HelperMiddlewares.validateUserData(["username"]),
+  HelperMiddlewares.validateUserData(usernameAvailabilityData),
   Controllers.checkUsernameAvailability
 );
 
-type LoginData = (keyof Types.UserLoginValidator)[];
+type LoginData = (keyof Validators.LoginValidator)[];
 const loginData: LoginData = ["email", "password"];
 authRouter_v1.patch(
   "/login",
@@ -55,13 +65,15 @@ authRouter_v1.patch(
   Controllers.loginUser
 );
 
+type VerifyLoginData = (keyof Validators.VerifyLoginValidator)[];
+const verifyLoginData: VerifyLoginData = [
+  "email",
+  "signedVerificationCode",
+  "thirtyDays",
+];
 authRouter_v1.patch(
   "/login/verify",
-  HelperMiddlewares.validateUserData([
-    "email",
-    "verificationCode",
-    "thirtyDays",
-  ]),
+  HelperMiddlewares.validateUserData(verifyLoginData),
   Middlewares.checkUserExistsWithEmail,
   Controllers.verifyLogin
 );
@@ -72,8 +84,13 @@ authRouter_v1.patch(
   Controllers.logout
 );
 
+type RequestNewVerificationCodeData =
+  (keyof Validators.RequestNewVerificationCodeValidator)[];
+const requestNewVerificationCodeData: RequestNewVerificationCodeData = [
+  "email",
+];
 authRouter_v1.patch(
   "/request-new-verification-code",
-  HelperMiddlewares.validateUserData(["email"]),
+  HelperMiddlewares.validateUserData(requestNewVerificationCodeData),
   Controllers.requestNewVerificationCode
 );

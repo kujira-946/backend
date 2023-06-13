@@ -4,8 +4,8 @@ import express, {
   Request,
   Response,
 } from "express";
-import dotenv from "dotenv";
 import compression from "compression";
+import dotenv from "dotenv";
 import helmet from "helmet";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
@@ -62,7 +62,7 @@ app.use(
 );
 app.use(RouteBases.BUG_REPORTS, verifyAccessToken, Routes.bugReportRouter_v1);
 
-// ↓↓↓ Global error-catching middleware. ↓↓↓ //
+// ↓↓↓ Global error-catching middleware (fallback). ↓↓↓ //
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
   error: Error,
   request: Request,
