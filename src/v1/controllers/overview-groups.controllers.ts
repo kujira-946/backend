@@ -32,7 +32,7 @@ export async function fetchOverviewGroups(_: Request, response: Response) {
 // ========================================================================================= //
 
 export async function fetchOverviewOverviewGroups(
-  request: Request<{}, {}, { overviewId: number }>,
+  request: Request<{}, {}, Validators.FetchOverviewOverviewGroupsValidator>,
   response: Response
 ) {
   try {

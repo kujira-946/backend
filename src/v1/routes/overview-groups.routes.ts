@@ -8,9 +8,14 @@ export const overviewGroupsRouter_v1 = express.Router();
 
 overviewGroupsRouter_v1.get("/", Controllers.fetchOverviewGroups);
 
+type OverviewOverviewGroupsFetchData =
+  (keyof Validators.FetchOverviewOverviewGroupsValidator)[];
+const overviewOverviewGroupsFetchData: OverviewOverviewGroupsFetchData = [
+  "overviewId",
+];
 overviewGroupsRouter_v1.post(
-  "/fetch-overview-groups",
-  HelperMiddlewares.validateUserData(["overviewId"]),
+  "/fetch-overview-overview-groups",
+  HelperMiddlewares.validateUserData(overviewOverviewGroupsFetchData),
   Controllers.fetchOverviewOverviewGroups
 );
 
