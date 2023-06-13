@@ -1,7 +1,8 @@
-import { Category, PrismaClient, Purchase } from "@prisma/client";
+import { Category, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
 import * as Validators from "../validators/purchases.validators";
+import * as Services from "../services/purchases.services";
 import * as HttpHelpers from "../helpers/http.helpers";
 import { HttpStatusCodes } from "../../utils/http-status-codes";
 
@@ -32,7 +33,7 @@ export async function fetchPurchases(_: Request, response: Response) {
 // ========================================================================================= //
 
 export async function fetchOverviewGroupPurchases(
-  request: Request<{}, {}, { overviewGroupId: number }>,
+  request: Request<{}, {}, Validators.FetchOverviewGroupPurchasesValidator>,
   response: Response
 ) {
   try {
@@ -54,7 +55,7 @@ export async function fetchOverviewGroupPurchases(
 // ========================================================================================= //
 
 export async function fetchLogbookEntryPurchases(
-  request: Request<{}, {}, { logbookEntryId: number }>,
+  request: Request<{}, {}, Validators.FetchLogbookEntryPurchasesValidator>,
   response: Response
 ) {
   try {
@@ -80,29 +81,46 @@ export async function fetchLogbookEntryPurchasesByCategory(
   response: Response
 ) {
   try {
-    const needPurchases: Purchase[] = [];
-    const plannedPurchases: Purchase[] = [];
-    const impulsePurchases: Purchase[] = [];
+    // const needPurchases: Purchase[] = [];
+    // const plannedPurchases: Purchase[] = [];
+    // const impulsePurchases: Purchase[] = [];
 
-    for (const logbookEntryId of request.body.logbookEntryIds) {
-      const needCategoryPurchases = await prisma.purchase.findMany({
-        orderBy: { id: "asc" },
-        where: { logbookEntryId: logbookEntryId, category: "need" },
-      });
-      needPurchases.push(...needCategoryPurchases);
+    // for (const logbookEntryId of request.body.logbookEntryIds) {
+    //   const needCategoryPurchases = await prisma.purchase.findMany({
+    //     orderBy: { id: "asc" },
+    //     where: { logbookEntryId: logbookEntryId, category: "need" },
+    //   });
+    //   needPurchases.push(...needCategoryPurchases);
 
-      const plannedCategoryPurchases = await prisma.purchase.findMany({
-        orderBy: { id: "asc" },
-        where: { logbookEntryId: logbookEntryId, category: "planned" },
-      });
-      plannedPurchases.push(...plannedCategoryPurchases);
+    //   const plannedCategoryPurchases = await prisma.purchase.findMany({
+    //     orderBy: { id: "asc" },
+    //     where: { logbookEntryId: logbookEntryId, category: "planned" },
+    //   });
+    //   plannedPurchases.push(...plannedCategoryPurchases);
 
-      const impulseCategoryPurchases = await prisma.purchase.findMany({
-        orderBy: { id: "asc" },
-        where: { logbookEntryId: logbookEntryId, category: "impulse" },
-      });
-      impulsePurchases.push(...impulseCategoryPurchases);
-    }
+    //   const impulseCategoryPurchases = await prisma.purchase.findMany({
+    //     orderBy: { id: "asc" },
+    //     where: { logbookEntryId: logbookEntryId, category: "impulse" },
+    //   });
+    //   impulsePurchases.push(...impulseCategoryPurchases);
+    // }
+
+    const needPurchases = await Services.fetchLogbookEntryPurchasesByCategory(
+      request.body.logbookEntryIds,
+      "need"
+    );
+
+    const plannedPurchases =
+      await Services.fetchLogbookEntryPurchasesByCategory(
+        request.body.logbookEntryIds,
+        "planned"
+      );
+
+    const impulsePurchases =
+      await Services.fetchLogbookEntryPurchasesByCategory(
+        request.body.logbookEntryIds,
+        "impulse"
+      );
 
     return response.status(HttpStatusCodes.OK).json({
       data: {
@@ -165,43 +183,6 @@ export async function fetchPurchase(
 // [ CREATE A PURCHASE ] =================================================================== //
 // ========================================================================================= //
 
-async function createOverviewGroupPurchase(
-  overviewGroupId: number,
-  createData: Validators.PurchaseValidator,
-  response: Response
-) {
-  const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-    where: { id: overviewGroupId },
-    include: { purchases: true },
-  });
-  const newPurchase = await prisma.purchase.create({
-    data: { placement: overviewGroup.purchases.length + 1, ...createData },
-  });
-  return HttpHelpers.respondWithSuccess(response, "created", {
-    body: HttpHelpers.generateCudMessage("create", "overview group purchase"),
-    data: newPurchase,
-  });
-}
-
-async function createLogbookEntryPurchase(
-  logbookEntryId: number,
-  createData: Validators.PurchaseValidator,
-  response: Response
-) {
-  const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-    where: { id: logbookEntryId },
-    include: { purchases: true },
-  });
-
-  const newPurchase = await prisma.purchase.create({
-    data: { placement: logbookEntry.purchases.length + 1, ...createData },
-  });
-  return HttpHelpers.respondWithSuccess(response, "created", {
-    body: HttpHelpers.generateCudMessage("create", "logbook entry purchase"),
-    data: newPurchase,
-  });
-}
-
 export async function createPurchase(
   request: Request<{}, {}, Validators.PurchaseValidator>,
   response: Response
@@ -216,13 +197,13 @@ export async function createPurchase(
     };
 
     if (request.body.overviewGroupId) {
-      return createOverviewGroupPurchase(
+      return Services.createOverviewGroupPurchase(
         request.body.overviewGroupId,
         createData,
         response
       );
     } else if (request.body.logbookEntryId) {
-      return createLogbookEntryPurchase(
+      return Services.createLogbookEntryPurchase(
         request.body.logbookEntryId,
         createData,
         response
@@ -289,37 +270,24 @@ export async function updatePurchase(
       data: updateData,
     });
 
-    let newAssociatedTotalSpent = 0;
-
     if (updatedPurchase.overviewGroupId) {
-      const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-        where: { id: updatedPurchase.overviewGroupId },
-        include: { purchases: true },
-      });
-      for (const purchase of overviewGroup.purchases) {
-        if (purchase.cost) newAssociatedTotalSpent += purchase.cost;
-      }
+      Services.handleOverviewGroupNewTotalSpent(
+        updatedPurchase.overviewGroupId,
+        updatedPurchase,
+        response
+      );
     } else if (updatedPurchase.logbookEntryId) {
-      const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-        where: { id: updatedPurchase.logbookEntryId },
-        include: { purchases: true },
+      Services.handleLogbookEntryNewTotalSpent(
+        updatedPurchase.logbookEntryId,
+        updatedPurchase,
+        response
+      );
+    } else {
+      return HttpHelpers.respondWithSuccess(response, "ok", {
+        body: HttpHelpers.generateCudMessage("update", "purchase"),
+        data: { updatedPurchase },
       });
-      for (const purchase of logbookEntry.purchases) {
-        if (
-          purchase.cost &&
-          (purchase.category === "need" ||
-            purchase.category === "planned" ||
-            purchase.category === "impulse")
-        ) {
-          newAssociatedTotalSpent += purchase.cost;
-        }
-      }
     }
-
-    return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: HttpHelpers.generateCudMessage("update", "purchase"),
-      data: { updatedPurchase, newAssociatedTotalSpent },
-    });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: HttpHelpers.generateCudMessage("update", "purchase", true),
@@ -331,26 +299,6 @@ export async function updatePurchase(
 // [ UPDATE PURCHASE PLACEMENT ] =========================================================== //
 // ========================================================================================= //
 
-async function handleUpdatingOfPurchasePlacements(
-  updatedPurchaseIds: number[]
-) {
-  try {
-    await prisma.$transaction(async () => {
-      for (const [index, purchaseId] of updatedPurchaseIds.entries()) {
-        await prisma.purchase.update({
-          where: { id: purchaseId },
-          data: { placement: index + 1 },
-        });
-      }
-    });
-    await prisma.$disconnect();
-  } catch (error) {
-    console.log(error);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
-}
-
 export async function updatePurchasePlacement(
   request: Request<
     { purchaseId: string },
@@ -360,7 +308,7 @@ export async function updatePurchasePlacement(
   response: Response
 ) {
   try {
-    await handleUpdatingOfPurchasePlacements(request.body.updatedPurchaseIds);
+    await Services.updatePurchasePlacements(request.body.updatedPurchaseIds);
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("update", "purchase"),
@@ -380,124 +328,6 @@ export async function updatePurchasePlacement(
 // [ DELETE A PURCHASE ] =================================================================== //
 // ========================================================================================= //
 
-async function updateOverviewGroupPurchasePlacementAfterDelete(
-  overviewGroupId: number
-) {
-  try {
-    const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-      where: { id: overviewGroupId },
-      include: { purchases: true },
-    });
-
-    await prisma.$transaction(async () => {
-      overviewGroup.purchases.forEach(
-        async (purchase: Purchase, index: number) => {
-          await prisma.purchase.update({
-            where: { id: purchase.id },
-            data: { placement: index + 1 },
-          });
-        }
-      );
-    });
-    await prisma.$disconnect();
-  } catch (error) {
-    console.log(error);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
-}
-
-async function updateLogbookEntryPurchasePlacementAfterDelete(
-  logbookEntryId: number
-) {
-  try {
-    const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-      where: { id: logbookEntryId },
-      include: { purchases: true },
-    });
-
-    await prisma.$transaction(async () => {
-      logbookEntry.purchases.forEach(
-        async (purchase: Purchase, index: number) => {
-          await prisma.purchase.update({
-            where: { id: purchase.id },
-            data: { placement: index + 1 },
-          });
-        }
-      );
-    });
-    await prisma.$disconnect();
-  } catch (error) {
-    console.log(error);
-    await prisma.$disconnect();
-    process.exit(1);
-  }
-}
-
-// If the deleted purchase belongs to an overview group or logbook entry,
-// the function below updates the association's `totalSpent` field.
-
-function calculateAssociatedTotalSpent(
-  oldTotalSpent: number,
-  purchaseCost: number
-) {
-  const newTotalSpent = oldTotalSpent - purchaseCost;
-  if (newTotalSpent < 0) return 0;
-  else return newTotalSpent;
-}
-
-async function updateAssociatedOverviewGroupTotalSpent(
-  overviewGroupId: number,
-  purchaseCost: number | null
-) {
-  const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-    where: { id: overviewGroupId },
-  });
-
-  if (purchaseCost) {
-    const newAssociatedTotalSpent = calculateAssociatedTotalSpent(
-      overviewGroup.totalSpent,
-      purchaseCost
-    );
-
-    return await prisma.overviewGroup.update({
-      where: { id: overviewGroup.id },
-      data: { totalSpent: newAssociatedTotalSpent },
-    });
-  } else {
-    return overviewGroup;
-  }
-}
-
-async function updateAssociatedLogbookEntryTotalSpent(
-  logbookEntryId: number,
-  purchaseCost: number | null,
-  purchaseCategory: Category | null
-) {
-  const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-    where: { id: logbookEntryId },
-  });
-
-  if (
-    purchaseCost &&
-    (purchaseCategory === "need" ||
-      purchaseCategory === "planned" ||
-      purchaseCategory === "impulse")
-  ) {
-    const newAssociatedTotalSpent = calculateAssociatedTotalSpent(
-      logbookEntry.totalSpent,
-      purchaseCost
-    );
-
-    return await prisma.logbookEntry.update({
-      where: { id: logbookEntry.id },
-      data: { totalSpent: newAssociatedTotalSpent },
-    });
-  } else {
-    return logbookEntry;
-  }
-}
-
 export async function deletePurchase(
   request: Request<{ purchaseId: string }>,
   response: Response
@@ -507,38 +337,28 @@ export async function deletePurchase(
       where: { id: Number(request.params.purchaseId) },
     });
 
-    // ↓↓↓ Update `totalSpent` and purchase placements of purchase's associated overview group. ↓↓↓ //
     if (purchase.overviewGroupId) {
-      const updatedOverviewGroup =
-        await updateAssociatedOverviewGroupTotalSpent(
-          purchase.overviewGroupId,
-          purchase.cost
-        );
-
-      updateOverviewGroupPurchasePlacementAfterDelete(purchase.overviewGroupId);
-
+      const updatedOverviewGroup = await Services.updateOverviewGroupTotalSpent(
+        purchase.overviewGroupId,
+        purchase.cost
+      );
+      Services.updateOverviewGroupPurchasePlacements(purchase.overviewGroupId);
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: HttpHelpers.generateCudMessage("delete", "purchase"),
         data: { updatedOverviewGroup },
       });
-    }
-    // ↓↓↓ Update `totalSpent` and purchase placements of purchase's associated logbook entry. ↓↓↓ //
-    else if (purchase.logbookEntryId) {
-      const updatedLogbookEntry = await updateAssociatedLogbookEntryTotalSpent(
+    } else if (purchase.logbookEntryId) {
+      const updatedLogbookEntry = await Services.updateLogbookEntryTotalSpent(
         purchase.logbookEntryId,
         purchase.cost,
         purchase.category
       );
-
-      updateLogbookEntryPurchasePlacementAfterDelete(purchase.logbookEntryId);
-
+      Services.updateLogbookEntryPurchasePlacements(purchase.logbookEntryId);
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: HttpHelpers.generateCudMessage("delete", "purchase"),
         data: { updatedLogbookEntry },
       });
-    }
-    // ↓↓↓ If the purchase doesn't belong to anything. ↓↓↓ //
-    else {
+    } else {
       return HttpHelpers.respondWithSuccess(response, "ok", {
         body: HttpHelpers.generateCudMessage("delete", "purchase"),
       });
@@ -554,117 +374,6 @@ export async function deletePurchase(
 // [ BULK DELETE ] ========================================================================= //
 // ========================================================================================= //
 
-async function updateOverviewGroupTotalSpentBeforeBulkDelete(
-  overviewGroupId: number,
-  purchaseIds: number[]
-) {
-  try {
-    const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-      where: { id: overviewGroupId },
-    });
-
-    let purchaseTotalCosts = 0;
-
-    await prisma.$transaction(async () => {
-      for (const purchaseId of purchaseIds) {
-        const purchase = await prisma.purchase.findUniqueOrThrow({
-          where: { id: purchaseId },
-        });
-        if (
-          purchase.cost &&
-          (purchase.category === "need" ||
-            purchase.category === "planned" ||
-            purchase.category === "impulse")
-        )
-          purchaseTotalCosts += purchase.cost;
-      }
-    });
-
-    const updatedOverviewGroup = await prisma.overviewGroup.update({
-      where: { id: overviewGroupId },
-      data: { totalSpent: overviewGroup.totalSpent - purchaseTotalCosts },
-    });
-
-    await prisma.$disconnect();
-    return updatedOverviewGroup;
-  } catch (error) {
-    console.log(error);
-    await prisma.$disconnect();
-    process.exit();
-  }
-}
-
-async function updateLogbookEntryTotalSpentBeforeBulkDelete(
-  logbookEntryId: number,
-  purchaseIds: number[]
-) {
-  try {
-    const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-      where: { id: logbookEntryId },
-    });
-
-    let purchaseTotalCosts = 0;
-
-    await prisma.$transaction(async () => {
-      for (const purchaseId of purchaseIds) {
-        const purchase = await prisma.purchase.findUniqueOrThrow({
-          where: { id: purchaseId },
-        });
-        if (
-          purchase.cost &&
-          (purchase.category === "need" ||
-            purchase.category === "planned" ||
-            purchase.category === "impulse")
-        )
-          purchaseTotalCosts += purchase.cost;
-      }
-    });
-
-    const updatedLogbookEntry = await prisma.logbookEntry.update({
-      where: { id: logbookEntryId },
-      data: { totalSpent: logbookEntry.totalSpent - purchaseTotalCosts },
-    });
-
-    await prisma.$disconnect();
-    return updatedLogbookEntry;
-  } catch (error) {
-    console.log(error);
-    await prisma.$disconnect();
-    process.exit();
-  }
-}
-
-async function updateOverviewGroupPurchasePlacementAfterBulkDelete(
-  overviewGroupId: number
-) {
-  const overviewGroup = await prisma.overviewGroup.findUniqueOrThrow({
-    where: { id: overviewGroupId },
-    include: { purchases: true },
-  });
-  overviewGroup.purchases.forEach(async (purchase: Purchase, index: number) => {
-    await prisma.purchase.update({
-      where: { id: purchase.id },
-      data: { placement: index + 1 },
-    });
-  });
-}
-
-async function updateLogbookEntryPurchasePlacementAfterBulkDelete(
-  logbookEntryId: number
-) {
-  const logbookEntry = await prisma.logbookEntry.findUniqueOrThrow({
-    where: { id: logbookEntryId },
-    include: { purchases: true },
-  });
-
-  logbookEntry.purchases.forEach(async (purchase: Purchase, index: number) => {
-    await prisma.purchase.update({
-      where: { id: purchase.id },
-      data: { placement: index + 1 },
-    });
-  });
-}
-
 export async function bulkDeletePurchases(
   request: Request<
     {},
@@ -674,44 +383,19 @@ export async function bulkDeletePurchases(
   response: Response
 ) {
   try {
-    // ↓↓↓ If purchases belong to an overview group. ↓↓↓ //
     if (request.body.overviewGroupId) {
-      const updatedOverviewGroup =
-        await updateOverviewGroupTotalSpentBeforeBulkDelete(
-          request.body.overviewGroupId,
-          request.body.purchaseIds
-        );
-      await prisma.purchase.deleteMany({
-        where: { id: { in: request.body.purchaseIds } },
-      });
-      await updateOverviewGroupPurchasePlacementAfterBulkDelete(
-        request.body.overviewGroupId
+      Services.purchaseDeleteWithOverviewGroup(
+        request.body.overviewGroupId,
+        request.body.purchaseIds,
+        response
       );
-      return HttpHelpers.respondWithSuccess(response, "ok", {
-        body: HttpHelpers.generateCudMessage("delete", "selected purchases"),
-        data: { updatedOverviewGroup },
-      });
-    }
-    // ↓↓↓ If purchases belong to a logbook entry. ↓↓↓ //
-    else if (request.body.logbookEntryId) {
-      const updatedLogbookEntry =
-        await updateLogbookEntryTotalSpentBeforeBulkDelete(
-          request.body.logbookEntryId,
-          request.body.purchaseIds
-        );
-      await prisma.purchase.deleteMany({
-        where: { id: { in: request.body.purchaseIds } },
-      });
-      await updateLogbookEntryPurchasePlacementAfterBulkDelete(
-        request.body.logbookEntryId
+    } else if (request.body.logbookEntryId) {
+      Services.purchaseDeleteWithLogbookEntry(
+        request.body.logbookEntryId,
+        request.body.purchaseIds,
+        response
       );
-      return HttpHelpers.respondWithSuccess(response, "ok", {
-        body: HttpHelpers.generateCudMessage("delete", "selected purchases"),
-        data: { updatedLogbookEntry },
-      });
-    }
-    // ↓↓↓ If purchases don't belong to anything. ↓↓↓ //
-    else {
+    } else {
       await prisma.purchase.deleteMany({
         where: { id: { in: request.body.purchaseIds } },
       });

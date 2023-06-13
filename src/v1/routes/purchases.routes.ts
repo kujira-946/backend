@@ -8,15 +8,25 @@ export const purchasesRouter_v1 = express.Router();
 
 purchasesRouter_v1.get("/", Controllers.fetchPurchases);
 
+type FetchOverviewGroupPurchasesData =
+  (keyof Validators.FetchOverviewGroupPurchasesValidator)[];
+const fetchOverviewGroupPurchasesData: FetchOverviewGroupPurchasesData = [
+  "overviewGroupId",
+];
 purchasesRouter_v1.post(
   "/fetch-overview-group-purchases",
-  HelperMiddlewares.validateUserData(["overviewGroupId"]),
+  HelperMiddlewares.validateUserData(fetchOverviewGroupPurchasesData),
   Controllers.fetchOverviewGroupPurchases
 );
 
+type FetchLogbookEntryPurchasesData =
+  (keyof Validators.FetchLogbookEntryPurchasesValidator)[];
+const fetchLogbookEntryPurchasesData: FetchLogbookEntryPurchasesData = [
+  "logbookEntryId",
+];
 purchasesRouter_v1.post(
   "/fetch-logbook-entry-purchases",
-  HelperMiddlewares.validateUserData(["logbookEntryId"]),
+  HelperMiddlewares.validateUserData(fetchLogbookEntryPurchasesData),
   Controllers.fetchLogbookEntryPurchases
 );
 
