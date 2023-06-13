@@ -99,23 +99,29 @@ export async function updateUserPassword(
   response: Response
 ) {
   try {
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(
-      request.body.newPassword,
-      saltRounds
-    );
-    const userUpdatePasswordData: Validators.UserUpdatePasswordValidator = {
-      password: hashedPassword,
-    };
+    if (request.body.newPassword === request.body.oldPassword) {
+      return HttpHelpers.respondWithClientError(response, "bad request", {
+        body: "New and old passwords must be different.",
+      });
+    } else {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(
+        request.body.newPassword,
+        saltRounds
+      );
+      const userUpdatePasswordData: Validators.UserUpdatePasswordValidator = {
+        password: hashedPassword,
+      };
 
-    await prisma.user.update({
-      where: { id: Number(request.params.userId) },
-      data: userUpdatePasswordData,
-    });
+      await prisma.user.update({
+        where: { id: Number(request.params.userId) },
+        data: userUpdatePasswordData,
+      });
 
-    return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: HttpHelpers.generateCudMessage("update", "password"),
-    });
+      return HttpHelpers.respondWithSuccess(response, "ok", {
+        body: HttpHelpers.generateCudMessage("update", "password"),
+      });
+    }
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
       body: HttpHelpers.generateCudMessage("update", "password", true),

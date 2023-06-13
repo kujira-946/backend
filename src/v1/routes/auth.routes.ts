@@ -7,24 +7,21 @@ import * as HelperMiddlewares from "../middlewares/helpers.middlewares";
 
 export const authRouter_v1 = express.Router();
 
-type VerifyRegistrationData = (keyof Validators.VerifyRegistrationValidator)[];
-const verifyRegistrationData: VerifyRegistrationData = [
-  "email",
-  "signedVerificationCode",
-];
-authRouter_v1.patch(
-  "/register/verify",
-  HelperMiddlewares.validateUserData(verifyRegistrationData),
-  Middlewares.checkUserExistsWithEmail,
-  Controllers.verifyRegistration
-);
-
 type EmailAvailabilityData = (keyof Validators.EmailAvailabilityValidator)[];
 const emailAvailabilityData: EmailAvailabilityData = ["email"];
 authRouter_v1.patch(
   "/register/check-email-availability",
   HelperMiddlewares.validateUserData(emailAvailabilityData),
   Controllers.checkEmailAvailability
+);
+
+type UsernameAvailabilityData =
+  (keyof Validators.UsernameAvailabilityValidator)[];
+const usernameAvailabilityData: UsernameAvailabilityData = ["username"];
+authRouter_v1.patch(
+  "/register/check-username-availability",
+  HelperMiddlewares.validateUserData(usernameAvailabilityData),
+  Controllers.checkUsernameAvailability
 );
 
 type RegistrationData = (keyof Validators.RegistrationValidator)[];
@@ -46,13 +43,16 @@ authRouter_v1.post(
   Controllers.registerUser
 );
 
-type UsernameAvailabilityData =
-  (keyof Validators.UsernameAvailabilityValidator)[];
-const usernameAvailabilityData: UsernameAvailabilityData = ["username"];
+type VerifyRegistrationData = (keyof Validators.VerifyRegistrationValidator)[];
+const verifyRegistrationData: VerifyRegistrationData = [
+  "email",
+  "signedVerificationCode",
+];
 authRouter_v1.patch(
-  "/register/check-username-availability",
-  HelperMiddlewares.validateUserData(usernameAvailabilityData),
-  Controllers.checkUsernameAvailability
+  "/register/verify",
+  HelperMiddlewares.validateUserData(verifyRegistrationData),
+  Middlewares.checkUserExistsWithEmail,
+  Controllers.verifyRegistration
 );
 
 type LoginData = (keyof Validators.LoginValidator)[];
