@@ -8,11 +8,14 @@ export const logbookEntriesRouter_v1 = express.Router();
 
 logbookEntriesRouter_v1.get("/", Controllers.fetchLogbookEntries);
 
-type FetchData = (keyof Validators.LogbookEntryFetchValidator)[];
-const fetchData: FetchData = ["logbookId"];
+type FetchLogbookLogbookEntriesData =
+  (keyof Validators.LogbookEntryFetchValidator)[];
+const fetchLogbookLogbookEntriesData: FetchLogbookLogbookEntriesData = [
+  "logbookId",
+];
 logbookEntriesRouter_v1.post(
-  "/fetch-logbook-entries",
-  HelperMiddlewares.validateUserData(fetchData),
+  "/fetch-logbook-logbook-entries",
+  HelperMiddlewares.validateUserData(fetchLogbookLogbookEntriesData),
   Controllers.fetchLogbookLogbookEntries
 );
 

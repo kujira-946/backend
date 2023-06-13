@@ -10,14 +10,15 @@ export async function fetchLogbookEntryPurchasesByCategory(
   logbookEntryIds: number[],
   category: Category
 ) {
-  const categoryPurchases: Purchase[] = [];
+  let categoryPurchases: Purchase[] = [];
 
   for (const logbookEntryId of logbookEntryIds) {
     const purchases = await prisma.purchase.findMany({
       orderBy: { id: "asc" },
       where: { logbookEntryId, category },
     });
-    categoryPurchases.concat(purchases);
+
+    categoryPurchases = [...categoryPurchases, ...purchases];
   }
 
   return categoryPurchases;

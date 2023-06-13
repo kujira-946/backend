@@ -59,7 +59,7 @@ export async function createBugReport(
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       title: "Bug report sent!",
-      body: "Kujira is managed by only one person, so please be patient as you wait for your issue to get addressed.",
+      body: "Kujira is managed by only one person, so please be patient as you wait for your issue to get resolved.",
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {

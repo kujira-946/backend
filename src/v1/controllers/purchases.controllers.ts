@@ -81,30 +81,6 @@ export async function fetchLogbookEntryPurchasesByCategory(
   response: Response
 ) {
   try {
-    // const needPurchases: Purchase[] = [];
-    // const plannedPurchases: Purchase[] = [];
-    // const impulsePurchases: Purchase[] = [];
-
-    // for (const logbookEntryId of request.body.logbookEntryIds) {
-    //   const needCategoryPurchases = await prisma.purchase.findMany({
-    //     orderBy: { id: "asc" },
-    //     where: { logbookEntryId: logbookEntryId, category: "need" },
-    //   });
-    //   needPurchases.push(...needCategoryPurchases);
-
-    //   const plannedCategoryPurchases = await prisma.purchase.findMany({
-    //     orderBy: { id: "asc" },
-    //     where: { logbookEntryId: logbookEntryId, category: "planned" },
-    //   });
-    //   plannedPurchases.push(...plannedCategoryPurchases);
-
-    //   const impulseCategoryPurchases = await prisma.purchase.findMany({
-    //     orderBy: { id: "asc" },
-    //     where: { logbookEntryId: logbookEntryId, category: "impulse" },
-    //   });
-    //   impulsePurchases.push(...impulseCategoryPurchases);
-    // }
-
     const needPurchases = await Services.fetchLogbookEntryPurchasesByCategory(
       request.body.logbookEntryIds,
       "need"
@@ -423,12 +399,24 @@ export async function deleteAssociatedPurchases(
   response: Response
 ) {
   try {
-    await prisma.purchase.deleteMany({
-      where: {
-        overviewGroupId: request.body.overviewGroupId,
-        logbookEntryId: request.body.logbookEntryId,
-      },
-    });
+    if (request.body.overviewGroupId) {
+      await prisma.purchase.deleteMany({
+        where: {
+          overviewGroupId: request.body.overviewGroupId,
+        },
+      });
+    } else if (request.body.logbookEntryId) {
+      await prisma.purchase.deleteMany({
+        where: {
+          logbookEntryId: request.body.logbookEntryId,
+        },
+      });
+    } else {
+      return HttpHelpers.respondWithClientError(response, "not found", {
+        title: "Failed to delete purchases.",
+        body: "Purchases can only be deleted if they belong to an overview group or logbook entry.",
+      });
+    }
 
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: HttpHelpers.generateCudMessage("delete", "all purchases"),

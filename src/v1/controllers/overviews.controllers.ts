@@ -73,7 +73,8 @@ export async function createOverview(
     });
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: HttpHelpers.generateCudMessage("create", "overview", true),
+      // body: HttpHelpers.generateCudMessage("create", "overview", true),
+      body: "An overview for that user already exists.",
     });
   }
 }
