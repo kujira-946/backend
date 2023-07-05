@@ -46,21 +46,29 @@ enum RouteBases {
   BUG_REPORTS = "/api/v1/bug-reports",
 }
 app.use(RouteBases.AUTH, Routes.authRouter_v1);
-app.use(RouteBases.USERS, verifyAccessToken, Routes.usersRouter_v1);
-app.use(RouteBases.PURCHASES, verifyAccessToken, Routes.purchasesRouter_v1);
-app.use(RouteBases.OVERVIEWS, verifyAccessToken, Routes.overviewsRouter_v1);
-app.use(
-  RouteBases.OVERVIEW_GROUPS,
-  verifyAccessToken,
-  Routes.overviewGroupsRouter_v1
-);
-app.use(RouteBases.LOGBOOKS, verifyAccessToken, Routes.logbooksRouter_v1);
-app.use(
-  RouteBases.LOGBOOK_ENTRIES,
-  verifyAccessToken,
-  Routes.logbookEntriesRouter_v1
-);
-app.use(RouteBases.BUG_REPORTS, verifyAccessToken, Routes.bugReportRouter_v1);
+// app.use(RouteBases.USERS, verifyAccessToken, Routes.usersRouter_v1);
+// app.use(RouteBases.PURCHASES, verifyAccessToken, Routes.purchasesRouter_v1);
+// app.use(RouteBases.OVERVIEWS, verifyAccessToken, Routes.overviewsRouter_v1);
+// app.use(
+//   RouteBases.OVERVIEW_GROUPS,
+//   verifyAccessToken,
+//   Routes.overviewGroupsRouter_v1
+// );
+// app.use(RouteBases.LOGBOOKS, verifyAccessToken, Routes.logbooksRouter_v1);
+// app.use(
+//   RouteBases.LOGBOOK_ENTRIES,
+//   verifyAccessToken,
+//   Routes.logbookEntriesRouter_v1
+// );
+// app.use(RouteBases.BUG_REPORTS, verifyAccessToken, Routes.bugReportRouter_v1);
+
+app.use(RouteBases.USERS, Routes.usersRouter_v1);
+app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
+app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
+app.use(RouteBases.OVERVIEW_GROUPS, Routes.overviewGroupsRouter_v1);
+app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
+app.use(RouteBases.LOGBOOK_ENTRIES, Routes.logbookEntriesRouter_v1);
+app.use(RouteBases.BUG_REPORTS, Routes.bugReportRouter_v1);
 
 // ↓↓↓ Global error-catching middleware (fallback). ↓↓↓ //
 const globalErrorHandlerMiddleware: ErrorRequestHandler = (
