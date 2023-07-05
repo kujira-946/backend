@@ -65,9 +65,7 @@ app.use(RouteBases.AUTH, Routes.authRouter_v1);
 app.use(RouteBases.USERS, Routes.usersRouter_v1);
 app.use(RouteBases.PURCHASES, Routes.purchasesRouter_v1);
 app.use(RouteBases.OVERVIEWS, Routes.overviewsRouter_v1);
-app.use(RouteBases.OVERVIEW_GROUPS, Routes.overviewGroupsRouter_v1);
 app.use(RouteBases.LOGBOOKS, Routes.logbooksRouter_v1);
-app.use(RouteBases.LOGBOOK_ENTRIES, Routes.logbookEntriesRouter_v1);
 app.use(RouteBases.BUG_REPORTS, Routes.bugReportRouter_v1);
 
 // ↓↓↓ Global error-catching middleware (fallback). ↓↓↓ //
