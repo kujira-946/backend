@@ -8,8 +8,8 @@ datasource db {
 }
 
 enum Theme {
-  light
   dark
+  light
   system
   auto
 }
@@ -23,9 +23,6 @@ model User {
   email                  String      @unique
   username               String      @unique @db.VarChar(16)
   password               String
-  firstName              String?
-  lastName               String?
-  birthday               DateTime?
   currency               Currency    @default(USD)
   mobileNumber           String?
   theme                  Theme       @default(dark)
@@ -36,10 +33,64 @@ model User {
   createdAt              DateTime    @default(now())
   updatedAt              DateTime    @updatedAt
   // One To One
-  overview               Overview?
+  profile                Profile?
   // Has Many
+  overviews              Overview[]
   logbooks               Logbook[]
   bugReports             BugReport[]
+}
+
+model Profile {
+  id        Int       @id @default(autoincrement())
+  firstName String?
+  lastName  String?
+  birthday  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Belongs To
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int       @unique
+}
+
+model Overview {
+  id        Int      @id @default(autoincrement())
+  income    Float
+  savings   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // Belongs To
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int      @unique
+  // Has Many
+  entries   Entry[]
+}
+
+model Logbook {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // Belongs to
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
+  // Has Many
+  entries   Entry[]
+}
+
+model Entry {
+  id         Int        @id @default(autoincrement())
+  name       String
+  totalSpent Float      @default(0)
+  budget     Float?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  // Belongs To
+  overview   Overview?  @relation(fields: [overviewId], references: [id], onDelete: Cascade)
+  overviewId Int?
+  Logbook    Logbook?   @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+  logbookId  Int?
+  // Has Many
+  purchases  Purchase[]
 }
 
 enum Category {
@@ -51,82 +102,25 @@ enum Category {
 }
 
 model Purchase {
-  id              Int            @id @default(autoincrement())
-  placement       Int?
-  category        Category?
-  description     String         @default("")
-  cost            Float?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id          Int      @id @default(autoincrement())
+  placement   Int
+  category    Category
+  description String   @default("")
+  cost        Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   // Belongs To
-  overviewGroup   OverviewGroup? @relation(fields: [overviewGroupId], references: [id], onDelete: Cascade)
-  overviewGroupId Int?
-  logbookEntry    LogbookEntry?  @relation(fields: [logbookEntryId], references: [id], onDelete: Cascade)
-  logbookEntryId  Int?
-}
-
-model Overview {
-  id        Int             @id @default(autoincrement())
-  income    Float
-  savings   Float           @default(0)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  // One To One
-  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   Int             @unique
-  // Has Many
-  groups    OverviewGroup[]
-}
-
-model OverviewGroup {
-  id         Int        @id @default(autoincrement())
-  name       String
-  totalSpent Float      @default(0)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  // Has Many
-  purchases  Purchase[]
-  // Belongs to
-  overview   Overview   @relation(fields: [overviewId], references: [id], onDelete: Cascade)
-  overviewId Int
-}
-
-// Automatically created at the beginning of a new month.
-// `name` field default to month and year in which the logbook was created (e.g. "Jan. 2023").
-// `name` field MAY be edited later down the line for potentially better UX.
-model Logbook {
-  id        Int            @id @default(autoincrement())
-  name      String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  // Has Many
-  entries   LogbookEntry[]
-  // Belongs to
-  owner     User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   Int
-}
-
-model LogbookEntry {
-  id         Int        @id @default(autoincrement())
-  date       String
-  totalSpent Float      @default(0)
-  budget     Float?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  // Has Many
-  purchases  Purchase[]
-  // Belongs To
-  logbook    Logbook    @relation(fields: [logbookId], references: [id], onDelete: Cascade)
-  logbookId  Int
+  entry       Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId     Int
 }
 
 model BugReport {
   id        Int      @id @default(autoincrement())
-  title     String
-  body      String?
+  issue     String
+  details   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   // Belongs To
-  owner     User     @relation(fields: [ownerId], references: [id])
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
 }
