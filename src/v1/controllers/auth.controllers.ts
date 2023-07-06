@@ -255,7 +255,7 @@ export async function logout(
   try {
     await prisma.user.update({
       where: { id: Number(request.params.userId) },
-      data: { loggedIn: false, verificationCode: null },
+      data: { verificationCode: null },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Log out successful.",
@@ -285,7 +285,7 @@ export async function requestNewVerificationCode(
 
         const user = await prisma.user.update({
           where: { email: request.body.email },
-          data: { loggedIn: false, verificationCode: signedVerificationCode },
+          data: { verificationCode: signedVerificationCode },
         });
 
         const verificationCode = Helpers.extractVerificationCode(

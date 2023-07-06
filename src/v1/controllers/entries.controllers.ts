@@ -17,6 +17,8 @@ export async function createEntry(
   try {
     const createData: Validators.EntryCreateValidator = {
       name: request.body.name,
+      overviewId: request.body.overviewId,
+      logbookId: request.body.logbookId,
     };
 
     const newEntry = await prisma.entry.create({

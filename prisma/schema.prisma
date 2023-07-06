@@ -28,7 +28,6 @@ model User {
   theme            Theme       @default(dark)
   onboarded        Boolean     @default(false)
   emailVerified    Boolean     @default(false)
-  loggedIn         Boolean     @default(false)
   verificationCode String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
@@ -87,7 +86,7 @@ model Entry {
   // Belongs To
   overview   Overview?  @relation(fields: [overviewId], references: [id], onDelete: Cascade)
   overviewId Int?
-  Logbook    Logbook?   @relation(fields: [logbookId], references: [id], onDelete: Cascade)
+  logbook    Logbook?   @relation(fields: [logbookId], references: [id], onDelete: Cascade)
   logbookId  Int?
   // Has Many
   purchases  Purchase[]

@@ -5,12 +5,17 @@ import { Request, Response } from "express";
 
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
-import * as Utils from "../utils/auth.utils";
 import * as Validators from "../validators/auth.validators";
-import { OverviewCreateValidator } from "./../validators/overviews.validators";
 import { generateSafeUser } from "../helpers/users.helpers";
+import { OverviewCreateValidator } from "./../validators/overviews.validators";
+import { AuthErrors } from "../utils/auth.utils";
+import { EntryCreateValidator } from "../validators/entries.validators";
 
 const prisma = new PrismaClient();
+
+enum AuthSuccesses {
+  ACCOUNT_VERIFICATION_SUCCESS = "Account verification successful!",
+}
 
 export async function addUserToDatabase(
   request: Request<{}, {}, Validators.RegistrationValidator>,
@@ -64,7 +69,7 @@ export async function emailVerificationCodeToNewUser(
   ]);
 }
 
-async function createNewUserOverview(foundUserId: number) {
+async function _createNewUserOverview(foundUserId: number) {
   const overviewCreateData: OverviewCreateValidator = {
     income: 0,
     ownerId: foundUserId,
@@ -75,21 +80,21 @@ async function createNewUserOverview(foundUserId: number) {
 }
 
 async function _createNewUserRecurringOverviewGroup(overviewId: number) {
-  const recurringOverviewGroupData: OverviewGroupCreateValidator = {
+  const recurringOverviewGroupData: EntryCreateValidator = {
     name: "Recurring",
     overviewId: overviewId,
   };
-  await prisma.overviewGroup.create({
+  await prisma.entry.create({
     data: recurringOverviewGroupData,
   });
 }
 
 async function _createNewUserIncomingOverviewGroup(overviewId: number) {
-  const incomingOverviewGroupData: OverviewGroupCreateValidator = {
+  const incomingOverviewGroupData: EntryCreateValidator = {
     name: "Incoming",
     overviewId: overviewId,
   };
-  await prisma.overviewGroup.create({
+  await prisma.entry.create({
     data: incomingOverviewGroupData,
   });
 }
@@ -104,16 +109,12 @@ export async function registrationVerificationHandler(
   try {
     // ↓↓↓ If the user entered the correct verification code. ↓↓↓ //
     if (clientVerificationCode === databaseVerificationCode) {
-      const updatedUser = await prisma.user.update({
+      const verifiedUser = await prisma.user.update({
         where: { id: foundUserId },
-        data: {
-          emailVerified: true,
-          loggedIn: true,
-          verificationCode: null,
-        },
+        data: { emailVerified: true, verificationCode: null },
       });
 
-      const newUserOverview = await createNewUserOverview(foundUserId);
+      const newUserOverview = await _createNewUserOverview(foundUserId);
       await _createNewUserRecurringOverviewGroup(newUserOverview.id);
       await _createNewUserIncomingOverviewGroup(newUserOverview.id);
 
@@ -122,21 +123,21 @@ export async function registrationVerificationHandler(
         authSecretKey,
         { expiresIn: "30 days" }
       );
-      const safeUser = generateSafeUser(updatedUser);
+      const safeUser = generateSafeUser(verifiedUser);
 
       return HttpHelpers.respondWithSuccess(response, "ok", {
-        body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
+        body: AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
         data: safeUser,
         accessToken,
       });
     } else {
       return HttpHelpers.respondWithClientError(response, "bad request", {
-        body: Utils.AuthErrors.INCORRECT_VERIFICATION_CODE,
+        body: AuthErrors.INCORRECT_VERIFICATION_CODE,
       });
     }
   } catch (error) {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: Utils.AuthErrors.ACCOUNT_NOT_FOUND,
+      body: AuthErrors.ACCOUNT_NOT_FOUND,
     });
   }
 }
@@ -147,7 +148,7 @@ export async function assignNewVerificationCodeToUser(
 ) {
   const updatedUser = await prisma.user.update({
     where: { id: foundUserId },
-    data: { loggedIn: false, verificationCode },
+    data: { verificationCode },
   });
   return updatedUser.id;
 }
@@ -180,7 +181,7 @@ export async function loginVerificationHandler(
   if (clientVerificationCode === databaseVerificationCode) {
     const updatedUser = await prisma.user.update({
       where: { id: foundUserId },
-      data: { loggedIn: true, verificationCode: null },
+      data: { verificationCode: null },
     });
 
     const accessToken = jwt.sign(
@@ -191,13 +192,13 @@ export async function loginVerificationHandler(
 
     const safeUser = generateSafeUser(updatedUser);
     return HttpHelpers.respondWithSuccess(response, "ok", {
-      body: Utils.AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
+      body: AuthSuccesses.ACCOUNT_VERIFICATION_SUCCESS,
       data: safeUser,
       accessToken,
     });
   } else {
     return HttpHelpers.respondWithClientError(response, "bad request", {
-      body: Utils.AuthErrors.INCORRECT_VERIFICATION_CODE,
+      body: AuthErrors.INCORRECT_VERIFICATION_CODE,
     });
   }
 }

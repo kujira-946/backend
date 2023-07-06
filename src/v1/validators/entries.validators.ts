@@ -5,7 +5,7 @@ const entryCreateValidator = Prisma.validator<Prisma.EntryArgs>()({
 });
 export type EntryCreateValidator = Prisma.EntryGetPayload<
   typeof entryCreateValidator
->;
+> & { overviewId?: number; logbookId?: number };
 export type EntryCreateData = (keyof EntryCreateValidator)[];
 
 const entryUpdateValidator = Prisma.validator<Prisma.EntryArgs>()({
