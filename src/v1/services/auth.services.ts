@@ -1,37 +1,51 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
-import * as Validators from "../validators/auth.validators";
-import * as Utils from "../utils/auth.utils";
 import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
+import * as Utils from "../utils/auth.utils";
+import * as Validators from "../validators/auth.validators";
 import { OverviewCreateValidator } from "./../validators/overviews.validators";
-import { OverviewGroupCreateValidator } from "./../validators/overview-groups.validators";
 import { generateSafeUser } from "../helpers/users.helpers";
 
 const prisma = new PrismaClient();
 
 export async function addUserToDatabase(
   request: Request<{}, {}, Validators.RegistrationValidator>,
-  signedVerificationCode: string
+  response: Response,
+  verificationCode: string
 ) {
-  const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
-  const RegistrationValidator: Validators.RegistrationValidator = {
-    email: request.body.email,
-    username: request.body.username.toLowerCase(),
-    password: hashedPassword,
-    firstName: request.body.firstName,
-    lastName: request.body.lastName,
-    birthday: request.body.birthday,
-    currency: request.body.currency,
-    mobileNumber: request.body.mobileNumber,
-    signedVerificationCode,
-  };
-  const newUser = await prisma.user.create({ data: RegistrationValidator });
-  return newUser.id;
+  try {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(request.body.password, saltRounds);
+    const registrationData: Validators.RegistrationValidator = {
+      email: request.body.email,
+      username: request.body.username.toLowerCase(),
+      password: hashedPassword,
+      verificationCode,
+    };
+    const newUser = await prisma.user.create({ data: registrationData });
+    return newUser.id;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return HttpHelpers.respondWithClientError(response, "bad request", {
+        body: `Provided ${error.meta?.target} not available`,
+      });
+    } else {
+      return HttpHelpers.respondWithServerError(
+        response,
+        "internal server error",
+        {
+          body: "There was an error with creating your account. Please try again.",
+        }
+      );
+    }
+  }
 }
 
 export async function emailVerificationCodeToNewUser(
@@ -95,7 +109,7 @@ export async function registrationVerificationHandler(
         data: {
           emailVerified: true,
           loggedIn: true,
-          signedVerificationCode: null,
+          verificationCode: null,
         },
       });
 
@@ -129,11 +143,11 @@ export async function registrationVerificationHandler(
 
 export async function assignNewVerificationCodeToUser(
   foundUserId: number,
-  signedVerificationCode: string
+  verificationCode: string
 ) {
   const updatedUser = await prisma.user.update({
     where: { id: foundUserId },
-    data: { loggedIn: false, signedVerificationCode },
+    data: { loggedIn: false, verificationCode },
   });
   return updatedUser.id;
 }
@@ -166,7 +180,7 @@ export async function loginVerificationHandler(
   if (clientVerificationCode === databaseVerificationCode) {
     const updatedUser = await prisma.user.update({
       where: { id: foundUserId },
-      data: { loggedIn: true, signedVerificationCode: null },
+      data: { loggedIn: true, verificationCode: null },
     });
 
     const accessToken = jwt.sign(

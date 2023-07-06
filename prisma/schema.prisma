@@ -19,25 +19,25 @@ enum Currency {
 }
 
 model User {
-  id                     Int         @id @default(autoincrement())
-  email                  String      @unique
-  username               String      @unique @db.VarChar(16)
-  password               String
-  currency               Currency    @default(USD)
-  mobileNumber           String?
-  theme                  Theme       @default(dark)
-  onboarded              Boolean     @default(false)
-  emailVerified          Boolean     @default(false)
-  loggedIn               Boolean     @default(false)
-  signedVerificationCode String?
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
+  id               Int         @id @default(autoincrement())
+  email            String      @unique
+  username         String      @unique @db.VarChar(16)
+  password         String
+  currency         Currency    @default(USD)
+  mobileNumber     String?
+  theme            Theme       @default(dark)
+  onboarded        Boolean     @default(false)
+  emailVerified    Boolean     @default(false)
+  loggedIn         Boolean     @default(false)
+  verificationCode String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
   // One To One
-  profile                Profile?
+  profile          Profile?
   // Has Many
-  overviews              Overview[]
-  logbooks               Logbook[]
-  bugReports             BugReport[]
+  overviews        Overview[]
+  logbooks         Logbook[]
+  bugReports       BugReport[]
 }
 
 model Profile {

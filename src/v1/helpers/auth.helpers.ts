@@ -26,9 +26,7 @@ export function handleSecretKeysExist<Callback>(
     return HttpHelpers.respondWithServerError(
       response,
       "internal server error",
-      {
-        body: "Something went wrong.",
-      }
+      { body: "Something went wrong." }
     );
   }
 }
@@ -76,29 +74,26 @@ export function handleAccountVerification<VerificationHandler>(
   return handleSecretKeysExist(
     response,
     function (verificationSecretKey: string, authSecretKey: string) {
-      if (foundUser.signedVerificationCode) {
+      if (foundUser.verificationCode) {
         const verificationCodeExpired = checkJWTExpired(
-          foundUser.signedVerificationCode,
+          foundUser.verificationCode,
           verificationSecretKey
         );
 
-        // ↓↓↓ If the user's verification code expired. ↓↓↓ //
         if (verificationCodeExpired) {
           return HttpHelpers.respondWithClientError(response, "bad request", {
-            body: AuthErrors.VERIFICATION_CODE_EXPIRED,
+            body: "Verification code expired. Please request a new verification code.",
           });
-        }
-        // ↓↓↓ If the user's verification code is still active. ↓↓↓ //
-        else {
+        } else {
           const verificationCode = extractVerificationCode(
-            foundUser.signedVerificationCode,
+            foundUser.verificationCode,
             verificationSecretKey
           );
           return verificationHandler(verificationCode, authSecretKey);
         }
       } else {
         return HttpHelpers.respondWithClientError(response, "bad request", {
-          body: AuthErrors.ACCOUNT_HAS_NO_VERIFICATION_CODE,
+          body: "Account does not have a verification code. Please try logging in, registering, or request a new verification code.",
         });
       }
     }
@@ -110,14 +105,14 @@ export function handleAccountVerification<VerificationHandler>(
 // ========================================================================================= //
 
 export async function emailUser(
-  userEmail: string,
+  emailAddress: string,
   subject: string,
   body: string[]
 ) {
   const html = body.map((text: string) => `<p>${text}</p>`).join("");
   const message = {
     from: `"Kujira" <${process.env.EMAIL_HELP}>`,
-    to: userEmail,
+    to: emailAddress,
     subject,
     html,
   };

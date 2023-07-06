@@ -6,6 +6,7 @@ const emailAvailabilityValidator = Prisma.validator<Prisma.UserArgs>()({
 export type EmailAvailabilityValidator = Prisma.UserGetPayload<
   typeof emailAvailabilityValidator
 >;
+export type EmailAvailabilityData = (keyof EmailAvailabilityValidator)[];
 
 const usernameAvailabilityValidator = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true },
@@ -13,36 +14,31 @@ const usernameAvailabilityValidator = Prisma.validator<Prisma.UserArgs>()({
 export type UsernameAvailabilityValidator = Prisma.UserGetPayload<
   typeof usernameAvailabilityValidator
 >;
+export type UsernameAvailabilityData = (keyof UsernameAvailabilityValidator)[];
 
 const registrationValidator = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
     username: true,
     password: true,
-    signedVerificationCode: true,
+    verificationCode: true,
   },
 });
-type OptionalRegistrationData = {
-  firstName?: string;
-  lastName?: string;
-  birthday?: string;
-  currency?: string;
-  mobileNumber?: string;
-};
 export type RegistrationValidator = Prisma.UserGetPayload<
   typeof registrationValidator
-> &
-  OptionalRegistrationData;
+>;
+export type RegistrationData = (keyof RegistrationValidator)[];
 
 const verifyRegistrationValidator = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
-    signedVerificationCode: true,
+    verificationCode: true,
   },
 });
 export type VerifyRegistrationValidator = Prisma.UserGetPayload<
   typeof verifyRegistrationValidator
 >;
+export type VerifyRegistrationData = (keyof VerifyRegistrationValidator)[];
 
 const loginValidator = Prisma.validator<Prisma.UserArgs>()({
   select: {
@@ -51,22 +47,24 @@ const loginValidator = Prisma.validator<Prisma.UserArgs>()({
   },
 });
 export type LoginValidator = Prisma.UserGetPayload<typeof loginValidator>;
+export type LoginData = (keyof LoginValidator)[];
 
 const verifyLoginValidator = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
-    signedVerificationCode: true,
+    verificationCode: true,
   },
 });
 export type VerifyLoginValidator = Prisma.UserGetPayload<
   typeof verifyLoginValidator
 > & { thirtyDays: boolean };
+export type VerifyLoginData = (keyof VerifyLoginValidator)[];
 
 const requestNewVerificationCodeValidator = Prisma.validator<Prisma.UserArgs>()(
-  {
-    select: { email: true },
-  }
+  { select: { email: true } }
 );
 export type RequestNewVerificationCodeValidator = Prisma.UserGetPayload<
   typeof requestNewVerificationCodeValidator
 >;
+export type RequestNewVerificationCodeData =
+  (keyof RequestNewVerificationCodeValidator)[];

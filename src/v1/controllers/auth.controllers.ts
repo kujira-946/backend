@@ -2,12 +2,12 @@ import bcrypt from "bcrypt";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 
-import * as Types from "../types/auth.types";
-import * as Validators from "../validators/auth.validators";
-import * as Services from "../services/auth.services";
-import * as Utils from "../utils/auth.utils";
-import * as Helpers from "../helpers/auth.helpers";
 import * as HttpHelpers from "../helpers/http.helpers";
+import * as Helpers from "../helpers/auth.helpers";
+import * as Services from "../services/auth.services";
+import * as Types from "../types/auth.types";
+import * as Utils from "../utils/auth.utils";
+import * as Validators from "../validators/auth.validators";
 
 const prisma = new PrismaClient();
 
@@ -73,10 +73,11 @@ export async function registerUser(
 
         const newUserId = await Services.addUserToDatabase(
           request,
+          response,
           signedVerificationCode
         );
 
-        Services.emailVerificationCodeToNewUser(
+        await Services.emailVerificationCodeToNewUser(
           request.body.email,
           signedVerificationCode,
           verificationSecretKey
@@ -91,13 +92,16 @@ export async function registerUser(
           data: newUserId,
         });
       } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        ) {
           return HttpHelpers.respondWithClientError(response, "bad request", {
-            body: `${error.meta?.target} not available.`,
+            body: `Provided ${error.meta?.target} not available.`,
           });
         } else {
           return HttpHelpers.respondWithClientError(response, "bad request", {
-            body: "Failed to create account. You may have entered a non-unique email or username. Please try again.",
+            body: "Failed to create account. The email or username you entered may already exist. Please try again.",
           });
         }
       }
@@ -118,7 +122,6 @@ export function verifyRegistration(
   request: VerifyRegistrationRequest,
   response: Response
 ) {
-  // ↓↓↓ Passed from `checkUsernameExists` middleware. Check `/register/:userId/verify` route. ↓↓↓ //
   const { foundUser } = request as VerifyRegistrationRequest &
     Types.RequestWithFoundUser;
 
@@ -131,14 +134,18 @@ export function verifyRegistration(
       response,
       foundUser,
       function (verificationCode: string, authSecretKey: string) {
-        if (request.body.signedVerificationCode) {
+        if (request.body.verificationCode) {
           return Services.registrationVerificationHandler(
             response,
-            request.body.signedVerificationCode,
+            request.body.verificationCode,
             verificationCode,
             authSecretKey,
             foundUser.id
           );
+        } else {
+          return HttpHelpers.respondWithClientError(response, "bad request", {
+            body: "Please provide a verification code.",
+          });
         }
       }
     );
@@ -222,10 +229,10 @@ export async function verifyLogin(
       response,
       foundUser,
       function (verificationCode: string, authSecretKey: string) {
-        if (request.body.signedVerificationCode) {
+        if (request.body.verificationCode) {
           return Services.loginVerificationHandler(
             response,
-            request.body.signedVerificationCode,
+            request.body.verificationCode,
             verificationCode,
             authSecretKey,
             foundUser.id,
@@ -248,7 +255,7 @@ export async function logout(
   try {
     await prisma.user.update({
       where: { id: Number(request.params.userId) },
-      data: { loggedIn: false, signedVerificationCode: null },
+      data: { loggedIn: false, verificationCode: null },
     });
     return HttpHelpers.respondWithSuccess(response, "ok", {
       body: "Log out successful.",
@@ -278,7 +285,7 @@ export async function requestNewVerificationCode(
 
         const user = await prisma.user.update({
           where: { email: request.body.email },
-          data: { loggedIn: false, signedVerificationCode },
+          data: { loggedIn: false, verificationCode: signedVerificationCode },
         });
 
         const verificationCode = Helpers.extractVerificationCode(
